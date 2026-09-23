@@ -92,4 +92,11 @@ export interface BookingDTO {
   guests: number;
   status: string;
   createdAt: string;
+  // Booking-request fields (session 3 parity — the live app's request form).
+  name: string | null;
+  surname: string | null;
+  time: string | null;
+  phone: string | null;
+  email: string | null;
+  message: string | null;
 }

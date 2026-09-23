@@ -1,25 +1,29 @@
 "use client";
 
-// The primary navigation, measured from the reference app at both sizes.
+// The primary navigation, re-measured from the live app (session 3).
 //
-// Desktop (≥sm): a centered FLOATING WHITE PILL, sticky near the top, soft
-// shadow:  [✳ ROAM]  Highlights Eat Stay Do Map        [♥] (S)
-// The ACTIVE view link renders as a light-gray pill (#F3F4F6, black text);
-// inactive links are plain black/60 text with icons.
-//
-// Mobile (<sm): a FULL-WIDTH top bar (square corners, white, subtle blur)
-// exactly like the reference's 390px chrome:
+// Mobile (<md): a FIXED top "tab bar" — cream glass (#F8F7F4/62, blur 20,
+// border-b rgba(14,14,14,0.08)), 52px tall, capped at 430px and centered:
 //   [✳ ROAM]  Highlights Eat Stay Do        [pin] [♥] [user]
-// The links are TEXT-ONLY (icons hidden below sm — the reference does the
-// same) and compactly padded so the whole bar fits 390px; the Map link
-// folds into the map-pin icon. The links row carries a horizontal
-// no-scrollbar overflow as a safety valve so links can never slide under
-// the right cluster (the classic Tailwind v4 mobile-nav failure classes
-// A no-nav / B invisible / C clipped / D under-layer / E breakpoint
-// mismatch are regression-pinned by tests/e2e/mobile-navigation.spec.ts).
+// Text-only links, 16px Inter — ACTIVE = weight 700 / #0E0E0E, inactive =
+// weight 500 / #0E0E0E-40%. The three right icons are 18px. On the home page
+// the hero photo slides UNDER the glass; every other page gets a 52px spacer.
+//
+// Desktop (md+): a sticky TRANSPARENT header (pt 1vh, px-6, pb-2) holding a
+// full-width WHITE bar (h-14, border-b #E8E6DC) — the floating pill is gone:
+//   [✳ ROAM]  Highlights Eat Stay Do Map     [♥] (S)
+// Links are icon+text 16px Inter with the ACTIVE link on a rgba(14,14,14,0.08)
+// pill; the right cluster is the heart (w-9 h-9, #0E0E0E/7 disc) plus the
+// black avatar disc. The whole header hides on scroll-down and returns on
+// scroll-up (the live app's translateY(-120%) choreography).
+//
+// The links row keeps a horizontal no-scrollbar overflow as a safety valve so
+// links can never slide under the logo or the right cluster (Tailwind v4
+// failure classes A–E are regression-pinned by tests/e2e/mobile-navigation.spec.ts).
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Sun, UtensilsCrossed, BedDouble, Compass, MapPin, Heart, User } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
@@ -32,6 +36,33 @@ const LINKS = [
 
 export function Navbar({ userName }: { userName: string }) {
   const pathname = usePathname();
+  const isHome = pathname === "/";
+  const [hidden, setHidden] = useState(false);
+
+  // Desktop hide-on-scroll: disappear when scrolling down near the bottom of
+  // the document, reappear as soon as the user scrolls up (live parity).
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let raf: number | null = null;
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const up = y < lastY - 2;
+        const nearBottom = document.documentElement.scrollHeight - (y + window.innerHeight) <= 140;
+        setHidden(nearBottom && !up && y > 40);
+        if (up) setHidden(false);
+        lastY = y;
+        raf = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   function isActive(href: string): boolean {
     if (href === "/") return pathname === "/";
@@ -39,122 +70,146 @@ export function Navbar({ userName }: { userName: string }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 bg-cream/95 backdrop-blur-sm sm:top-4 sm:px-4">
-      <nav
-        aria-label="Primary"
+    <>
+      <header
         className={cn(
-          "mx-auto flex h-[52px] items-center justify-between border-black/5 bg-white px-2.5 py-1.5",
-          // Mobile: full-width flat bar (the reference's 390px chrome).
-          "border-x-0 border-t-0 border-b",
-          // ≥sm: the floating centered pill.
-          "sm:w-full sm:max-w-[1000px] sm:rounded-full sm:border sm:px-2 sm:shadow-[0_4px_24px_rgba(0,0,0,0.07)]",
+          // Mobile tab-bar: fixed top, cream glass, 52px, centered, ≤430px.
+          "fixed left-1/2 top-0 z-40 w-full max-w-[430px] -translate-x-1/2",
+          "border-b border-[#0e0e0e]/[0.08] bg-cream/60 backdrop-blur-[20px]",
+          // md+: in-flow sticky transparent header wrapping the white bar.
+          "md:sticky md:top-0 md:left-auto md:max-w-none md:translate-x-0 md:border-b-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:px-6 md:pb-2",
         )}
       >
-        {/* Wordmark — the live app's image logo (icon + wordmark sprite,
-            /images/roam-logo.png, captured from the reference CDN), shown
-            with the reference's two-span crop technique: an 18px icon span
-            plus a wordmark span offset by -18px. */}
-        <Link
-          href="/"
-          className="flex shrink-0 items-center pl-0.5 pr-1 sm:pl-2 sm:pr-4"
-          aria-label="ROAM home"
+        {/* The nav IS the bar — it wraps the wordmark, the view links, and
+            the right-cluster icon actions, so every header control lives in
+            one "Primary" landmark (matches the live app's tab-bar). */}
+        <nav
+          aria-label="Primary"
+          className={cn(
+            // Inner bar — mobile: the 52px tab row; desktop: white h-14 bar.
+            "flex h-[52px] items-center justify-between px-4 md:h-14 md:w-full md:px-3",
+            "md:border-b md:border-line md:bg-white",
+            !hidden && "md:translate-y-0 md:opacity-100",
+            hidden && "md:-translate-y-[130%] md:opacity-0",
+            "md:transition-transform md:duration-300",
+          )}
         >
-          <span aria-hidden className="relative block h-[18px] w-[18px] shrink-0 overflow-hidden">
-              <img src="/images/roam-logo.png" alt="" className="block h-[18px] w-auto max-w-none" />
-          </span>
-          <span aria-hidden className="relative ml-[4px] block h-[18px] w-[52px] shrink-0 overflow-hidden sm:w-[70px]">
+          {/* Wordmark — the live app's image logo (icon + wordmark sprite,
+              /images/roam-logo.png), two-span crop: 18px/62px on mobile,
+              25.6px/88px from md (measured). */}
+          <Link
+            href="/"
+            className="flex h-8 shrink-0 items-center md:ml-1"
+            aria-label="ROAM home"
+          >
+            <span aria-hidden className="relative block h-[18px] w-[18px] shrink-0 overflow-hidden md:h-[25.6px] md:w-[25.6px]">
+              <img src="/images/roam-logo.png" alt="" className="block h-[18px] w-auto max-w-none md:h-[25.6px]" />
+            </span>
+            <span aria-hidden className="relative ml-[4px] block h-[18px] w-[62px] shrink-0 overflow-hidden md:h-[25.6px] md:w-[88px]">
               <img
-              src="/images/roam-logo.png"
-              alt=""
-              className="block h-[18px] w-auto max-w-none"
-              style={{ transform: "translateX(-18px)" }}
-            />
-          </span>
-          <span className="sr-only">ROAM</span>
-        </Link>
+                src="/images/roam-logo.png"
+                alt=""
+                className="block h-[18px] w-auto max-w-none [transform:translateX(-18px)] md:h-[25.6px] md:[transform:translateX(-25.6px)]"
+              />
+            </span>
+            <span className="sr-only">ROAM</span>
+          </Link>
 
-        {/* View links — text-only and compact below sm (reference), with
-            icons + the Map link from sm up. The no-scrollbar overflow is a
-            safety valve: at extreme widths links scroll instead of sliding
-            under the logo or the right cluster. */}
-        <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-3 overflow-x-auto sm:gap-1">
-          {LINKS.map(({ href, label, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "font-nav flex shrink-0 items-center whitespace-nowrap rounded-full tracking-[0.01em] transition-colors",
-                  active
-                    ? "bg-[#F3F4F6] font-bold text-ink"
-                    : "font-medium text-black/60 hover:bg-black/[0.04] hover:text-ink",
-                  "px-0 py-2 text-xs sm:px-3 sm:text-sm",
-                )}
-              >
-                <Icon className="mr-1.5 hidden h-4 w-4 sm:block" strokeWidth={1.5} aria-hidden />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
+          {/* View links — mobile: text-only 16px (active 700 ink / inactive
+              500 ink-40%); md+: icon+text with the rgba(14,14,14,0.08) active
+              pill. no-scrollbar keeps the row from ever sliding under the
+              logo or right cluster at 390px. Explicit rgba() utilities (not
+              hex/α-modifiers) pin exact computed colors for the specs —
+              Tailwind v4 α-modifiers compile to color-mix() instead. */}
+          <div
+            className={cn(
+              "no-scrollbar flex min-w-0 flex-1 items-center justify-center overflow-x-auto",
+              "gap-3 md:flex-none md:gap-1 md:overflow-visible",
+            )}
+          >
+            {LINKS.map(({ href, label, icon: Icon }) => {
+              const active = isActive(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-base transition-colors",
+                    "md:h-auto md:rounded-full md:px-4 md:py-2",
+                    active
+                      ? "font-bold text-ink md:bg-[rgba(14,14,14,0.08)] md:font-normal"
+                      : "font-medium text-[rgba(14,14,14,0.4)] hover:text-ink md:text-ink/70 md:hover:bg-black/[0.04] md:hover:text-ink",
+                  )}
+                >
+                  <Icon className="mr-2 hidden h-4 w-4 md:block" strokeWidth={1.5} aria-hidden />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
 
-          {/* Map: full link ≥sm, folded into the right-cluster pin below. */}
-          <Link
-            href="/map"
-            aria-label="Map"
-            aria-current={isActive("/map") ? "page" : undefined}
-            className={cn(
-              "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full tracking-[0.01em] transition-colors sm:flex",
-              isActive("/map")
-                ? "bg-[#F3F4F6] font-bold text-ink"
-                : "font-medium text-black/60 hover:bg-black/[0.04] hover:text-ink",
-              "px-3 py-2 text-sm",
-            )}
-          >
-            <MapPin className="mr-1.5 h-4 w-4" strokeWidth={1.5} aria-hidden />
-            <span>Map</span>
-          </Link>
-        </div>
+            {/* Map: a full icon+text link from md up, folded into the
+                right-cluster pin below md (the live app's fold). */}
+            <Link
+              href="/map"
+              aria-current={isActive("/map") ? "page" : undefined}
+              className={cn(
+                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-base transition-colors md:flex",
+                isActive("/map")
+                  ? "bg-[rgba(14,14,14,0.08)] text-ink"
+                  : "text-ink/70 hover:bg-black/[0.04] hover:text-ink",
+              )}
+            >
+              <MapPin className="mr-2 h-4 w-4" strokeWidth={1.5} aria-hidden />
+              <span>Map</span>
+            </Link>
+          </div>
 
-        {/* Right cluster — on mobile: pin, heart, user icons (reference);
-            on desktop: heart + the black avatar chip. */}
-        <div className="flex shrink-0 items-center gap-1 pl-1 sm:gap-1.5 sm:pl-2">
-          <Link
-            href="/map"
-            aria-label="Map"
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:hidden",
-              isActive("/map") ? "bg-[#F3F4F6] text-ink" : "text-black/60 hover:bg-black/[0.05] hover:text-ink",
-            )}
-          >
-            <MapPin className="h-[17px] w-[17px]" strokeWidth={1.5} aria-hidden />
-          </Link>
-          <Link
-            href="/favourites"
-            aria-label="Favourites"
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-9 sm:w-9",
-              isActive("/favourites") ? "bg-[#F3F4F6] text-ink" : "text-black/60 hover:bg-black/[0.05] hover:text-ink",
-            )}
-          >
-            <Heart className="h-[17px] w-[17px] sm:h-[18px] sm:w-[18px]" strokeWidth={1.5} aria-hidden />
-          </Link>
-          <Link
-            href="/profile"
-            aria-label="Profile"
-            className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors sm:h-8 sm:w-8 sm:bg-ink sm:text-xs sm:font-bold sm:text-white",
-              isActive("/profile")
-                ? "bg-[#F3F4F6] text-ink sm:bg-ink sm:text-white"
-                : "text-black/60 hover:bg-black/[0.05] hover:text-ink sm:hover:opacity-90",
-            )}
-          >
-            <User className="h-[17px] w-[17px] sm:hidden" strokeWidth={1.5} aria-hidden />
-            <span className="hidden sm:inline">{initials(userName)}</span>
-          </Link>
-        </div>
-      </nav>
-    </header>
+          {/* Right cluster — mobile: pin / heart / user icons (18px);
+              md+: the heart disc (#0E0E0E/7) + the black avatar chip. */}
+          <div className="flex shrink-0 items-center justify-end gap-2 md:gap-2">
+            <Link
+              href="/map"
+              aria-label="Map"
+              className={cn(
+                "flex h-full w-[18px] items-center justify-center transition-colors md:hidden",
+                isActive("/map") ? "text-ink" : "text-ink hover:opacity-70",
+              )}
+            >
+              <MapPin className="h-[18px] w-[18px]" strokeWidth={1.5} aria-hidden />
+            </Link>
+            <Link
+              href="/favourites"
+              aria-label="Favourites"
+              className={cn(
+                "flex h-full w-[18px] items-center justify-center transition-colors md:h-9 md:w-9 md:rounded-full md:bg-[#0e0e0e]/[0.07]",
+                isActive("/favourites")
+                  ? "text-ink"
+                  : "text-ink hover:opacity-70 md:hover:bg-[#0e0e0e]/[0.12]",
+              )}
+            >
+              <Heart className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+            </Link>
+            <Link
+              href="/profile"
+              aria-label="Profile"
+              className={cn(
+                "flex h-full w-[18px] items-center justify-center transition-colors md:h-9 md:w-9 md:rounded-full md:bg-ink",
+                isActive("/profile")
+                  ? "text-ink md:text-white"
+                  : "text-ink hover:opacity-70 md:text-white md:hover:opacity-90",
+              )}
+            >
+              <User className="h-[18px] w-[18px] md:hidden" strokeWidth={1.5} aria-hidden />
+              <span className="hidden text-sm font-bold text-white md:inline">{initials(userName)}</span>
+            </Link>
+          </div>
+        </nav>
+      </header>
+
+      {/* Mobile spacer — the tab-bar is fixed; every page except the home
+          hero (which slides under the glass) clears the 52px bar. */}
+      {!isHome && <div aria-hidden className="h-[52px] md:hidden" />}
+    </>
   );
 }

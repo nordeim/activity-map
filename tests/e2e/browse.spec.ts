@@ -31,14 +31,13 @@ test.describe("home (Highlights)", () => {
     await expect(page.getByRole("heading", { name: "Stay In Style" })).toBeVisible();
   });
 
-  test("the planner submits to the map with its parameters", async ({ page }) => {
+  test("the planner submits to the category view with its parameters", async ({ page }) => {
     await page.goto("/");
+    // Session 3 parity: Hotels → /stay?people=N (never the map).
     await page.getByLabel("Number of people").selectOption("3");
-    await page.getByLabel("Type of Activities").selectOption("stay");
+    await page.getByLabel("Type of Activities").selectOption("Hotels");
     await page.getByLabel("Search trip matches").click();
-    await expect(page).toHaveURL(/\/map\?/);
-    await expect(page).toHaveURL(/guests=3/);
-    await expect(page).toHaveURL(/category=stay/);
+    await expect(page).toHaveURL(/\/stay\?people=3$/);
   });
 });
 
@@ -88,23 +87,34 @@ test.describe("browse views", () => {
 });
 
 test.describe("place detail", () => {
-  test("renders the measured Courtyard Stay page with the booking card", async ({ page }) => {
+  test("renders the measured Courtyard Stay page with the booking request form", async ({ page }) => {
     await page.goto("/place/courtyard-stay");
     await expect(page.getByText("Stay", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Courtyard Stay" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Courtyard Stay", exact: true })).toBeVisible();
     await expect(page.getByText("Dom Viertel 14")).toBeVisible();
     await expect(page.getByText("4.8", { exact: true }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Check Availability" })).toBeVisible();
-    await expect(page.getByText("You won't be charged yet")).toBeVisible();
+    // The live app's request form (session 3): About this place + the
+    // Name/Surname/Dates/Time/Phone/Email/Message fields + violet Book Now.
+    await expect(page.getByRole("heading", { name: "About this place" })).toBeVisible();
+    await expect(page.getByText(/Send your booking request for Courtyard Stay/)).toBeVisible();
+    for (const field of ["Name", "Surname", "Dates", "Time", "Phone", "Email", "Message"]) {
+      await expect(page.getByLabel(field, { exact: false }).first()).toBeVisible();
+    }
+    await expect(page.getByRole("button", { name: "Book Now" })).toBeVisible();
   });
 
-  test("booking records a reservation visible on the profile", async ({ page }) => {
+  test("booking records a request visible on the profile", async ({ page }) => {
     await page.goto("/place/courtyard-stay");
-    await page.getByRole("button", { name: "Check Availability" }).click();
-    await expect(page.getByText(/Reserved/)).toBeVisible({ timeout: 15_000 });
+    await page.getByLabel("Name", { exact: true }).fill("Ada");
+    await page.getByLabel("Surname", { exact: true }).fill("Lovelace");
+    await page.getByLabel("Dates", { exact: true }).fill("2026-10-01");
+    await page.getByLabel("Time", { exact: true }).fill("19:00");
+    await page.getByLabel("Email", { exact: true }).fill("ada@example.com");
+    await page.getByRole("button", { name: "Book Now" }).click();
+    await expect(page.getByText(/Request sent/)).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/profile");
-    await page.getByRole("tab", { name: "My bookings" }).click();
+    await expect(page.getByText("My bookings")).toBeVisible();
     await expect(page.getByText("Courtyard Stay")).toBeVisible();
   });
 });
@@ -139,26 +149,32 @@ test.describe("map view", () => {
       await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
     }
 
-    // All 42 places plot as dot markers.
-    await expect(page.locator(".roam-marker")).toHaveCount(42);
-    await expect(page.getByText("0 events · 42 places")).toBeVisible();
+    // The nine demo pins plot as dot markers (session 3 parity — the
+    // browse entities never appear on the live map).
+    await expect(page.locator(".roam-marker")).toHaveCount(9);
+    await expect(page.getByText("0 events · 9 places")).toBeVisible();
+    await expect(page.getByText("Places on the map")).toBeVisible();
 
     // The Hotels pill narrows the canvas.
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
-    await expect(page.locator(".roam-marker")).toHaveCount(12);
-    await expect(page.getByText("0 events · 12 places")).toBeVisible();
+    await expect(page.locator(".roam-marker")).toHaveCount(3);
+    await expect(page.getByText("0 events · 3 places")).toBeVisible();
   });
 });
 
 test.describe("profile", () => {
-  test("renders the identity card, tabs and the trips surfaces", async ({ page }) => {
+  test("renders the Explorer identity, booking tabs and the empty state", async ({ page }) => {
     await page.goto("/profile");
-    await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toBeVisible();
-    await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
-    await expect(page.getByRole("tab", { name: "Trips" })).toBeVisible();
-    await expect(page.getByRole("tab", { name: "My bookings" })).toBeVisible();
+    // The live app's session-3 profile: PROFILE eyebrow + Explorer title.
+    await expect(page.getByText("Profile", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Explorer" })).toBeVisible();
+    await expect(page.getByText("Your Roam account")).toBeVisible();
+    await expect(page.getByText("Saved places")).toBeVisible();
+    await expect(page.getByText("My bookings")).toBeVisible();
     // Either the empty-upcoming state or an earlier test's reservation —
-    // both prove the section renders.
+    // both prove the section renders. .first(): with zero bookings BOTH the
+    // "Upcoming (0)" tab and the empty-state paragraph exist at once, and an
+    // un-scoped .or() would trip strict mode on the pair.
     await expect(
       page.getByText("No upcoming reservations. Time to explore.").or(page.getByText("Upcoming (")).first(),
     ).toBeVisible();

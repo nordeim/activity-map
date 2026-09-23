@@ -117,8 +117,20 @@ export async function listFavourites(userId: string): Promise<PlaceDTO[]> {
   return rows.map((r) => ({ ...toPlaceDTO(r.place, userId), saved: true }));
 }
 
+// Map demo pins (status "map", session 3 parity): the live map renders a
+// hardcoded set of nine demo places with real coordinates — the browse
+// entities never appear on the map. Selected here, invisible everywhere else.
+export async function listMapPlaces(userId?: string): Promise<PlaceDTO[]> {
+  const rows = await db.place.findMany({
+    where: { status: "map" },
+    orderBy: [{ sortOrder: "asc" }],
+    include: userId ? { savedBy: { where: { userId }, select: { userId: true } } } : undefined,
+  });
+  return rows.map((r) => toPlaceDTO(r, userId));
+}
+
 export function toBookingDTO(
-  b: { id: string; placeId: string; startDate: Date | null; endDate: Date | null; guests: number; status: string; createdAt: Date },
+  b: { id: string; placeId: string; startDate: Date | null; endDate: Date | null; guests: number; status: string; createdAt: Date; name: string | null; surname: string | null; time: string | null; phone: string | null; email: string | null; message: string | null },
   place: { slug: string; name: string; category: string; coverImageUrl: string | null; neighborhood: string | null },
 ): BookingDTO {
   return {
@@ -134,6 +146,12 @@ export function toBookingDTO(
     guests: b.guests,
     status: b.status,
     createdAt: b.createdAt.toISOString(),
+    name: b.name,
+    surname: b.surname,
+    time: b.time,
+    phone: b.phone,
+    email: b.email,
+    message: b.message,
   };
 }
 

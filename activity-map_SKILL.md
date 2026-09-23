@@ -4,12 +4,12 @@ description: >
   Complete engineering skill for the ROAM (Augsburg City Guide) codebase — a
   Next.js 16 + React 19 + Tailwind v4 + Prisma/SQLite clone of
   activity-map.base44.app. Captures every design decision, anti-pattern,
-  debugging procedure, and lesson learned from two build/remediation
+  debugging procedure, and lesson learned from three build/remediation
   sessions so a future agent can extend, debug, or replicate the app without
   re-discovering them.
-version: 1.0.0
+version: 1.2.0
 last_updated: 2026-09-23
-project_state: 32 unit + 27 smoke + 35 E2E checks green; 42 published + 27 home-only seeded places
+project_state: 42 unit + 27 smoke + 35 E2E checks green; 42 published + 27 home-only + 9 map-demo seeded places
 ---
 
 # activity-map — ROAM (Augsburg City Guide) Engineering SKILL
@@ -64,8 +64,9 @@ Next.js app with cookie sessions and SQLite.
 filter chip, heading string, and mobile-chrome behavior was measured from the
 live reference app (DOM inspection, computed styles, pixel sampling, VLM
 screenshot comparison) before coding. When the live app changed (session 2's
-Libre Baskerville + home redesign), the clone re-measured and followed. The
-clone is a mirror, and mirrors are maintained by re-measuring, not guessing.
+Libre Baskerville + home redesign; session 3's palette/navbar/planner/card
+redesign), the clone re-measured and followed. The clone is a mirror, and
+mirrors are maintained by re-measuring, not guessing.
 
 **Non-negotiable rules:**
 
@@ -80,9 +81,10 @@ clone is a mirror, and mirrors are maintained by re-measuring, not guessing.
   third-party fetches.
 
 **Anti-generic mandate:** no default Next.js starter look, no shadcn drawer
-nav, no `bg-blue-600` accents. The palette is cream/ink/violet (+ the
-electric blue band), the display face is Libre Baskerville, and the nav links
-are Poppins 12px — all measured, none chosen.
+nav, no `bg-blue-600` accents. The palette is cream/ink/violet `#571AFF` (+
+the electric blue band), the display face is Libre Baskerville, and the nav
+links are Inter 16px (Poppins was dropped by the live app's session-3
+redesign) — all measured, none chosen.
 
 ---
 
@@ -162,16 +164,21 @@ CSS-first — a `tailwind.config.*` file must NEVER appear):
 
 ```css
 @theme {
-  --color-cream: #f9f7f2;      /* page canvas */
-  --color-cream-deep: #f3efe7; /* raised cream surfaces */
-  --color-ink: #1a1a1a;        /* primary text, black buttons, markers */
-  --color-roam: #5a18fb;       /* VIEW ALL accent, active marker */
+  --color-cream: #f8f7f4;      /* page canvas (footer matches) */
+  --color-cream-deep: #f2f1ee; /* raised cream surfaces */
+  --color-surface2: #f2f1ee;   /* tag pills */
+  --color-ink: #0e0e0e;        /* primary text, black buttons, markers */
+  --color-secondary: #3a3a3a;  /* body copy */
+  --color-muted: #888580;      /* muted meta text */
+  --color-line: #e8e6dc;       /* navbar bottom border */
+  --color-border: #dddbd5;     /* card hairlines */
+  --color-roam: #571aff;       /* Learn More / Book Now accent, active marker */
   --color-roam-deep: #4a0fe0;  /* accent hover/pressed */
   --color-electric: #4d61ff;   /* live home's Highlighted Restaurants band */
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: "Libre Baskerville", ui-serif, Georgia, "Times New Roman", serif;
-  --font-nav: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-nav: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --shadow-card: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
   --shadow-float: 0 4px 24px rgba(0, 0, 0, 0.06);
@@ -181,13 +188,17 @@ CSS-first — a `tailwind.config.*` file must NEVER appear):
 }
 ```
 
+(The legacy `.font-poppins` utility still exists in globals.css but was
+redefined to Libre Baskerville — mirroring the live app, which loads no
+Poppins at all since its session-3 redesign.)
+
 **Typography hierarchy (roles, from the live app):**
 
 | Role | Font | Weight/size notes |
 |---|---|---|
-| Display (hero h1, section h2, place titles) | Libre Baskerville (`font-serif`) | hero: `clamp(34px, 9vw, 122px)`, `letter-spacing -0.05em`, white + soft shadow; sections: `text-4xl`→`text-7xl` responsive |
-| Nav links | Poppins (`font-nav`) | 12px mobile / `text-sm` ≥sm; 700 active, 500 inactive; `tracking-[0.01em]` |
-| UI body / meta / buttons | Inter (`font-sans` — the body default) | `text-sm`/`text-base`, `font-medium` for meta |
+| Display (hero h1, section h2, place titles, 48px route-stop titles) | Libre Baskerville (`font-serif`) | hero: `clamp(34px, 9vw, 122px)`; per-section clamps measured session 3 — browse h1 `clamp(36px, 4.3vw, 55px)` ls −0.06em; detail h1 `clamp(36px, 6.4vw, 82px)`; route `clamp(38px, 6vw, 72px)`; restaurants `clamp(42px, 7vw, 104px)` |
+| Nav links | Inter (`font-nav`) | 16px; mobile 700 active `#0E0E0E` / 500 inactive 40%; desktop 400 with active `rgba(14,14,14,0.08)` pill |
+| UI body / meta / buttons / card names | Inter (`font-sans` — the body default) | card names 28px tracking −0.04em overlaid on photos; meta 12–13px |
 
 **Custom `@utility` primitives (3):** `bg-grid` (22px graph-paper grid on the
 favourites/profile canvases), `no-scrollbar` (the mobile-nav safety valve),
@@ -197,12 +208,16 @@ motion is Tailwind transitions + `prefers-reduced-motion` awareness.
 **Radius scale:** Tailwind default scale + `--radius-4xl` (2rem). Cards use
 `rounded-3xl` (1.5rem); the planner pill and nav pill are `rounded-full`.
 
-**The glass planner pill (measured tokens, Hero.tsx):**
+**The glass planner pill (measured tokens, TripPlanner.tsx — `variant="glass"`
+for the hero, plain white pill for the browse sticky):**
 `rounded-full border-white/35 bg-[#F8F7F4]/35 backdrop-blur-[28px]
 backdrop-saturate-150` + shadow `0 8px 22px rgba(0,0,0,0.12), inset 0 1px 0
 rgba(255,255,255,0.42)`; desktop grid
-`[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_48px]`, wrapping
-2×2 at 390px.
+`[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_46px]`, wrapping
+2×2 at 390px. Segments show a hover-revealed 12px label above the value row;
+People/Type are invisible native `<select>` overlays; dates open the
+`DateRangePicker` popover; the 46px search button routes to
+`/eat|/stay|/do?people&start_date&end_date`.
 
 ---
 
@@ -215,49 +230,56 @@ Layer 0  Design tokens     globals.css @theme/@utility        (no config files)
 Layer 1  Pure seams        lib/{db-path,filters,rate-limit,utils,auth}   (Vitest)
 Layer 2  Data access       lib/db.ts singleton + lib/places.ts DTOs      (Prisma)
 Layer 3  API routes        app/api/**/route.ts               (envelope + guards)
-Layer 4  UI                server components by default; 12 client components
+Layer 4  UI                server components by default; 16 client components
 ```
 
 A layer never reaches up; the UI receives typed DTOs (`PlaceDTO`),
 never Prisma rows.
 
-**Client components (12, exhaustive — `"use client"`):**
+**Client components (16, exhaustive — `"use client"`):**
 
 | Component | Why client |
 |---|---|
 | `auth/LoginForm` | form state → POST → `router.refresh()` |
-| `layout/Navbar` | `usePathname` active-link logic |
-| `home/Hero` | planner pill state → router push |
+| `layout/Navbar` | `usePathname` active-link logic + hide-on-scroll |
+| `home/Hero` | hero composition (planner lives in TripPlanner) |
+| `home/RecommendedRoute` | scroll-driven sticky progress (session 3) |
 | `home/HighlightedRestaurants` | tap-to-feature strip state |
 | `places/CategoryExplorer` | search + chip filter state |
-| `places/PlaceCard` | hover transitions + SaveButton mount |
+| `places/PlaceCard` | hover choreography + SaveButton mount |
+| `places/StayCard` | dark square card + hover buttons (session 3) |
 | `places/SaveButton` | optimistic heart toggle |
-| `places/BookingForm` | date/guest pickers → POST |
+| `places/BookingForm` | booking-request form → POST |
+| `planner/TripPlanner` | shared planner pill state → router push |
+| `planner/DateRangePicker` | Su–Sa range popover state |
 | `map/MapExplorer` | pills + search; mounts canvas dynamically |
 | `map/LeafletCanvas` | react-leaflet (client-only, `ssr:false`) |
 | `favourites/FavouritesView` | unsave interactions |
-| `profile/ProfileView` | trips/bookings tabs |
+| `profile/ProfileView` | tabs + category filters |
 
 **Server components:** `(app)/page.tsx` (home composition),
-`RecommendedRoute`, `StayShowcase`, `HighlightedSights`, `CategoryCards`,
+`StayShowcase`, `HighlightedSights`, `CategoryCards`,
 `SiteFooter`, `LegalPage`, the three category pages, `place/[slug]`,
 `login`, `privacy`, `accessibility`, `not-found`.
 
 **The queries boundary (`src/lib/places.ts`):** every DB read goes through
 `listPlaces` / `listPlacesForUser` / `getPlaceBySlug` / `countPlaces` /
-`listHomePlaces` / `listFavourites` / `listBookings`; every payload through
-`toPlaceDTO` / `toBookingDTO`. Components never touch Prisma.
+`listHomePlaces` / `listMapPlaces` / `listFavourites` / `listBookings`; every
+payload through `toPlaceDTO` / `toBookingDTO`. Components never touch
+Prisma. (`src/lib/planner.ts` owns the pure planner param/date-label
+helpers — Vitest-pinned.)
 
 **Auth pattern:** `getSessionUser()` (from `lib/auth.ts`) guards the `(app)`
 layout, every API route except `health` + `auth/login`, and injects the
 per-user `saved` flags. Login/logout navigate with `router.refresh()` so
 server components re-render — never `window.location`.
 
-**Home composition (session 2, mirrors the live app):** Hero →
-CategoryCards (`#category-cards`) → RecommendedRoute →
-HighlightedRestaurants (`#highlighted-restaurants`, bg-electric) →
-StayShowcase (`#stay-showcase`) → HighlightedSights (`#highlighted-sights`)
-→ SiteFooter (a SIBLING of `<main>`, so it keeps its `contentinfo` role).
+**Home composition (re-measured session 3, mirrors the live app):** Hero →
+CategoryCards (glass cards, black `#141413` VIEW ALL) → RecommendedRoute
+(sticky scroll route + progress pill) → HighlightedRestaurants
+(`#highlighted-restaurants`, bg-electric) → StayShowcase (`#stay-showcase`)
+→ HighlightedSights (`#highlighted-sights`) → SiteFooter (a SIBLING of
+`<main>`, so it keeps its `contentinfo` role).
 
 
 ## 6. Client-State Patterns (Hooks Deep Dive)
@@ -311,12 +333,14 @@ double-mount will teach you why.
 | `prisma/data/stay.json` | 12 | `status:"published"`, category `stay` |
 | `prisma/data/do.json` | 18 | `status:"published"`, category `do` |
 | `prisma/data/home.json` | 27 | `status:"home"` — 5 route stops + 6 sights + 16 restaurants |
+| `prisma/data/map.json` | 9 | `status:"map"`, `map-*` slugs, real lat/lng from the live bundle |
 
 Field names mirror the reference app's entity API (`sub_category`,
 `cover_image_url`, `vibe_tags`, `avg_rating`…) so captured JSON maps 1:1 in
-`prisma/seed.ts`. Coordinates are DETERMINISTIC: neighborhood anchors
-(NEIGHBORHOOD_ANCHORS in seed.ts) + a stable FNV hash jitter per slug —
-re-seeding never moves markers.
+`prisma/seed.ts`. Browse-row coordinates are DETERMINISTIC: neighborhood
+anchors (NEIGHBORHOOD_ANCHORS in seed.ts) + a stable FNV hash jitter per slug
+— re-seeding never moves markers. Map-row coordinates are REAL (extracted
+from the live JS bundle's hardcoded array).
 
 **Adding a new published place:** add a record to the category JSON →
 `bun run db:seed` → done (browses, counts, map, search pick it up
@@ -324,8 +348,12 @@ automatically; no component changes).
 
 **Adding a new home showcase item:** add a record to the matching
 `home.json` array (slug MUST start with `home-route-` / `home-sight-` /
-`home-restaurant-` — the prefix IS the selector for `listHomePlaces`) →
-re-seed → the section renders it automatically.
+`home-restaurant-` — the prefix plus `status:"home"` IS the selector for
+`listHomePlaces`) → re-seed → the section renders it automatically.
+
+**Adding a map demo place:** add a record to `prisma/data/map.json`
+(`map-*` slug, real lat/lng) → re-seed → the map page picks it up via
+`listMapPlaces()`; browses stay untouched.
 
 **Idempotency contract:** `db:seed` wipes `booking`, `savedPlace`, `place`,
 `user` then re-inserts. It is safe to run any time; it is NOT incremental —
@@ -344,9 +372,9 @@ reference for stability.
 
 | Item | Implementation | Where to verify |
 |---|---|---|
-| Body text contrast | ink `#1A1A1A` on cream `#F9F7F2` = 16.26:1 (AAA) | globals.css tokens |
-| Accent contrast | roam `#5A18FB` on cream = 6.63:1 (AA); white on electric `#4D61FF` = 4.56:1 (AA) | §19 table |
-| Nav inactive | `black/60` on white ≈ 5.74:1 (AA) | Navbar.tsx |
+| Body text contrast | ink `#0E0E0E` on cream `#F8F7F4` ≈ 16:1 (AAA) | globals.css tokens |
+| Accent contrast | roam `#571AFF` on cream ≈ 6.3:1 (AA); white on electric `#4D61FF` ≈ 4.5:1 (AA) | §19 table |
+| Nav inactive | mobile `#0E0E0E` at 40% opacity; desktop ink on white with `rgba(14,14,14,0.08)` active pill | Navbar.tsx |
 | Focus rings | Browser default outlines preserved; nothing removes `outline` | globals.css (no `outline: none`) |
 | Landmarks | `<header>` (banner), `<nav aria-label="Primary">`, `<main>`, `<footer>` (contentinfo — it is a SIBLING of `<main>`, see §9 B8) | every page |
 | Nav aria | active link carries `aria-current="page"`; icon-only links carry `aria-label` | Navbar.tsx |
@@ -409,10 +437,20 @@ overlapped at 390px — Tailwind v4 failure class D.
 overflowed the 390px budget; (2) after switching to the image logo, the
 logo's right edge overlapped the first link again; (3) after removing
 padding, the links fused with no gaps.
-**Fix:** image wordmark with mobile wordmark span ≤52px wide, text-only
-links with `px-0` and container `gap-3` (12px), `no-scrollbar` horizontal
-overflow as the safety valve, Map folded into the right-cluster pin below
-`sm`.
+**Fix (current, session 3):** fixed-top cream-glass tab-bar (52px, ≤430px
+centered) with the image wordmark's mobile spans capped at 18+62px,
+text-only 16px Inter links, three 18px right-cluster icons, and the
+`no-scrollbar` horizontal overflow safety valve. (Session 2's variant was a
+flat full-width bar with a ≤52px wordmark span — the cap moves with the
+measured chrome; the INVARIANT is: wordmark + 4 text links + 3 icons must
+fit the 390px budget with zero overlap.)
+**Variant (session 3, same symptom class):** a bare `grid` (no
+`grid-cols-*`) in `HighlightedRestaurants` let a 2400px CDN image size an
+implicit auto track to 2416px — `document.scrollWidth` exploded and dragged
+the FIXED navbar's containing block off the 390px viewport (header landed at
+x=565). Fix: `grid-cols-1`. Lesson: fixed-position chrome goes off-screen
+whenever ANY ancestor expands the scroll width — check
+`document.scrollWidth === viewport width` first.
 **Pin:** `tests/e2e/mobile-navigation.spec.ts` computes pairwise link-box
 intersections at 390px and fails on ANY overlap >1px. ALWAYS re-run it after
 touching the Navbar.
@@ -497,7 +535,7 @@ Run IN ORDER from the repo root; every step must be green:
 ```bash
 bun run lint          # eslint . — zero errors
 bun run typecheck     # tsc --noEmit
-bun run test          # vitest — 32 checks (17 db-path + 15 filters)
+bun run test          # vitest — 42 checks (17 db-path + 15 filters + 10 planner)
 bun run build         # next build + standalone assembly
 ./scripts/smoke-test.sh   # 27 API checks against a fresh prod server
 bun run test:e2e      # 35 Playwright checks (needs the build)
@@ -522,10 +560,11 @@ this project's history lived).
 ## 12. Lessons Learnt & How to Avoid Them
 
 1. **Measure, then build (L1).** Session 1 built from measured DOM/pixels and
-   shipped in one pass. Session 2 found the live app had been redesigned
-   (new hero, fonts, home sections) — the fix was the same discipline:
-   re-login, re-measure, re-pin. Avoid by treating the live app as a living
-   spec and budgeting a measurement pass before every parity claim.
+   shipped in one pass. Sessions 2 AND 3 found the live app had been
+   redesigned (fonts/home sections; then palette/navbar/planner/cards) — the
+   fix was the same discipline: re-login, re-measure, re-pin. Avoid by
+   treating the live app as a living spec and budgeting a measurement pass
+   before every parity claim.
 2. **The production build is a different program (L2).** Turbopack's
    minifier broke code that `next dev` and `bun` transpiled correctly (B1).
    Avoid by never trusting dev-mode verification alone — the smoke suite
@@ -534,14 +573,16 @@ this project's history lived).
    shell-profile export both hijacked `DATABASE_URL` on different days (B2).
    Avoid by pinning env inline in every DB-touching script and suspecting
    the environment first when paths go wrong.
-4. **390px is where layouts die (L4).** Three separate mobile-nav bugs
-   (B4) across two sessions, all caught by the same spec. Avoid by re-running
-   `mobile-navigation.spec.ts` after ANY Navbar/token change and thinking in
-   px budgets (logo 66 + 4 links ≈ 210 + 3 icons 114 + margins < 390).
+4. **390px is where layouts die (L4).** Four separate mobile-nav/layout bugs
+   (B4 + session 3's 2416px grid blowout) across three sessions, all caught
+   by the same spec. Avoid by re-running `mobile-navigation.spec.ts` after
+   ANY Navbar/token change and thinking in px budgets (logo 18+62px + 4
+   text links + 3 icons ≈ 18px < 390).
 5. **Status fields are cheaper than new tables (L5).** The home showcase
-   needed 27 place-like rows that must NOT pollute browses. `status:"home"`
-   on the existing Place model + query-level filters solved it with zero
-   schema change. Avoid duplicating models when a lifecycle field will do.
+   needed 27 place-like rows and the map needed 9 demo rows that must NOT
+   pollute browses. `status:"home"` / `status:"map"` on the existing Place
+   model + query-level filters solved it with zero schema change. Avoid
+   duplicating models when a lifecycle field will do.
 6. **Pin the semantics you measured (L6).** Chips, headings, counts, one-line
    nav — all pinned as specs. Every pin converted a later "does it still
    match?" question into a 90-second test run.
@@ -562,10 +603,14 @@ this project's history lived).
 - **Don't construct `PrismaClient` anywhere except `lib/db.ts`** — the
   singleton also holds the connection lifecycle.
 - **Don't query places without `status:"published"`** unless it is
-  `getPlaceBySlug`/`listHomePlaces` (B6).
+  `getPlaceBySlug`/`listHomePlaces`/`listMapPlaces` (B6).
 - **Don't import `react-leaflet` outside the `ssr:false` dynamic gate** (B5).
-- **Don't widen the mobile wordmark span past 52px** or add mobile link
+- **Don't widen the mobile wordmark span past 62px** or add mobile link
   padding — the 390px budget is fully allocated (B4).
+- **Don't use a bare `grid` (no `grid-cols-*`)** — implicit auto tracks size
+  to CONTENT, so one wide CDN image blows out `document.scrollWidth` and
+  drags fixed-position chrome off-screen at mobile emulation widths
+  (session 3's HighlightedRestaurants fix: `grid` → `grid-cols-1`).
 - **Don't remove the `no-scrollbar` overflow on the nav links row** — it is
   the safety valve that converts overflow into scroll instead of overlap.
 - **Don't hand-roll price/€/duration formatting** — `lib/utils.ts`
@@ -591,7 +636,7 @@ this project's history lived).
   `tests/*.test.ts` first (RED), then implementing (GREEN). Both suites run
   in <1s.
 - **Server components by default;** add `"use client"` only for interactivity,
-  and keep the 12-component inventory in this file current.
+  and keep the 16-component inventory in this file current.
 - **DTO at the boundary:** every API payload is `PlaceDTO`/`BookingDTO`;
   serialization happens only in `lib/places.ts`.
 - **Deterministic seeds:** neighborhood anchors + slug-hash jitter keep
@@ -700,9 +745,9 @@ Tailwind default scale (no custom breakpoints). Usage counts in the codebase:
 
 | Breakpoint | What changes |
 |---|---|
-| base (<640px, design target 390×844) | Nav = full-width flat top bar: image wordmark (≤52px span), 4 text-only links (`px-0`, 12px Poppins, `gap-3`), right cluster = pin/heart/user icons. Planner pill wraps 2×2. Cards 1-col. |
-| `sm:` 640px+ | Nav = floating centered white pill (max-w-1000, `rounded-full`, shadow) with icon links + avatar chip; Map becomes a full link. Planner = 4-column single row. Cards 2-col. |
-| `md:` 768px+ | Display headings step up (`text-5xl→7xl`); grids widen. |
+| base (<640px, design target 390×844) | Nav = FIXED-TOP cream-glass tab-bar (52px, ≤430px centered, blur, border-b `rgba(14,14,14,0.08)`): image wordmark (18+62px spans), 4 text-only 16px Inter links (700 active / 500 @40% inactive), right cluster = pin/heart/user 18px icons; home hero slides under the glass. Planner pill wraps 2×2. Cards 1-col. |
+| `sm:` 640px+ | (chips/grids step up; nav unchanged until `md`) |
+| `md:` 768px+ | Nav becomes in-flow sticky transparent header wrapping the full-width WHITE `h-14` bar (border-b `#E8E6DC`): 16px Inter icon+text links, active `rgba(14,14,14,0.08)` pill, heart + avatar right cluster, hide-on-scroll choreography. Display headings step up; grids widen. |
 | `lg:` 1024px+ | Stay showcase 3-col; highlighted restaurants = featured card beside strip. |
 | `xl:` 1280px+ | Max content widths (1000–1100px) — the page never stretches full-bleed. |
 
@@ -731,19 +776,24 @@ stack. There are no portals/modals in the app today.
 
 | Token | Hex | RGB | Tailwind class | Usage | Contrast |
 |---|---|---|---|---|---|
-| cream | `#F9F7F2` | 249 247 242 | `bg-cream` | page canvas | — |
-| cream-deep | `#F3EFE7` | 243 239 231 | `bg-cream-deep` | raised cream (footer) | ink on it: 15.18:1 AAA |
-| ink | `#1A1A1A` | 26 26 26 | `text-ink`, `bg-ink` | primary text, black buttons, markers | on cream 16.26:1 AAA |
-| roam | `#5A18FB` | 90 24 251 | `text-roam`, `bg-roam` | VIEW ALL accent, Learn More, active marker | on cream 6.63:1 AA; white on it 7.10:1 AAA |
-| roam-deep | `#4A0FE0` | 74 15 224 | `text-roam-deep` | accent hover/pressed | on cream 8.05:1 AAA |
-| electric | `#4D61FF` | 77 97 255 | `bg-electric` | home Highlighted Restaurants band | white on it 4.56:1 AA |
-| nav inactive | `rgba(0,0,0,.6)` | — | `text-black/60` | inactive nav links | on white 5.74:1 AA |
-| active pill | `#F3F4F6` | 243 244 246 | `bg-[#F3F4F6]` | active nav link pill | — |
+| cream | `#F8F7F4` | 248 247 244 | `bg-cream` | page canvas (footer matches) | — |
+| cream-deep / surface2 | `#F2F1EE` | 242 241 238 | `bg-cream-deep`, `bg-surface2` | raised cream, tag pills | ink on it ≈15:1 AAA |
+| ink | `#0E0E0E` | 14 14 14 | `text-ink`, `bg-ink` | primary text, black buttons, markers | on cream ≈16:1 AAA |
+| secondary | `#3A3A3A` | 58 58 58 | `text-secondary` | body copy | on cream ≈11:1 AAA |
+| muted | `#888580` | 136 133 128 | `text-muted` | muted meta text | on cream ≈3.5:1 AA-large |
+| line | `#E8E6DC` | 232 230 220 | `border-line` | navbar bottom border | — |
+| border | `#DDDBD5` | 221 219 213 | `border-border` | card hairlines | — |
+| roam | `#571AFF` | 87 26 255 | `text-roam`, `bg-roam` | Learn More / Book Now accent, active marker | on cream ≈6.3:1 AA; white on it ≈7:1 AAA |
+| roam-deep | `#4A0FE0` | 74 15 224 | `text-roam-deep` | accent hover/pressed | on cream ≈8:1 AAA |
+| electric | `#4D61FF` | 77 97 255 | `bg-electric` | home Highlighted Restaurants band | white on it ≈4.5:1 AA |
+| VIEW ALL black | `#141413` | 20 20 19 | `bg-[#141413]` | category-card VIEW ALL pills | white on it ≈17:1 AAA |
+| mobile nav inactive | `rgba(14,14,14,.4)` | — | `text-[#0e0e0e]/40` | inactive mobile tab-bar links | — |
+| desktop active pill | `rgba(14,14,14,.08)` | — | `bg-[rgba(14,14,14,0.08)]` | active desktop nav link pill | — |
 | amber (stars) | `text-amber-300` | — | `text-amber-300` | star ratings on the blue band | decorative |
 
 Opacity variants: `black/5` borders, `black/50–/65` meta text,
 `white/35` glass borders, `bg-[#F8F7F4]/35` glass fill. Selection highlight
-`rgba(90,24,251,0.18)`. No other colors are sanctioned; adding one means
+`rgba(87,26,255,0.18)`. No other colors are sanctioned; adding one means
 adding a token in `@theme` first.
 
 ---
@@ -811,9 +861,11 @@ Session payload (lib/auth.ts): `{ uid, email, name }` signed into the
 | ADR-3 | Tailwind v4 CSS-first tokens in `globals.css` | The reference stack; avoids the config-file failure classes |
 | ADR-4 | Prisma `db push` + deterministic JSON seed (no migrations) | Data is content, not state; reseeding is the update path |
 | ADR-5 | Leaflet via `next/dynamic ssr:false` | Only stable SSR-safe react-leaflet pattern |
-| ADR-6 | `status:"home"` rows for the home showcase | Zero schema change; browses stay pure; home links resolve |
+| ADR-6 | `status:"home"` rows for the home showcase, `status:"map"` for the demo pins | Zero schema change; browses stay pure; home/map links resolve |
 | ADR-7 | Local hero + logo assets, CDN entity imagery | Stability of the chrome vs. freshness of the content |
 | ADR-8 | Shared E2E storageState login | Login rate limiter makes per-test logins self-DoS |
+| ADR-9 | Shared TripPlanner component routing into browses (session 3) | The live app's search goes to `/eat|/stay|/do?people&dates`, not the map |
+| ADR-10 | Booking-request fields on the Booking model (session 3) | The live detail form captures name/surname/time/phone/email/message |
 
 ## Appendix B: Audit History
 
@@ -821,6 +873,7 @@ Session payload (lib/auth.ts): `{ uid, email, name }` signed into the
 |---|---|---|---|
 | Session 1 (build) | Full gate | Turbopack minifier bug → single-exit db-path; parent `.env` hijack → pinned scripts; quoted env values → strip; SaveButton staleness → `router.refresh()`; mobile-nav class D overlap → text-only compact links | 32 unit · 27 E2E · 27 smoke green |
 | Session 2 (parity remediation) | Full gate + live re-measure | Live app redesign → Libre Baskerville/Poppins/fonts, image logo, glass planner hero, 4 new home sections + footer + legal pages (27 home rows); mobile overlap recurred after logo swap → 52px wordmark cap + 12px gaps; CDN load flakes → `domcontentloaded`; footer landmark → sibling of main; db:push/db:seed env pinning | 32 unit · 35 E2E · 27 smoke green |
+| Session 3 (re-measure + remediation) | Full gate + live re-measure | Live app evolved again → 14 findings (docs/remediation-plan-session-3.md): palette/ink/violet retint, Poppins dropped (nav Inter), navbar redesign (glass tab-bar + white bar), TripPlanner + DateRangePicker routing into browses, sticky scroll route, card redesigns (overlaid names, active+dimmed €, dark stay cards), booking-request form + Booking fields, 9 map demo rows, profile redesign. E2E root causes fixed: HighlightedRestaurants bare `grid` → 2416px overflow dragging fixed nav off-screen (grid-cols-1); Navbar `<nav aria-label>` landmark scope; Tailwind v4 `text-[#0e0e0e]/40` compiles to `color-mix()` not `rgba()` (use explicit rgba classes in CSS assertions); getByLabel double-match (label wrapping a labeled select); BookingForm `Name*` accessible name (aria-label on input); profile `.or()` locator strict-mode conflict (`.first()`) | 42 unit · 35 E2E · 27 smoke green |
 
 ## Appendix C: Live-Site Validation Methodology
 
@@ -843,14 +896,16 @@ Session payload (lib/auth.ts): `{ uid, email, name }` signed into the
 | Tokens | `src/app/globals.css` `@theme` |
 | DB singleton | `src/lib/db.ts` (import `{ db }`) |
 | URL resolution contract | `src/lib/db-path.ts` + `tests/db-path.test.ts` |
-| Queries/DTOs | `src/lib/places.ts` (`listHomePlaces`, `toPlaceDTO`) |
+| Queries/DTOs | `src/lib/places.ts` (`listHomePlaces`, `listMapPlaces`, `toPlaceDTO`) |
 | Auth | `src/lib/auth.ts` + `src/lib/rate-limit.ts` |
 | Filters | `src/lib/filters.ts` + `tests/filters.test.ts` |
+| Planner helpers | `src/lib/planner.ts` + `tests/planner.test.ts` |
 | Nav (mobile hazard zone) | `src/components/layout/Navbar.tsx` |
 | Home sections | `src/components/home/{Hero,CategoryCards,RecommendedRoute,HighlightedRestaurants,StayShowcase,HighlightedSights}.tsx` + `layout/SiteFooter.tsx` |
-| Seed data | `prisma/data/{eat,stay,do,home}.json` + `prisma/seed.ts` |
+| Planner | `src/components/planner/{TripPlanner,DateRangePicker}.tsx` |
+| Seed data | `prisma/data/{eat,stay,do,home,map}.json` + `prisma/seed.ts` |
 | E2E specs | `tests/e2e/{auth,browse,home,mobile-navigation}.spec.ts` |
 | Smoke suite | `scripts/smoke-test.sh` (27 checks) |
 | Screenshots baseline | `docs/screenshots/` (14 captures) |
-| Remediation record | `docs/remediation-plan.md` (session 2) |
+| Remediation record | `docs/remediation-plan.md` (session 2) · `docs/remediation-plan-session-3.md` (session 3) |
 | Push runbook | `docs/how-to-git-push-using-ssh-wrapper_SKILL.md` + `docs/ssh_git_wrapper_v3.py` |

@@ -12,7 +12,7 @@ export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
   return (
     <section id="highlighted-sights" className="mx-auto max-w-[1100px] px-4 pb-6 sm:px-6">
       <div className="mx-auto mb-10 max-w-3xl text-center">
-        <h2 className="font-serif text-4xl leading-tight tracking-tight text-ink sm:text-6xl md:text-7xl">
+        <h2 className="font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-ink sm:text-[clamp(42px,6.5vw,86px)]">
           Highlighted Sights
         </h2>
         <p className="mt-4 text-sm font-light text-black/60 sm:text-base">

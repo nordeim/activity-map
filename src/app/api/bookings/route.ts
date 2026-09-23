@@ -25,6 +25,12 @@ export async function POST(req: NextRequest) {
     startDate?: string | null;
     endDate?: string | null;
     guests?: number;
+    name?: string | null;
+    surname?: string | null;
+    time?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    message?: string | null;
   };
   try {
     body = (await req.json()) as typeof body;
@@ -64,8 +70,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const strField = (v: unknown, max = 200): string | null =>
+    typeof v === "string" && v.trim().length > 0 ? v.trim().slice(0, max) : null;
+
   const booking = await db.booking.create({
-    data: { userId: user.uid, placeId, startDate, endDate, guests },
+    data: {
+      userId: user.uid,
+      placeId,
+      startDate,
+      endDate,
+      guests,
+      name: strField(body.name),
+      surname: strField(body.surname),
+      time: strField(body.time, 20),
+      phone: strField(body.phone, 40),
+      email: strField(body.email, 120),
+      message: strField(body.message, 1000),
+    },
   });
 
   return NextResponse.json(

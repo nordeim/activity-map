@@ -21,7 +21,7 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
     <section id="highlighted-restaurants" className="bg-electric">
       <div className="mx-auto max-w-[1000px] px-4 py-16 sm:px-6 sm:py-24">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-serif text-4xl leading-tight tracking-tight text-white sm:text-6xl md:text-7xl">
+          <h2 className="font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-white sm:text-[clamp(42px,7vw,104px)]">
             Highlighted Restaurants
           </h2>
           <Link
@@ -32,7 +32,11 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
           </Link>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
+        {/* grid-cols-1 = minmax(0,1fr): without it the implicit auto track
+            sizes to the featured image's intrinsic width (2400px) and blows
+            the page out horizontally — on a phone this also drags the fixed
+            navbar off-canvas (ICB re-anchoring). */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-start">
           {/* Featured card */}
           <article className="overflow-hidden rounded-3xl bg-white/10 p-2 backdrop-blur-sm">
               <img

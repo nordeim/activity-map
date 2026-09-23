@@ -1,0 +1,181 @@
+"use client";
+
+// The trip-planner pill, re-measured from the live app (session 3):
+//
+//   ( [📅 Select dates] [👥 2] [📍 Restaurants] [⌕] )
+//
+// Each segment is a control whose LABEL sits above (opacity-0 → revealed on
+// hover, the value row nudging down 2px) — the dates segment is a BUTTON
+// that opens the DateRangePicker popover; People and Type of Activities are
+// labels with an INVISIBLE native <select> overlaid (absolute, opacity-0)
+// so the pill keeps its clean look while remaining fully operable. The
+// search button is a transparent 46px disc that inverts to black on hover
+// and carries data-ready once anything is chosen.
+//
+// Two skins: "glass" (the home hero — #F8F7F4/35 + blur, ≤548px) and
+// "white" (the browse pages — solid white, sticky top-24 shell). Searching
+// routes to the category page: /eat|/stay|/do?people=N&start_date&end_date
+// (never the map — live parity).
+
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { CalendarDays, Users, MapPinned, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  PLANNER_TYPES,
+  plannerDateLabel,
+  plannerIsReady,
+  plannerSearchUrl,
+  type PlannerType,
+} from "@/lib/planner";
+import { DateRangePicker } from "./DateRangePicker";
+
+export function TripPlanner({
+  variant = "glass",
+  initialStart,
+  initialEnd,
+  initialPeople = 2,
+  initialType = "Restaurants",
+  className,
+}: {
+  variant?: "glass" | "white";
+  initialStart?: string | null;
+  initialEnd?: string | null;
+  initialPeople?: number;
+  initialType?: PlannerType;
+  className?: string;
+}) {
+  const router = useRouter();
+  const [start, setStart] = useState<string | null>(initialStart ?? null);
+  const [end, setEnd] = useState<string | null>(initialEnd ?? null);
+  const [people, setPeople] = useState<number>(initialPeople);
+  const [type, setType] = useState<PlannerType>(initialType);
+  const [open, setOpen] = useState(false);
+
+  const ready = plannerIsReady(start, end, people, type);
+
+  function search() {
+    router.push(plannerSearchUrl(type, people, start, end));
+  }
+
+  const labelClass =
+    "pointer-events-none absolute left-1/2 top-1.5 -translate-x-1/2 -translate-y-1 whitespace-nowrap text-[12px] font-medium leading-none text-muted opacity-0 transition-all duration-500 ease-out group-hover:translate-y-0 group-hover:opacity-100";
+  const valueClass =
+    "flex min-w-0 items-center justify-center gap-1.5 text-xs font-semibold text-[#141413] transition-transform duration-500 ease-out group-hover:translate-y-2";
+  const segmentClass =
+    "group relative min-w-0 cursor-pointer rounded-full border border-transparent bg-transparent text-center shadow-none transition-all duration-500 ease-out hover:border-white/60 hover:bg-[#F8F7F4]/50 hover:shadow-[0_8px_20px_rgba(14,14,14,0.08),inset_0_1px_0_rgba(255,255,255,0.48)]";
+  const hiddenSelect =
+    "absolute -inset-px h-[calc(100%+2px)] w-[calc(100%+2px)] cursor-pointer rounded-full opacity-0";
+
+  return (
+    <div
+      className={cn(
+        "relative mx-auto mt-4 rounded-full p-1",
+        variant === "glass"
+          ? "z-50 w-full max-w-[548px] border border-white/35 bg-[#F8F7F4]/35 shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)] backdrop-blur-[28px] backdrop-saturate-150"
+          : "w-full border border-black/5 bg-white shadow-[0_8px_22px_rgba(0,0,0,0.08)]",
+        open && "z-[30000]",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "grid items-stretch gap-1 overflow-hidden rounded-full",
+          "grid-cols-2 sm:grid-cols-[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_46px]",
+        )}
+      >
+        {/* Dates — the lead segment (button → range popover). */}
+        <button
+          type="button"
+          aria-label="Choose trip dates"
+          onClick={() => setOpen((o) => !o)}
+          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+        >
+          <p className={labelClass}>Let&apos;s Plan Your Trip</p>
+          <span className={cn(valueClass, "w-full")}>
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#141413]" strokeWidth={2} aria-hidden />
+            <span className="truncate" style={{ maxWidth: 210 }}>
+              {plannerDateLabel(start, end)}
+            </span>
+          </span>
+        </button>
+
+        {/* People 1–8 — invisible native select overlay. A plain div (NOT a
+            <label aria-label=…>): the select below carries the only
+            aria-label, keeping getByLabel single-matched for specs and AT. */}
+        <div
+          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+        >
+          <p className={labelClass}>People</p>
+          <span className={cn(valueClass, "w-full")}>
+            <Users className="h-3.5 w-3.5 shrink-0 text-[#141413]" strokeWidth={2} aria-hidden />
+            <span className="min-w-0 truncate" style={{ maxWidth: 34 }}>
+              {people}
+            </span>
+          </span>
+          <select
+            aria-label="Number of people"
+            value={people}
+            onChange={(e) => setPeople(Number(e.target.value))}
+            className={hiddenSelect}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Type of Activities — invisible native select overlay (same
+            single-aria-label pattern as the People segment). */}
+        <div
+          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+        >
+          <p className={labelClass}>Type of Activities</p>
+          <span className={cn(valueClass, "w-full")}>
+            <MapPinned className="h-3.5 w-3.5 shrink-0 text-[#141413]" strokeWidth={2} aria-hidden />
+            <span className="min-w-0 truncate" style={{ maxWidth: 126 }}>
+              {type}
+            </span>
+          </span>
+          <select
+            aria-label="Type of Activities"
+            value={type}
+            onChange={(e) => setType(e.target.value as PlannerType)}
+            className={hiddenSelect}
+          >
+            {PLANNER_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Search — the round button (transparent → black on hover). */}
+        <button
+          type="button"
+          aria-label="Search trip matches"
+          data-ready={ready ? "true" : "false"}
+          onClick={search}
+          className="flex h-[46px] w-full items-center justify-center rounded-full border border-transparent bg-transparent text-[#141413] backdrop-blur-[18px] transition-colors duration-300 hover:bg-[#0e0e0e] hover:text-white hover:shadow-[0_12px_28px_rgba(14,14,14,0.28)]"
+        >
+          <Search className="h-[17px] w-[17px]" strokeWidth={2} aria-hidden />
+        </button>
+      </div>
+
+      {open && (
+        <DateRangePicker
+          start={start}
+          end={end}
+          onSelect={({ from, to }) => {
+            setStart(from);
+            setEnd(to);
+          }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </div>
+  );
+}

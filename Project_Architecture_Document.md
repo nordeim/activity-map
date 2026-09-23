@@ -11,6 +11,7 @@
 
 - `[SYN]` Initial PAD for the completed ROAM clone — generated after all verification gates passed (lint ✓, typecheck ✓, 32 unit ✓, 27 E2E ✓, 27 smoke ✓).
 - `[v1.1]` Session 2 remediation — live-app parity pass (Libre Baskerville/Poppins fonts, image logo, glass planner hero, home showcase: Recommended Route / blue Highlighted Restaurants / Choose Your Vibe stays / Highlighted Sights / footer + legal pages; `status:"home"` seeding; env pinning on db scripts). Gates re-verified: 32 unit ✓, 27 smoke ✓, 35 E2E ✓.
+- `[v1.2]` Session 3 remediation — live-app re-measure (14 findings, `docs/remediation-plan-session-3.md`): palette `#F8F7F4/#0E0E0E/#571AFF` + new line/border/muted tokens; Poppins dropped (nav → Inter); navbar redesigned (mobile cream-glass fixed-top tab-bar / desktop flat white `h-14` bar); shared TripPlanner + DateRangePicker routing into browses with `people`/`start_date`/`end_date` params; sticky scroll Recommended Route with progress pill; eat/do/stay card redesigns (overlaid names, active+dimmed prices, violet Learn More, dark stay cards); booking-request form + Booking schema fields; map fed by 9 `status:"map"` demo rows; profile redesign. Gates re-verified: 42 unit ✓, 27 smoke ✓, 35 E2E ✓.
 
 ### Table of Contents
 
@@ -97,18 +98,18 @@ ROAM is a production-grade, self-hosted clone of `activity-map.base44.app` — a
 
 **ADR-006: Leaflet + CARTO basemap, keyless**
 
-- **Context:** The reference map view shows 42 dot markers over a light basemap with popups.
-- **Decision:** `react-leaflet` 5 + Leaflet 1.9, CARTO Positron raster tiles, custom `.roam-marker` CSS (16px black dot, white ring; 22px violet when active), mounted through `next/dynamic` with `ssr: false`.
-- **Rationale:** Matches the reference's visual language exactly; needs no API key or billing account; the `ssr: false` boundary is mandatory because Leaflet touches `window` at import time.
-- **Consequences:** One client-only component boundary to respect; tile availability depends on the CARTO CDN.
-- **Alternatives Rejected:** MapBox GL (key + bundle weight for no fidelity gain); Google Maps (key + licensing); SVG-only static map (loses pan/zoom/popups).
+- **Context:** The reference map view shows 9 hardcoded demo places (the live bundle's array — the 42 browse entities carry no coordinates) as dot markers over a light basemap with popups.
+- **Decision:** `react-leaflet` 5 + Leaflet 1.9, CARTO Positron raster tiles, custom `.roam-marker` CSS (16px black dot, white ring; 22px violet when active), mounted through `next/dynamic` with `ssr: false`. The 9 demo places are seeded as `status: "map"` rows (real lat/lng from the bundle array) and the map page queries them via `listMapPlaces()`.
+- **Rationale:** Matches the reference's visual language and its data reality exactly (a demo array, not an entity-fed map); needs no API key or billing account; the `ssr: false` boundary is mandatory because Leaflet touches `window` at import time.
+- **Consequences:** One client-only component boundary to respect; tile availability depends on the CARTO CDN; browse entities stay coordinate-less (live parity).
+- **Alternatives Rejected:** Feeding the map from the 42 published places (contradicts the measured live behavior); MapBox GL (key + bundle weight); Google Maps (key + licensing); SVG-only static map (loses pan/zoom/popups).
 
-**ADR-007: Seed data reverse-engineered from the live entity API**
+**ADR-007: Seed data reverse-engineered from the live entity API and page DOM**
 
-- **Context:** The clone's content must match the reference app — the 42 places, their tags, prices, and descriptions.
-- **Decision:** The live app's entity endpoints were captured into `prisma/data/{eat,stay,do}.json` (12 / 12 / 18 records); `prisma/seed.ts` maps them 1:1 into `Place` rows, generating coordinates deterministically per neighborhood, and creates the demo user (`sepnetflix2023@outlook.com`, the reference account).
+- **Context:** The clone's content must match the reference app — the 42 places, their tags, prices, and descriptions, plus the home showcase and the map's demo pins.
+- **Decision:** The live app's entity endpoints were captured into `prisma/data/{eat,stay,do}.json` (12 / 12 / 18 records); the home page's showcase rows into `prisma/data/home.json` (27 `status: "home"` rows: 5 route stops, 6 sights, 16 restaurants); the live map's hardcoded array into `prisma/data/map.json` (9 `status: "map"` rows, real lat/lng). `prisma/seed.ts` maps all four 1:1 into `Place` rows, generating browse-row coordinates deterministically per neighborhood, and creates the demo user (`sepnetflix2023@outlook.com`, the reference account).
 - **Rationale:** Guarantees content parity and gives the filter chips real data to be measured against (the stay view's "Under €250" / "With pool" chips literally mirror the entities' own tags).
-- **Consequences:** Seed is the source of truth for content — refreshing from a changed live app means re-capturing the JSON. Coordinates are synthetic-but-stable (the live API does not expose them).
+- **Consequences:** Seed is the source of truth for content — refreshing from a changed live app means re-capturing the JSON. Browse-row coordinates are synthetic-but-stable (the live API does not expose them); map-row coordinates are real (extracted from the bundle).
 - **Alternatives Rejected:** Hand-authored content (breaks parity); live API proxying (defeats self-hosting).
 
 ---
@@ -131,7 +132,7 @@ flowchart TB
     subgraph External
         IMG[media.base44.com<br/>place imagery CDN]
         TILES[CARTO basemap tiles]
-        FONTS[Google Fonts<br/>Libre Baskerville + Inter + Poppins]
+        FONTS[Google Fonts<br/>Libre Baskerville + Inter]
     end
     B -->|HTML + hydrated client components| RSC
     B -->|fetch JSON| API
@@ -185,14 +186,14 @@ activity-map/
 │   ├── app/
 │   │   ├── (app)/                    ← auth-gated route group; layout.tsx redirects to /login
 │   │   │   ├── layout.tsx            ← resolves session, renders Navbar shell
-│   │   │   ├── page.tsx              ← Highlights: Hero + planner + category cards + Recommended
-│   │   │   │                              Route + blue restaurants + stay showcase + sights
-│   │   │   │                              + SiteFooter (the live app's home, measured session 2)
-│   │   │   ├── eat|stay|do/page.tsx  ← server components → Prisma → CategoryExplorer
-│   │   │   ├── place/[slug]/page.tsx ← detail: gallery, description, booking card
-│   │   │   ├── map/page.tsx          ← MapExplorer (client) with all 42 places
+│   │   │   ├── page.tsx              ← Highlights: Hero + glass planner + glass category cards +
+│   │   │   │                              sticky Recommended Route + blue restaurants + stay
+│   │   │   │                              showcase + sights + SiteFooter (re-measured session 3)
+│   │   │   ├── eat|stay|do/page.tsx  ← server components (searchParams-aware) → CategoryExplorer
+│   │   │   ├── place/[slug]/page.tsx ← detail: gallery, About-this-place, booking-request form
+│   │   │   ├── map/page.tsx          ← MapExplorer (client) with the 9 status:"map" demo places
 │   │   │   ├── favourites/page.tsx   ← FavouritesView (client)
-│   │   │   └── profile/page.tsx      ← ProfileView (client): identity + trips/bookings tabs
+│   │   │   └── profile/page.tsx      ← ProfileView (client): identity + tabs + filters
 │   │   ├── api/
 │   │   │   ├── health/route.ts       ← public liveness probe
 │   │   │   ├── auth/{login,logout,me}/route.ts
@@ -207,39 +208,44 @@ activity-map/
 │   │   └── globals.css               ← @theme tokens + @utility primitives + Leaflet skin
 │   ├── components/
 │   │   ├── auth/LoginForm.tsx        ← client: credentials → /api/auth/login → router.refresh()
-│   │   ├── layout/Navbar.tsx         ← client: mobile full-width bar / desktop floating pill
+│   │   ├── layout/Navbar.tsx         ← client: mobile fixed-top cream-glass tab-bar / desktop white bar
 │   │   ├── home/Hero.tsx             ← client: traveller-photo hero + glass planner pill
-│   │   ├── home/CategoryCards.tsx    ← server: the three VIEW ALL cards
-│   │   ├── home/RecommendedRoute.tsx ← server: 5 timed itinerary stops (status:home rows)
+│   │   ├── home/CategoryCards.tsx    ← server: the three glass VIEW ALL cards (black pills)
+│   │   ├── home/RecommendedRoute.tsx ← client: sticky scroll route + progress pill (status:home rows)
 │   │   ├── home/HighlightedRestaurants.tsx ← client: blue band, featured card + strip
 │   │   ├── home/StayShowcase.tsx     ← server: the 12-stay Choose Your Vibe grid
 │   │   ├── home/HighlightedSights.tsx ← server: 6 sight cards + More Things to Do
 │   │   ├── layout/SiteFooter.tsx     ← server: nav links + legal line
 │   │   └── layout/LegalPage.tsx      ← server: shared shell for the legal pages
 │   │   ├── places/CategoryExplorer.tsx ← client: search + chip state → filtered grid
-│   │   ├── places/PlaceCard.tsx      ← client: card + SaveButton
+│   │   ├── places/PlaceCard.tsx      ← client: eat/do card (overlaid name, Learn More) + SaveButton
+│   │   ├── places/StayCard.tsx       ← client: dark aspect-square stay card (hover buttons)
 │   │   ├── places/SaveButton.tsx     ← client: heart toggle → router.refresh()
-│   │   ├── places/BookingForm.tsx    ← client: date/guest pickers → POST /api/bookings
-│   │   ├── map/MapExplorer.tsx       ← client: pills + search; mounts canvas dynamically
+│   │   ├── places/BookingForm.tsx    ← client: booking-request form → POST /api/bookings
+│   │   ├── planner/TripPlanner.tsx   ← client: shared glass/white planner pill
+│   │   ├── planner/DateRangePicker.tsx ← client: Su–Sa range popover (from/to optional)
+│   │   ├── map/MapExplorer.tsx       ← client: pills + search + stats; mounts canvas dynamically
 │   │   ├── map/LeafletCanvas.tsx     ← client-only: react-leaflet map + dot markers
 │   │   ├── favourites/FavouritesView.tsx
-│   │   └── profile/ProfileView.tsx  (12 client components total — see §3.1)
-│   ├── lib/                          ← Layer 1-2 seams (see §3.1)
+│   │   └── profile/ProfileView.tsx  (16 client components total — see §3.1)
+│   ├── lib/                          ← Layer 1-2 seams (see §3.1; incl. planner.ts)
 │   └── types/index.ts                ← PlaceDTO, BookingDTO, PlaceCategory
 ├── prisma/
-│   ├── schema.prisma                 ← User, Place, SavedPlace, Booking
+│   ├── schema.prisma                 ← User, Place, SavedPlace, Booking (+ request fields)
 │   ├── seed.ts                       ← idempotent: wipes domain tables, maps captured JSON
-│   └── data/{eat,stay,do,home}.json  ← entity captures (12/12/18) + home-only showcase
-│                                      rows (5 route stops / 6 sights / 16 restaurants,
-│                                      seeded with status:"home")
+│   └── data/{eat,stay,do,home,map}.json ← entity captures (12/12/18) + home-only showcase
+│                                      rows (27, status:"home") + map demo rows (9,
+│                                      status:"map", real lat/lng from the live bundle)
 ├── tests/
 │   ├── db-path.test.ts               ← 17 checks: URL resolution contract
 │   ├── filters.test.ts               ← 15 checks: chip semantics
+│   ├── planner.test.ts               ← 10 checks: planner query/date-label helpers
 │   └── e2e/                          ← Playwright: global-setup, auth.setup, helpers,
-│                                      │   auth.spec (4), browse.spec (12), home.spec (8),
+│                                      │   auth.spec (4), browse.spec (14), home.spec (8),
 │                                      └   mobile-navigation.spec (8) + .auth/user.json state
 ├── scripts/smoke-test.sh             ← 27-check production API suite
 ├── docs/                             ← DEPLOYMENT.md, remediation-plan.md (session 2),
+│                                      remediation-plan-session-3.md, session logs,
 │                                      Tailwind-V4-Validation-Report.md,
 │                                      ssh_git_wrapper_v3.py + runbook, screenshots/ (14)
 └── AGENTS.md · CLAUDE.md · README.md · this PAD
@@ -365,7 +371,7 @@ erDiagram
         string id PK
         string slug UK
         string category "eat | stay | do"
-        string status "published | home (27 home-only rows)"
+        string status "published | home (27) | map (9)"
         string subCategory
         float priceRange "1..4 → €..€€€€"
         float price "do: ticket"
@@ -396,6 +402,12 @@ erDiagram
         datetime endDate
         int guests "clamped to minParty..maxParty"
         string status "confirmed | cancelled"
+        string name "booking-request fields (session 3):"
+        string surname "name / surname / time /"
+        string phone "phone / email / message"
+        string email
+        string time
+        string message
     }
 ```
 
@@ -411,6 +423,8 @@ Field naming mirrors the reference app's entity API (Eat / Stay / Do / SavedPlac
 
 **Home-only showcase rows (session 2).** The seed inserts 27 additional Place rows with `status: "home"`: 5 Recommended Route stops (`home-route-*`), 6 Highlighted Sights (`home-sight-*`), and 16 Highlighted Restaurants (`home-restaurant-*`). They are invisible to `listPlacesForUser`/`countPlaces` (both filter `status: "published"`, keeping browses and category cards at 12/12/18) but resolve on `/place/[slug]` because `getPlaceBySlug` deliberately does not filter status — reproducing the reference app's home links. `listHomePlaces(slugPrefix, userId)` selects them by slug prefix for the home showcase sections.
 
+**Map-demo rows (session 3).** The live map page renders a hardcoded 9-place array (the browse entities carry no coordinates). The seed therefore inserts 9 rows with `status: "map"` (`map-*` slugs, real lat/lng extracted from the live bundle) from `prisma/data/map.json`; `listMapPlaces(userId)` in `src/lib/places.ts` feeds the map page only those rows, and they resolve on `/place/[slug]` like any place. Browse views and category-card counts are unaffected — the `status: "published"` filter excludes both home-only and map rows.
+
 - **No connection pooling** — SQLite via a single Prisma client singleton (`globalThis`-cached in dev to survive HMR; fresh instance in production).
 - **Migrations:** intentionally none. `bun run db:push` applies the schema; `bun run db:seed` is idempotent (wipes domain tables, reseeds from `prisma/data/*.json`, recreates the demo user).
 - **Backups:** the entire state is one file — `db/custom.db` (git-ignored). Production guidance in `docs/DEPLOYMENT.md` §4: absolute path on a persisted volume + file-level backup.
@@ -423,22 +437,25 @@ Field naming mirrors the reference app's entity API (Eat / Stay / Do / SavedPlac
 
 | Face | Role | Fallback | Notes |
 |------|------|----------|-------|
-| Libre Baskerville | Display serif — the live app's every h1/h2 (hero wordmark, section headlines, place titles), measured session 2 | `ui-serif, Georgia, serif` | Loaded via Google Fonts in the root layout; `--font-serif` token |
-| Poppins | Navigation links — the live app's `font-poppins`, 12px, 700 active / 500 inactive, `letter-spacing: 0.01em` | `Inter, sans-serif` fallback | Loaded via Google Fonts; `--font-nav` token |
-| Inter | UI sans — body, nav, chips, forms, map popups | `ui-sans-serif, system-ui, -apple-system, "Segoe UI"` | `--font-sans` token; `-webkit-font-smoothing: antialiased` |
+| Libre Baskerville | Display serif — the live app's every h1/h2 (hero wordmark, section headlines, place titles, 48px route-stop titles), re-measured session 3 with per-section `clamp()` scales (e.g. browse h1 `clamp(36px, 4.3vw, 55px)` ls −0.06em; detail h1 `clamp(36px, 6.4vw, 82px)`) | `ui-serif, Georgia, serif` | Loaded via Google Fonts in the root layout; `--font-serif` token; the legacy `.font-poppins` utility was redefined to this face (live parity) |
+| Inter | UI sans AND navigation — body, nav links (16px, 400 weight desktop / 700 active mobile), chips, forms, card names (28px, tracking −0.04em), map popups; the live app dropped Poppins in its session-3 redesign | `ui-sans-serif, system-ui, -apple-system, "Segoe UI"` | `--font-sans` + `--font-nav` tokens (both Inter); `-webkit-font-smoothing: antialiased` |
 
-### 5.2 Color Tokens (measured from the reference app)
+### 5.2 Color Tokens (re-measured from the reference app, session 3)
 
 | Token | Hex | Usage | Contrast on `cream` |
 |-------|-----|-------|---------------------|
-| `--color-cream` | `#F9F7F2` | Page canvas | — |
-| `--color-cream-deep` | `#F3EFE7` | Raised cream surfaces | ink on it: 15.18:1 (AAA) |
-| `--color-ink` | `#1A1A1A` | Primary text, black buttons, map markers | 16.26:1 (AAA) |
-| `--color-roam` | `#5A18FB` | VIEW ALL accent, active marker, selection | 6.63:1 (AA); white on it: 7.10:1 (AAA) |
-| `--color-roam-deep` | `#4A0FE0` | Accent hover/pressed | 8.05:1 (AAA) |
-| `--color-electric` | `#4D61FF` | The live home's Highlighted Restaurants band (session 2) | white on it: 4.56:1 (AA) |
+| `--color-cream` | `#F8F7F4` | Page canvas (footer matches) | — |
+| `--color-cream-deep` / `--color-surface2` | `#F2F1EE` | Raised cream surfaces, tag pills | ink on it: ~15:1 (AAA) |
+| `--color-ink` | `#0E0E0E` | Primary text, black buttons, map markers | ~16:1 (AAA) |
+| `--color-secondary` | `#3A3A3A` | Body copy | ~11:1 (AAA) |
+| `--color-muted` | `#888580` | Muted meta text | ~3.5:1 (AA large) |
+| `--color-line` | `#E8E6DC` | Navbar bottom border, hairlines | — |
+| `--color-border` | `#DDDBD5` | Card hairlines | — |
+| `--color-roam` | `#571AFF` | Learn More / Book Now accent, active marker, selection | ~6.3:1 (AA); white on it: ~7:1 (AAA) |
+| `--color-roam-deep` | `#4A0FE0` | Accent hover/pressed | ~8:1 (AAA) |
+| `--color-electric` | `#4D61FF` | The live home's Highlighted Restaurants band | white on it: ~4.5:1 (AA) |
 
-Inactive nav text is `black/60` on white ≈ `#666666` → 5.74:1 (AA). Shadows: `--shadow-card`, `--shadow-float`, `--shadow-hero`. Radius scale ends at `--radius-4xl` (2rem). Selection highlight `rgba(90,24,251,0.18)`.
+VIEW ALL pills on the glass category cards are near-black `#141413` (36px pill, 12px/600 Inter, ls 0.03em). Inactive mobile nav text is `#0E0E0E` at 40% opacity; inactive desktop links carry an `rgba(14,14,14,0.08)` active-pill treatment. Shadows: `--shadow-card`, `--shadow-float`, `--shadow-hero` (the planner's frosted shadow). Radius scale ends at `--radius-4xl` (2rem). Selection highlight `rgba(87,26,255,0.18)`.
 
 ### 5.3 Component Primitives
 
@@ -501,13 +518,15 @@ Single role (authenticated user); no RBAC. Authorization = ownership: favourites
 |----------|-------|--------|----------|-----------|
 | Unit — db-path contract | 1 | 17 | `tests/db-path.test.ts` | Vitest (node env) |
 | Unit — filter semantics | 1 | 15 | `tests/filters.test.ts` | Vitest (node env) |
+| Unit — planner helpers | 1 | 10 | `tests/planner.test.ts` | Vitest (node env) |
 | E2E — auth surface | 1 | 4 | `tests/e2e/auth.spec.ts` | Playwright (chromium) |
-| E2E — browse/booking/favourites/map/profile | 1 | 12 | `tests/e2e/browse.spec.ts` | Playwright (chromium) |
+| E2E — browse/planner/booking/favourites/map/profile | 1 | 14 | `tests/e2e/browse.spec.ts` | Playwright (chromium) |
+| E2E — home parity | 1 | 8 | `tests/e2e/home.spec.ts` | Playwright (chromium) |
 | E2E — mobile navigation | 1 | 8 | `tests/e2e/mobile-navigation.spec.ts` | Playwright (chromium) |
 | E2E — auth setup | 1 | 1 | `tests/e2e/auth.setup.ts` | Playwright (setup project) |
 | Smoke — production API | 1 script | 27 | `scripts/smoke-test.sh` | bash + curl |
 
-**Totals: 32 unit + 35 E2E + 27 smoke — all green at the documented commit.** (Session 2 added the 8-check `home.spec.ts` parity suite.)
+**Totals: 42 unit + 35 E2E + 27 smoke — all green at the documented commit.** (Session 3 re-measured the live app, extended the planner/card/detail/map/profile contracts in place, and added the 10-check planner unit seam.)
 
 ### 7.2 Test Patterns
 
@@ -518,17 +537,17 @@ Single role (authenticated user); no RBAC. Authorization = ownership: favourites
 
 ### 7.3 Coverage Thresholds
 
-No numeric coverage gate is configured; the contract is structural: the two pure seams (`db-path`, `filters`) must carry tests for every behavior added. The verification gate (lint → typecheck → 32 unit → build → 27 smoke → 27 E2E) is the release criterion, enforced socially via `AGENTS.md` (no hosted CI exists).
+No numeric coverage gate is configured; the contract is structural: the three pure seams (`db-path`, `filters`, `planner`) must carry tests for every behavior added. The verification gate (lint → typecheck → 42 unit → build → 27 smoke → 35 E2E) is the release criterion, enforced socially via `AGENTS.md` (no hosted CI exists).
 
 ### 7.4 Pre-PR / Pre-Deploy Checklist
 
 ```bash
 bun run lint          # eslint .
 bun run typecheck     # tsc --noEmit
-bun run test          # 32 unit checks
+bun run test          # 42 unit checks
 bun run build         # standalone assembly
 ./scripts/smoke-test.sh   # 27 API checks against a fresh production server
-bun run test:e2e      # 27 browser checks (chromium, production build)
+bun run test:e2e      # 35 browser checks (chromium, production build)
 ```
 
 ---
@@ -619,19 +638,23 @@ No CRITICAL or HIGH issues are open. The three build-time infrastructure bugs (T
 | `src/lib/db-path.ts` | 192 | SQLite URL resolution contract (the standalone trap) — load-bearing |
 | `src/lib/auth.ts` | 89 | scrypt + HMAC session auth |
 | `src/lib/filters.ts` | 117 | Measured filter-chip semantics (pure seam) |
-| `src/lib/places.ts` | 131 | Domain queries + `toPlaceDTO` serialization boundary |
+| `src/lib/planner.ts` | 51 | Trip-planner query/date-label helpers (pure seam, session 3) |
+| `src/lib/places.ts` | 165 | Domain queries + `toPlaceDTO` serialization boundary (incl. `listMapPlaces`) |
 | `src/lib/rate-limit.ts` | 40 | Login throttling (10/IP/15 min) |
-| `src/lib/utils.ts` | — | `cn()`, price/duration formatting, `initials` |
-| `src/components/layout/Navbar.tsx` | 147 | Dual chrome: mobile full-width bar / desktop floating pill + v4 safety valve |
-| `src/components/map/MapExplorer.tsx` | 176 | Map state holder; dynamic `ssr:false` mount of the canvas |
+| `src/lib/utils.ts` | 47 | `cn()`, price/duration formatting, `priceRangeParts`, `initials` |
+| `src/components/layout/Navbar.tsx` | 215 | Dual chrome: mobile cream-glass tab-bar / desktop white bar + v4 safety valve |
+| `src/components/planner/TripPlanner.tsx` | 181 | Shared planner pill (hero glass / browse sticky white) — session 3 |
+| `src/components/places/StayCard.tsx` | 72 | Dark aspect-square stay card with hover buttons — session 3 |
+| `src/components/map/MapExplorer.tsx` | 252 | Map state holder; dynamic `ssr:false` mount of the canvas |
 | `src/components/map/LeafletCanvas.tsx` | 141 | Client-only react-leaflet map + dot markers |
 | `src/components/places/CategoryExplorer.tsx` | 182 | Search + chip filtering + grid |
-| `src/components/places/BookingForm.tsx` | 198 | Date/guest pickers → POST /api/bookings |
-| `prisma/schema.prisma` | 110 | User / Place / SavedPlace / Booking |
-| `prisma/seed.ts` | 176 | Idempotent seed from captured JSON + deterministic coords |
-| `src/app/globals.css` | 122 | Tailwind v4 `@theme` tokens + `@utility` primitives + Leaflet skin |
+| `src/components/places/BookingForm.tsx` | 228 | Booking-request form → POST /api/bookings |
+| `prisma/schema.prisma` | 116 | User / Place / SavedPlace / Booking (+ request fields) |
+| `prisma/seed.ts` | 282 | Idempotent seed from captured JSON + deterministic coords |
+| `src/app/globals.css` | 131 | Tailwind v4 `@theme` tokens + `@utility` primitives + Leaflet skin |
 | `tests/db-path.test.ts` | — | 17 checks pinning the resolution contract |
 | `tests/filters.test.ts` | — | 15 checks pinning chip semantics |
+| `tests/planner.test.ts` | — | 10 checks pinning planner param/date-label helpers |
 | `tests/e2e/mobile-navigation.spec.ts` | 150 | The five v4 failure classes + viewport sweeps |
 | `scripts/smoke-test.sh` | 147 | 27-check production API suite |
 

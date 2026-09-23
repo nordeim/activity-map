@@ -1,13 +1,16 @@
 "use client";
 
-// The map view (measured from the reference): serif "Map" headline + the
-// calm subheading, a white search bar ("Try: romantic hotels with a pool"),
-// the category filter pills (All Places / Restaurants / Hotels / Sights),
-// the rounded Leaflet canvas with black dot markers, and the
-// "0 events · N places" status badge. The Leaflet bundle is browser-only,
-// so the inner map mounts through next/dynamic with ssr:false.
+// The map view (re-measured from the live app, session 3): serif "Map"
+// headline + the calm subheading, a white search bar, the category filter
+// pills (All Places / Restaurants / Hotels / Sights), the rounded Leaflet
+// canvas with dot markers over the nine demo pins, the "0 events · N
+// places" status badge, the geolocation notice ("📍 Location permission
+// denied · showing approximate area"), the stats chips ("Augsburg center /
+// N places / € pricing"), and the "Places on the map" section below. The
+// Leaflet bundle is browser-only, so the canvas mounts via next/dynamic
+// with ssr:false.
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Search, MapPin, Star, X } from "lucide-react";
@@ -34,16 +37,41 @@ export function MapExplorer({
   places,
   focusSlug,
   initialCategory,
-  planner,
 }: {
   places: PlaceDTO[];
   focusSlug: string | null;
   initialCategory: PlaceCategory | null;
-  planner: { dates: string | null; guests: string | null };
+  planner?: { dates: string | null; guests: string | null };
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<PlaceCategory | "all">(initialCategory ?? "all");
   const [active, setActive] = useState<string | null>(focusSlug);
+  const [geoNotice, setGeoNotice] = useState<string | null>(null);
+
+  // The live app asks for geolocation and falls back to an "approximate
+  // area" notice when permission is denied (the default in most browsers).
+  useEffect(() => {
+    let cancelled = false;
+    const fallback = () => {
+      if (!cancelled) setGeoNotice("Location permission denied · showing approximate area");
+    };
+    if (!("geolocation" in navigator)) {
+      Promise.resolve().then(fallback);
+      return () => {
+        cancelled = true;
+      };
+    }
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        if (!cancelled) setGeoNotice(null);
+      },
+      fallback,
+      { timeout: 4000 },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -63,13 +91,13 @@ export function MapExplorer({
   const activePlace = active && activeVisible ? places.find((p) => p.slug === active) ?? null : null;
 
   return (
-    <main className="mx-auto max-w-[1100px] px-4 pb-16 pt-10 sm:px-6 sm:pt-14">
+    <main className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12 md:pt-16">
       {/* Headline */}
       <section className="mx-auto mb-8 max-w-2xl text-center">
-        <h1 className="mb-4 font-serif text-5xl leading-tight tracking-tight text-ink sm:text-6xl md:text-7xl">
+        <h1 className="mb-4 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
           Map
         </h1>
-        <p className="text-base font-light text-black/60 sm:text-lg">
+        <p className="text-sm font-light text-black/60 sm:text-base">
           Augsburg restaurants, hotels and experiences plotted across the old town.
         </p>
       </section>
@@ -131,6 +159,20 @@ export function MapExplorer({
         </div>
       </section>
 
+      {/* Geolocation notice + stats chips (the live app's map footer row). */}
+      <section className="mt-6">
+        {geoNotice ? (
+          <p className="mb-4 text-center text-sm text-muted">📍 {geoNotice}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
+          <span className="rounded-full bg-white px-3 py-2">Augsburg center</span>
+          <span className="rounded-full bg-white px-3 py-2">
+            {visible.length} {visible.length === 1 ? "place" : "places"}
+          </span>
+          <span className="rounded-full bg-white px-3 py-2">€ pricing</span>
+        </div>
+      </section>
+
       {/* Selected place card */}
       {activePlace ? (
         <section className="mx-auto mt-6 max-w-xl">
@@ -165,12 +207,46 @@ export function MapExplorer({
           </Link>
         </section>
       ) : (
-        <p className="mt-6 text-center text-sm text-black/40">
-          {planner.dates || planner.guests
-            ? `Planning ${planner.guests ?? "2"} guests${planner.dates ? ` · ${planner.dates}` : ""} — tap a dot to preview a place.`
-            : "Tap a dot to preview a place."}
-        </p>
+        <p className="mt-6 text-center text-sm text-black/40">Tap a dot to preview a place.</p>
       )}
+
+      {/* Places on the map — the live app's bottom section. */}
+      <section className="mt-10">
+        <div className="mb-3 flex items-end justify-between">
+          <div>
+            <h2 className="font-serif text-4xl tracking-[-0.05em] text-ink">Places on the map</h2>
+            <p className="mt-1 text-sm text-muted">Fictional restaurants, hotels and things to do.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((place) => (
+            <Link
+              key={place.id}
+              href={`/place/${place.slug}`}
+              className="group flex items-center gap-4 rounded-[20px] border border-black/5 bg-white p-4 shadow-[0_8px_22px_rgba(0,0,0,0.06)] transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              {place.coverImageUrl ? (
+                <img
+                  src={place.coverImageUrl}
+                  alt={place.name}
+                  loading="lazy"
+                  className="h-14 w-14 shrink-0 rounded-2xl object-cover"
+                />
+              ) : null}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-ink">{place.name}</p>
+                <p className="mt-0.5 truncate text-xs text-muted">
+                  {place.subCategory ?? place.category} · {place.neighborhood ?? "Augsburg"}
+                </p>
+              </div>
+              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-ink">
+                <Star className="h-3 w-3 fill-ink text-ink" aria-hidden />
+                {place.avgRating.toFixed(1)}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

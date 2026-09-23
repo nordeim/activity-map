@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
 import { getPlaceBySlug } from "@/lib/places";
-import { ArrowLeft, MapPin, Star, Clock } from "lucide-react";
-import { priceRangeSymbols, formatDuration, formatPrice } from "@/lib/utils";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
+import { priceRangeSymbols } from "@/lib/utils";
 import { CATEGORY_META } from "@/types";
 import { SaveButton } from "@/components/places/SaveButton";
 import { BookingForm } from "@/components/places/BookingForm";
@@ -28,7 +28,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       : place.tags;
 
   return (
-    <main className="mx-auto max-w-[1000px] px-4 pb-20 pt-4 sm:px-6 sm:pt-8">
+    <main className="mx-auto max-w-[1000px] px-4 pb-20 pt-6 sm:px-6 sm:pt-10">
       {/* Back */}
       <div className="mb-6">
         <Link
@@ -41,12 +41,12 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       </div>
 
       <article className="overflow-hidden rounded-[32px] border border-black/5 bg-white shadow-[0_24px_70px_-20px_rgba(0,0,0,0.18)]">
-        {/* Header */}
-        <header className="px-6 pb-10 pt-10 sm:px-12 sm:pb-12 sm:pt-14">
+        {/* Header — the live app's measured stack: eyebrow, 82px h1, meta row. */}
+        <header className="px-6 pb-8 pt-10 sm:px-12 sm:pb-10 sm:pt-14">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
             {meta.eyebrow}
           </p>
-          <h1 className="mb-5 font-serif text-4xl leading-tight text-ink sm:text-6xl md:text-7xl">
+          <h1 className="mb-5 font-serif text-[36px] leading-[1.05] tracking-[-0.06em] text-ink sm:text-[clamp(36px,6.4vw,82px)]">
             {place.name}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-black/55">
@@ -54,24 +54,18 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
               <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
               {place.address ?? place.neighborhood ?? "Augsburg"}
             </span>
-            {place.subCategory ? (
-              <>
-                <span className="text-black/25">•</span>
-                <span>{place.subCategory}</span>
-              </>
-            ) : null}
             {place.priceRange ? (
               <>
                 <span className="text-black/25">•</span>
                 <span className="tracking-widest">{priceRangeSymbols(place.priceRange)}</span>
               </>
             ) : null}
-            {place.durationMin ? (
+            {place.reviewCount > 0 ? (
               <>
                 <span className="text-black/25">•</span>
                 <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-                  {formatDuration(place.durationMin)}
+                  <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
+                  {place.avgRating.toFixed(1)}
                 </span>
               </>
             ) : null}
@@ -79,7 +73,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
         </header>
 
         {/* Hero image */}
-        <section className="relative h-[380px] w-full sm:h-[520px]">
+        <section className="relative h-[380px] w-full sm:h-[460px]">
           {place.coverImageUrl ? (
             <img
               src={place.coverImageUrl}
@@ -102,59 +96,23 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
               <MapPin className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
               Map
             </Link>
-            <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 shadow-lg">
-              <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
-              <span className="text-sm font-bold text-ink">{place.avgRating.toFixed(1)}</span>
-            </span>
           </div>
         </section>
 
-        {/* Body */}
-        <div className="grid grid-cols-1 gap-10 p-6 sm:p-12 md:grid-cols-3">
-          <div className="space-y-6 md:col-span-2">
+        {/* Body — About this place + tags, then the booking request form. */}
+        <div className="grid grid-cols-1 gap-10 p-6 sm:p-12 lg:grid-cols-5">
+          <div className="space-y-6 lg:col-span-3">
+            <h2 className="text-xl font-semibold text-ink">About this place</h2>
             {place.description ? (
-              <p className="text-base leading-relaxed text-black/65">{place.description}</p>
+              <p className="text-base leading-relaxed text-secondary">{place.description}</p>
             ) : null}
-
-            <dl className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm sm:grid-cols-3">
-              <div>
-                <dt className="text-xs font-semibold uppercase tracking-wide text-black/40">Neighborhood</dt>
-                <dd className="mt-1 font-medium text-ink">{place.neighborhood ?? "Augsburg"}</dd>
-              </div>
-              {place.reviewCount > 0 ? (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-black/40">Reviews</dt>
-                  <dd className="mt-1 font-medium text-ink">{place.reviewCount.toLocaleString()}</dd>
-                </div>
-              ) : null}
-              {place.category === "stay" && place.nightlyPrice ? (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-black/40">Price</dt>
-                  <dd className="mt-1 font-medium text-ink">{formatPrice(place.nightlyPrice, place.currency)} / night</dd>
-                </div>
-              ) : null}
-              {place.category === "do" && place.priceLabel ? (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-black/40">Ticket</dt>
-                  <dd className="mt-1 font-medium text-ink">
-                    {place.price ? formatPrice(place.price, place.currency) : place.priceLabel}
-                  </dd>
-                </div>
-              ) : null}
-              {place.openingHours ? (
-                <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-black/40">Hours</dt>
-                  <dd className="mt-1 font-medium text-ink">{place.openingHours}</dd>
-                </div>
-              ) : null}
-            </dl>
 
             {tags.length > 0 ? (
               <div className="flex flex-wrap gap-2 pt-1">
                 {tags.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full bg-cream-deep px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-black/60"
+                    className="rounded-full bg-surface2 px-3 py-1.5 text-xs font-semibold text-secondary"
                   >
                     {t}
                   </span>
@@ -163,8 +121,8 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
             ) : null}
           </div>
 
-          {/* Booking / visit card */}
-          <aside>
+          {/* The booking request form (the live app's Book Now card). */}
+          <aside className="lg:col-span-2">
             <BookingForm
               place={{
                 id: place.id,

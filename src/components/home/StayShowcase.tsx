@@ -13,7 +13,7 @@ export function StayShowcase({ stays }: { stays: PlaceDTO[] }) {
   return (
     <section id="stay-showcase" className="mx-auto max-w-[1100px] px-4 py-16 sm:px-6 sm:py-24">
       <div className="mx-auto mb-12 max-w-3xl text-center">
-        <h2 className="font-serif text-4xl leading-[1.12] tracking-tight text-ink sm:text-5xl md:text-6xl">
+        <h2 className="font-serif text-[40px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(40px,7.2vw,112px)]">
           Choose Your Vibe, Select The Dates &amp; Enjoy Your Ultimate Getaway
         </h2>
         <p className="mt-5 text-sm font-light text-black/60 sm:text-base">

@@ -11,7 +11,7 @@ A production-grade, self-hosted clone of the reference trip-planning app at `act
 
 ## Overview
 
-The reference app is an Augsburg city guide: a photographic hero with a frosted glass trip-planner pill, the timed **Recommended Route** itinerary, a blue **Highlighted Restaurants** band with a featured card and restaurant strip, the full **Choose Your Vibe** stay showcase, the **Highlighted Sights** grid, three category browses (Eat / Stay / Do) with search and measured filter chips, place detail pages with a booking card, a Leaflet map over the whole city, favourites, and a profile with trips and bookings — all behind an email/password login. This repo reproduces that experience end-to-end: same visual design tokens (measured from the live app, including its Libre Baskerville display serif and Poppins nav), same filter semantics, same entity data, but running locally as a standalone Next.js 16 server with a Prisma/SQLite store and zero external services.
+The reference app is an Augsburg city guide: a photographic hero with a frosted glass trip-planner pill (hover-revealed labels, a react-day-picker-style date-range popover, and a search that routes into the category browses with `people`/`start_date`/`end_date` params), glass category cards, the scroll-driven **Recommended Route** itinerary, a blue **Highlighted Restaurants** band with a featured card and restaurant strip, the full **Choose Your Vibe** stay showcase, the **Highlighted Sights** grid, three category browses (Eat / Stay / Do) with search, measured filter chips, and a sticky white planner pill, redesigned place detail pages with a booking-request form, a Leaflet map over the whole city (9 demo places, as on the live app), favourites, and a redesigned profile with trips and bookings — all behind an email/password login. This repo reproduces that experience end-to-end: same visual design tokens (re-measured session 3: cream `#F8F7F4`, ink `#0E0E0E`, violet `#571AFF`, Libre Baskerville display serif + Inter for UI and nav), same filter semantics, same entity data, but running locally as a standalone Next.js 16 server with a Prisma/SQLite store and zero external services.
 
 | Desktop home | Mobile browse |
 |---|---|
@@ -23,40 +23,41 @@ Fourteen production captures live in [`docs/screenshots/`](docs/screenshots/): h
 
 | Feature | Description |
 |---------|-------------|
-| 🧭 **Home, rebuilt to the live app (session 2)** | Traveller-photo hero with the huge white Libre Baskerville wordmark and the frosted GLASS planner pill (Select dates · People 1–8 · Restaurants/Hotels/Attractions · search), wrapping 2×2 at 390px |
-| 🗓 **Recommended Route** | The timed itinerary — 9:00 AM Morning Coffee → 9:30 PM Dinner — five stops with neighborhood · rating · €€ · tag meta and Learn More links |
+| 🧭 **Home, re-measured + remediated (session 3)** | Traveller-photo hero with the huge Libre Baskerville wordmark, the frosted GLASS planner pill (Select dates · People 1–8 · Restaurants/Hotels/Attractions · search), glass category cards (frosted white/34, radius 20) with black `#141413` VIEW ALL pills and corrected Altstadt/Fun subtitles |
+| 🗓 **Recommended Route** | The scroll-driven sticky itinerary — 140vh heading trap, sticky SVG route visual with a scroll-synced progress pill ("0% of your day planned"), and the white rounded-28 stop panel: 48px Libre Baskerville titles, `9:00 AM` times, stacked `·`-prefixed meta |
 | 💙 **Highlighted Restaurants** | The vivid blue band (`#4D61FF`): tap-to-feature restaurant strip (16 tables) + the featured card with Book a Table / Learn More |
 | 🛏 **Choose Your Vibe** | The full twelve-stay showcase with street addresses, € symbols · ★ ratings, and Learn More + Book Now actions |
 | 🏛 **Highlighted Sights** | Six calm stops (Fuggerei → Schaezlerpalais) with rating badges, heart overlays, and the More Things to Do hand-off |
-| 🍽 **Eat / Stay / Do browses** | Server-rendered grids of the 42 captured places with live search and **data-measured filter chips** (eat: Open now / Near me / Under €100 / Trending + cuisine tags; stay & do: the entities' own tags) that AND-compose |
-| 🏛 **Place detail + booking** | Gallery, description, rating, highlights, and a booking card with date/guest pickers — guests clamped server-side to `minParty`/`maxParty`, bookings visible on the profile |
-| 🗺 **Interactive map** | Leaflet map with CARTO basemap, black dot markers (violet when active), category pills (All Places / Restaurants / Hotels / Sights), live search, and popups linking into place pages |
+| 🔍 **Trip planner (shared component)** | `TripPlanner` + `DateRangePicker` (Su–Sa popover, from/to optional, `DD/MM/YYYY — DD/MM/YYYY`): search routes to `/eat|/stay|/do?people=N&start_date=…&end_date=…` (Hotels → `/stay`, Attractions → `/do`); on browse pages it re-renders as a sticky white pill pre-filled from the URL — pure helpers unit-tested in `src/lib/planner.ts` |
+| 🍽 **Eat / Stay / Do browses** | Server-rendered grids of the 42 captured places with live search and **data-measured filter chips** (eat: Open now / Near me / Under €100 / Trending + cuisine tags; stay & do: the entities' own tags) that AND-compose. Cards re-measured session 3: eat/do names overlaid on `h-[372px]` photos (28px Inter, tracking −0.04em) with tag pills, violet `#571AFF` Learn More, and ACTIVE+DIMMED price symbols; stay cards are dark `aspect-square` composites with ghost Learn More + white Book Now on hover; date-range params filter the grids |
+| 🏛 **Place detail + booking request** | 82px-clamp h1, "About this place" + tag pills, gallery, rating, highlights, and the booking-request form (Name*, Surname*, Dates, Time, Phone, Email*, Message → `Book Now` violet `h-12`) posting to `/api/bookings`; request fields persisted on the `Booking` model and bookings visible on the profile |
+| 🗺 **Interactive map** | Leaflet map with CARTO basemap fed by the 9 demo places the live app hardcodes (status `"map"`, real lat/lng, `map-*` slugs): black dot markers (violet when active), category pills (All Places / Restaurants / Hotels / Sights), stats pills, geolocation notice with Augsburg fallback, "Places on the map" list section, live search, and popups linking into place pages |
 | ❤️ **Favourites** | One-tap save/unsave on cards and detail pages, with a dedicated Favourites view and an illustrated empty state |
-| 👤 **Profile** | Identity card with avatar, Trips / Bookings tabs, upcoming-stay badges |
+| 👤 **Profile** | Redesigned session 3: PROFILE eyebrow, "Explorer" title, "Your Roam account", "Augsburg", 0-day-streak + Explorer badge, Saved-places count, TRIPS/My bookings, Upcoming/Past/All tabs + Eat/Stay/Do filters, and the "No upcoming reservations. Time to explore." empty state |
 | 📄 **Legal pages** | Privacy policy and Accessibility Statement (the footer's measured links), rendered as real public routes |
 | 🔐 **Cookie-session auth** | scrypt password hashing + HMAC-SHA256-signed stateless cookies, login rate limiting (10/IP/15 min), auth-gated route group with server-side redirects |
-| 📱 **Mobile-first chrome** | Measured 390px top bar (image logo, text-only links, no-scrollbar safety valve) that becomes the floating white pill from `sm` up — regression-pinned by E2E against the five known Tailwind v4 mobile-nav failure classes |
+| 📱 **Mobile-first chrome** | Measured 390px fixed-top cream-glass tab-bar (52px, ≤430px centered, text-only 16px Inter links — active 700/`#0E0E0E`, inactive 500/40%, three 18px right icons: MapPin/Heart/User; the home hero slides under the glass) that becomes the sticky transparent header + full-width white `h-14` bar (border-b `#E8E6DC`, Inter 16px icon+text links, active `rgba(14,14,14,0.08)` pill, hide-on-scroll choreography) from `md` up — regression-pinned by E2E against the five known Tailwind v4 mobile-nav failure classes |
 
 ## Architecture
 
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
 | Web framework | Next.js (App Router, standalone output) | 16 | Pages, API route handlers, server components |
-| UI runtime | React | 19 | Server components by default; 12 client components |
+| UI runtime | React | 19 | Server components by default; 16 client components |
 | Language | TypeScript | 5 (strict, `noImplicitAny` off) | Type-safe app + typed API DTOs |
 | Styling | Tailwind CSS | 4 (CSS-first, no config file) | `@theme` tokens + `@utility` primitives |
-| Fonts | Libre Baskerville + Inter + Poppins | — | Serif display + UI sans + nav (Google Fonts) |
+| Fonts | Libre Baskerville + Inter | — | Serif display + UI/nav sans (Google Fonts; Poppins was removed by the live app's session-3 redesign — `.font-poppins` now maps to the serif) |
 | Map | Leaflet + react-leaflet | 1.9 / 5 | Map view, `ssr:false` dynamic mount |
 | ORM | Prisma | 6 | Schema, client, seed |
 | Database | SQLite (PostgreSQL switchable) | — | Zero-config local store |
-| Unit tests | Vitest | 5 | 32 checks on the pure seams |
+| Unit tests | Vitest | 5 | 42 checks on the pure seams |
 | E2E tests | Playwright | 1.63 | 35 checks against the production build |
 | Runtime | Bun (npm-compatible) | ≥1.4 | Install, dev, seed, server |
 
 ```mermaid
 flowchart TB
     B[Browser] --> S[Next.js standalone server :3000]
-    S --> DB[(SQLite db/custom.db via Prisma — 42 published + 27 home-only places)]
+    S --> DB[(SQLite db/custom.db via Prisma — 42 published + 27 home-only + 9 map-demo places)]
     S --> CDN1[media.base44.com — place imagery]
     S --> CDN2[CARTO basemap tiles + Google Fonts]
 ```
@@ -69,8 +70,8 @@ flowchart TB
  ┃ ┣ 📂 (app)/            ← auth-gated route group (layout redirects to /login)
  ┃ ┃ ┣ 📄 page.tsx        ← Home: hero + planner + category cards + Recommended Route
                              + blue restaurants + stay showcase + sights + footer
- ┃ ┃ ┣ 📄 eat|stay|do/    ← Category browses (server components)
- ┃ ┃ ┣ 📄 place/[slug]/   ← Place detail
+ ┃ ┃ ┣ 📄 eat|stay|do/    ← Category browses (server components, searchParams-aware)
+ ┃ ┃ ┣ 📄 place/[slug]/   ← Place detail + booking-request form
  ┃ ┃ ┣ 📄 map/ favourites/ profile/
  ┃ ┣ 📂 api/              ← health, auth/*, places, places/[slug], favourites, bookings
  ┃ ┣ 📄 login/            ← Real login route (public)
@@ -78,13 +79,15 @@ flowchart TB
  ┃ ┣ 📄 globals.css       ← Tailwind v4 @theme tokens + @utility primitives
  ┃ ┗ 📄 layout.tsx        ← Root layout, fonts, metadata
  ┣ 📂 components/         ← Navbar + SiteFooter + LegalPage, Hero, CategoryCards,
-                          RecommendedRoute, HighlightedRestaurants, StayShowcase,
-                          HighlightedSights, CategoryExplorer, PlaceCard, BookingForm,
+                          RecommendedRoute (sticky scroll), HighlightedRestaurants,
+                          StayShowcase, HighlightedSights, CategoryExplorer, PlaceCard,
+                          StayCard, planner/ (TripPlanner + DateRangePicker), BookingForm,
                           MapExplorer + LeafletCanvas, FavouritesView, ProfileView, LoginForm
- ┣ 📂 lib/                ← auth, db, db-path, filters, places (incl. listHomePlaces), rate-limit, utils
+ ┣ 📂 lib/                ← auth, db, db-path, filters, planner, places
+                          (listHomePlaces + listMapPlaces), rate-limit, utils
  ┗ 📂 types/              ← PlaceDTO / BookingDTO / PlaceCategory
-📂 prisma/                ← schema.prisma, seed.ts, data/{eat,stay,do,home}.json
-                              (captured entities + the home-only showcase rows)
+📂 prisma/                ← schema.prisma, seed.ts, data/{eat,stay,do,home,map}.json
+                              (captured entities + home-only showcase rows + 9 map-demo places)
 📂 tests/                 ← db-path + filters (Vitest), e2e/ (Playwright: auth, browse, home parity, mobile-nav)
 📂 scripts/               ← smoke-test.sh (27-check API suite)
 📂 docs/                  ← DEPLOYMENT.md, remediation-plan.md, Tailwind-V4-Validation-Report.md,
@@ -108,7 +111,7 @@ Requires Bun ≥1.4 (or npm/node ≥20) .
    ```bash
    cp .env.example .env
    bun run db:push     # apply the schema (db/e2e-agnostic, no migrations folder)
-   bun run db:seed     # 42 places + the demo user
+   bun run db:seed     # 78 places (42 published + 27 home-only + 9 map-demo) + the demo user
    ```
 
 3. Start the dev server:
@@ -117,7 +120,7 @@ Requires Bun ≥1.4 (or npm/node ≥20) .
    bun run dev
    ```
 
-**Verify setup:** open `http://localhost:3000` → you land on the login card; sign in with `sepnetflix2023@outlook.com` / `$Abcd1234` → the Highlights page renders the traveller-photo hero, the glass planner, the category cards, and the full home showcase (route, restaurants, stays, sights).
+**Verify setup:** open `http://localhost:3000` → you land on the login card; sign in with `sepnetflix2023@outlook.com` / `$Abcd1234` → the Highlights page renders the traveller-photo hero, the glass planner (pick dates in the popover, then Search → `/eat?people=…&start_date=…`), the glass category cards, and the full home showcase (sticky route, restaurants, stays, sights).
 
 ## Environment Variables
 
@@ -131,7 +134,7 @@ Requires Bun ≥1.4 (or npm/node ≥20) .
 
 | Layer | Command | Checks | Notes |
 |-------|---------|--------|-------|
-| Unit | `bun run test` | 32 | Vitest — db-path resolution contract + filter semantics |
+| Unit | `bun run test` | 42 | Vitest — db-path resolution contract, filter semantics, and planner param/date-label helpers |
 | E2E | `bun run build && bun run test:e2e` | 35 | Playwright drives the production standalone server on :3100 with its own seeded DB |
 | Smoke | `bun run build && ./scripts/smoke-test.sh` | 27 | Boots a fresh production server and exercises the whole API surface |
 
@@ -154,15 +157,22 @@ All responses use the envelope `{ ok: true, data } | { ok: false, error }`.
 
 ## Design System
 
+Re-measured from the live app session 3 (`src/app/globals.css` `@theme`):
+
 | Token | Hex | Usage |
 |-------|-----|-------|
-| `--color-cream` | `#F9F7F2` | Page canvas |
-| `--color-cream-deep` | `#F3EFE7` | Raised cream surfaces |
-| `--color-ink` | `#1A1A1A` | Primary text, black buttons, map markers |
-| `--color-roam` | `#5A18FB` | VIEW ALL accent, active map marker, selection |
+| `--color-cream` | `#F8F7F4` | Page canvas (footer matches) |
+| `--color-cream-deep` / `--color-surface2` | `#F2F1EE` | Raised cream surfaces, tag pills |
+| `--color-ink` | `#0E0E0E` | Primary text, black buttons, map markers |
+| `--color-secondary` | `#3A3A3A` | Body copy |
+| `--color-muted` | `#888580` | Muted meta text |
+| `--color-line` | `#E8E6DC` | Navbar bottom border |
+| `--color-border` | `#DDDBD5` | Card hairlines |
+| `--color-roam` | `#571AFF` | Learn More / Book Now accent, active map marker, selection |
 | `--color-roam-deep` | `#4A0FE0` | Accent hover/pressed |
+| `--color-electric` | `#4D61FF` | The home "Highlighted Restaurants" blue band |
 
-Typography: **Libre Baskerville** (serif display — the live app's every h1/h2, measured session 2) + **Inter** (UI sans) + **Poppins** (nav links), all via Google Fonts. Motion respects `prefers-reduced-motion`. Map markers are 16px black dots with a white ring (22px violet when active); popups follow the app's radius scale.
+Typography: **Libre Baskerville** (serif display — every h1/h2, with per-section `clamp()` scales measured at 1280/768/390) + **Inter** (UI sans AND nav links — the live app dropped Poppins in its session-3 redesign; the legacy `.font-poppins` utility now maps to Libre Baskerville), all via Google Fonts. VIEW ALL pills are near-black `#141413` on the glass category cards. Motion respects `prefers-reduced-motion`. Map markers are 16px black dots with a white ring (22px violet when active); popups follow the app's radius scale.
 
 ## Deployment
 
@@ -180,9 +190,10 @@ bun run start        # NODE_ENV=production bun .next/standalone/server.js
 | Reference analysis | ✅ Complete | Live app explored; entity data captured (12 eat / 12 stay / 18 do); design tokens measured |
 | Application build | ✅ Complete | Full route group, API surface, Leaflet map, auth, seed |
 | Mobile navigation fix | ✅ Complete | Tailwind v4 failure classes addressed + E2E-pinned (5 classes, 8 checks) |
-| Verification | ✅ Complete | lint ✓ typecheck ✓ 32 unit ✓ 35 E2E ✓ 27 smoke ✓ |
+| Verification | ✅ Complete | lint ✓ typecheck ✓ 42 unit ✓ 35 E2E ✓ 27 smoke ✓ |
 | Documentation | ✅ Complete | AGENTS.md, CLAUDE.md, README.md, Project_Architecture_Document.md, 14 screenshots |
 | Session 2 remediation | ✅ Complete | Live-app parity pass — fonts/logo/hero, home showcase (route, blue restaurants, stays, sights, footer, legal pages), env pinning; gates re-verified (32 unit · 27 smoke · 35 E2E) |
+| Session 3 remediation | ✅ Complete | Live-app re-measure (14 findings, `docs/remediation-plan-session-3.md`): tokens `#F8F7F4/#0E0E0E/#571AFF`, Poppins→Inter nav, flat-white desktop navbar + cream-glass mobile tab-bar, TripPlanner + DateRangePicker routing into browses, redesigned eat/do/stay cards, sticky-route redesign, booking-request form + schema fields, 9 demo map places, profile redesign; gates re-verified (42 unit · 27 smoke · 35 E2E) |
 
 ## Troubleshooting
 

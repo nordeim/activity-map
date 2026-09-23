@@ -14,8 +14,14 @@
       "neighborhood": "Altstadt",
       "address": "Altstadt 4, Augsburg",
       "opening_hours": "07:30–18:00",
-      "cuisine_tags": ["Coffee", "Pastries"],
-      "vibe_tags": ["Slow start", "Counter seats"],
+      "cuisine_tags": [
+        "Coffee",
+        "Pastries"
+      ],
+      "vibe_tags": [
+        "Slow start",
+        "Counter seats"
+      ],
       "is_bookable": false,
       "time": "9:00 AM",
       "time_title": "Morning Coffee"
@@ -34,8 +40,14 @@
       "neighborhood": "Maximilianstraße",
       "address": "Maximilianstraße 11, Augsburg",
       "opening_hours": "11:30–15:00, 18:00–22:30",
-      "cuisine_tags": ["Bistro", "Seasonal"],
-      "vibe_tags": ["Terrace", "Lunch stop"],
+      "cuisine_tags": [
+        "Bistro",
+        "Seasonal"
+      ],
+      "vibe_tags": [
+        "Terrace",
+        "Lunch stop"
+      ],
       "is_bookable": true,
       "time": "1:00 PM",
       "time_title": "Lunch Break"
@@ -50,15 +62,21 @@
       "cover_image_url": "https://media.base44.com/images/public/6a4501a5abb2150575abcf6b/5122a2c3f_generated_image.png",
       "price_range": 1,
       "price": 6,
-      "price_label": "€6",
+      "price_label": "€",
       "avg_rating": 4.7,
       "review_count": 156,
       "duration_min": 90,
       "neighborhood": "Rathausplatz",
       "address": "Rathausplatz 2, Augsburg",
       "opening_hours": "10:00–18:00",
-      "tags": ["Culture", "Art"],
-      "highlights": ["Skylit print cabinet", "Ninety-minute route"],
+      "tags": [
+        "Culture",
+        "Art"
+      ],
+      "highlights": [
+        "Skylit print cabinet",
+        "Ninety-minute route"
+      ],
       "is_bookable": false,
       "time": "4:00 PM",
       "time_title": "Afternoon Culture"
@@ -77,8 +95,14 @@
       "neighborhood": "Dom / Fuggerei",
       "address": "Domstraße 9, Augsburg",
       "opening_hours": "16:00–01:00",
-      "cuisine_tags": ["Drinks", "Spritz"],
-      "vibe_tags": ["Sunset", "Skyline"],
+      "cuisine_tags": [
+        "Drinks",
+        "Spritz"
+      ],
+      "vibe_tags": [
+        "Sunset",
+        "Skyline"
+      ],
       "is_bookable": true,
       "time": "7:00 PM",
       "time_title": "Sunset Drinks"
@@ -97,8 +121,14 @@
       "neighborhood": "Innenstadt",
       "address": "Innenstadt Gasse 6, Augsburg",
       "opening_hours": "18:00–23:30",
-      "cuisine_tags": ["Garden dining", "European"],
-      "vibe_tags": ["Courtyard", "Candle-lit"],
+      "cuisine_tags": [
+        "Garden dining",
+        "European"
+      ],
+      "vibe_tags": [
+        "Courtyard",
+        "Candle-lit"
+      ],
       "is_bookable": true,
       "time": "9:30 PM",
       "time_title": "Dinner"
@@ -121,8 +151,15 @@
       "duration_min": 60,
       "neighborhood": "Jakobervorstadt",
       "address": "Fuggerei 51, Augsburg",
-      "tags": ["History", "Courtyards"],
-      "highlights": ["Oldest social settlement", "Museum house", "Fugger bells"],
+      "tags": [
+        "History",
+        "Courtyards"
+      ],
+      "highlights": [
+        "Oldest social settlement",
+        "Museum house",
+        "Fugger bells"
+      ],
       "is_bookable": false,
       "blurb": "Historic Courtyards"
     },
@@ -140,8 +177,14 @@
       "duration_min": 45,
       "neighborhood": "Innenstadt",
       "address": "Rathausplatz, Augsburg",
-      "tags": ["Old Town", "Landmark"],
-      "highlights": ["Golden Hall", "Renaissance facade"],
+      "tags": [
+        "Old Town",
+        "Landmark"
+      ],
+      "highlights": [
+        "Golden Hall",
+        "Renaissance facade"
+      ],
       "is_bookable": false,
       "blurb": "Old Town Square"
     },
@@ -161,8 +204,14 @@
       "duration_min": 40,
       "neighborhood": "Domviertel",
       "address": "Domstraße 1, Augsburg",
-      "tags": ["Gothic", "Stained glass"],
-      "highlights": ["Oldest figural glass", "Bronze door (1065)"],
+      "tags": [
+        "Gothic",
+        "Stained glass"
+      ],
+      "highlights": [
+        "Oldest figural glass",
+        "Bronze door (1065)"
+      ],
       "is_bookable": false,
       "blurb": "Quiet Gothic Stop"
     },
@@ -182,8 +231,14 @@
       "duration_min": 30,
       "neighborhood": "Rathausplatz",
       "address": "Perlachturm 1, Augsburg",
-      "tags": ["Lookout", "Tower"],
-      "highlights": ["261 steps", "Alps on clear days"],
+      "tags": [
+        "Lookout",
+        "Tower"
+      ],
+      "highlights": [
+        "261 steps",
+        "Alps on clear days"
+      ],
       "is_bookable": false,
       "blurb": "City Lookout"
     },
@@ -201,8 +256,14 @@
       "duration_min": 75,
       "neighborhood": "Altstadt",
       "address": "Lechviertel, Augsburg",
-      "tags": ["UNESCO", "Waterfront"],
-      "highlights": ["UNESCO water system", "Weavers' houses"],
+      "tags": [
+        "UNESCO",
+        "Waterfront"
+      ],
+      "highlights": [
+        "UNESCO water system",
+        "Weavers' houses"
+      ],
       "is_bookable": false,
       "blurb": "Waterfront Walk"
     },
@@ -222,8 +283,14 @@
       "duration_min": 60,
       "neighborhood": "Maximilianstraße",
       "address": "Maximilianstraße 46, Augsburg",
-      "tags": ["Baroque", "Gallery"],
-      "highlights": ["Mirror ballroom", "State gallery hang"],
+      "tags": [
+        "Baroque",
+        "Gallery"
+      ],
+      "highlights": [
+        "Mirror ballroom",
+        "State gallery hang"
+      ],
       "is_bookable": false,
       "blurb": "Baroque Gallery"
     }
@@ -243,8 +310,14 @@
       "neighborhood": "Innenstadt",
       "address": "15 Innenstadt Gasse, Augsburg",
       "opening_hours": "17:30–23:00",
-      "cuisine_tags": ["Modern European", "Tasting menu"],
-      "vibe_tags": ["Counter dining", "Natural wine"],
+      "cuisine_tags": [
+        "Modern European",
+        "Tasting menu"
+      ],
+      "vibe_tags": [
+        "Counter dining",
+        "Natural wine"
+      ],
       "is_bookable": true
     },
     {
@@ -261,8 +334,13 @@
       "neighborhood": "Rathausplatz",
       "address": "Rathausplatz 7, Augsburg",
       "opening_hours": "12:00–14:30, 18:00–22:30",
-      "cuisine_tags": ["French"],
-      "vibe_tags": ["Classic", "Bar seats"],
+      "cuisine_tags": [
+        "French"
+      ],
+      "vibe_tags": [
+        "Classic",
+        "Bar seats"
+      ],
       "is_bookable": true
     },
     {
@@ -279,8 +357,14 @@
       "neighborhood": "Maximilianstraße",
       "address": "Maximilianstraße 31, Augsburg",
       "opening_hours": "12:00–23:00",
-      "cuisine_tags": ["Mediterranean", "Seafood"],
-      "vibe_tags": ["Atrium", "Long lunch"],
+      "cuisine_tags": [
+        "Mediterranean",
+        "Seafood"
+      ],
+      "vibe_tags": [
+        "Atrium",
+        "Long lunch"
+      ],
       "is_bookable": true
     },
     {
@@ -297,8 +381,14 @@
       "neighborhood": "Altstadt",
       "address": "Altstadt 12, Augsburg",
       "opening_hours": "18:00–02:00",
-      "cuisine_tags": ["Bistro", "Austro"],
-      "vibe_tags": ["Late night", "Jukebox"],
+      "cuisine_tags": [
+        "Bistro",
+        "Austro"
+      ],
+      "vibe_tags": [
+        "Late night",
+        "Jukebox"
+      ],
       "is_bookable": true
     },
     {
@@ -315,8 +405,14 @@
       "neighborhood": "Domviertel",
       "address": "Domstraße 4, Augsburg",
       "opening_hours": "18:00–22:00",
-      "cuisine_tags": ["Japanese", "Sushi"],
-      "vibe_tags": ["Counter", "Omakase"],
+      "cuisine_tags": [
+        "Japanese",
+        "Sushi"
+      ],
+      "vibe_tags": [
+        "Counter",
+        "Omakase"
+      ],
       "is_bookable": true
     },
     {
@@ -333,8 +429,14 @@
       "neighborhood": "Stadtmarkt",
       "address": "Stadtmarkt 8, Augsburg",
       "opening_hours": "17:00–23:30",
-      "cuisine_tags": ["Grill", "Fire"],
-      "vibe_tags": ["Open fire", "Shared plates"],
+      "cuisine_tags": [
+        "Grill",
+        "Fire"
+      ],
+      "vibe_tags": [
+        "Open fire",
+        "Shared plates"
+      ],
       "is_bookable": true
     },
     {
@@ -351,8 +453,13 @@
       "neighborhood": "Textilviertel",
       "address": "Textilstraße 3, Augsburg",
       "opening_hours": "18:00–23:00",
-      "cuisine_tags": ["Modern Bavarian"],
-      "vibe_tags": ["Grain store", "Tasting plates"],
+      "cuisine_tags": [
+        "Modern Bavarian"
+      ],
+      "vibe_tags": [
+        "Grain store",
+        "Tasting plates"
+      ],
       "is_bookable": true
     },
     {
@@ -369,8 +476,13 @@
       "neighborhood": "Jakobervorstadt",
       "address": "Jakoberstraße 9, Augsburg",
       "opening_hours": "17:30–23:30",
-      "cuisine_tags": ["Nordic"],
-      "vibe_tags": ["Small plates", "Aquavit"],
+      "cuisine_tags": [
+        "Nordic"
+      ],
+      "vibe_tags": [
+        "Small plates",
+        "Aquavit"
+      ],
       "is_bookable": true
     },
     {
@@ -387,8 +499,14 @@
       "neighborhood": "Lechviertel",
       "address": "Lechstraße 2, Augsburg",
       "opening_hours": "18:00–23:00",
-      "cuisine_tags": ["Coastal", "Seafood"],
-      "vibe_tags": ["Brine", "Smoke"],
+      "cuisine_tags": [
+        "Coastal",
+        "Seafood"
+      ],
+      "vibe_tags": [
+        "Brine",
+        "Smoke"
+      ],
       "is_bookable": true
     },
     {
@@ -405,8 +523,14 @@
       "neighborhood": "Stadtmarkt",
       "address": "Stadtmarkt 7, Augsburg",
       "opening_hours": "11:00–15:00",
-      "cuisine_tags": ["Canteen", "Daily menu"],
-      "vibe_tags": ["Bench tables", "Fast lunch"],
+      "cuisine_tags": [
+        "Canteen",
+        "Daily menu"
+      ],
+      "vibe_tags": [
+        "Bench tables",
+        "Fast lunch"
+      ],
       "is_bookable": false
     },
     {
@@ -423,8 +547,14 @@
       "neighborhood": "Innenstadt",
       "address": "Innenstadt 5, Augsburg",
       "opening_hours": "16:00–01:00",
-      "cuisine_tags": ["Wine bar", "Cheese"],
-      "vibe_tags": ["Small growers", "Cellar"],
+      "cuisine_tags": [
+        "Wine bar",
+        "Cheese"
+      ],
+      "vibe_tags": [
+        "Small growers",
+        "Cellar"
+      ],
       "is_bookable": true
     },
     {
@@ -441,8 +571,14 @@
       "neighborhood": "Altstadt",
       "address": "Altstadt 2, Augsburg",
       "opening_hours": "07:00–18:00",
-      "cuisine_tags": ["Bakery", "Pastry"],
-      "vibe_tags": ["Morning buns", "City honey"],
+      "cuisine_tags": [
+        "Bakery",
+        "Pastry"
+      ],
+      "vibe_tags": [
+        "Morning buns",
+        "City honey"
+      ],
       "is_bookable": false
     },
     {
@@ -459,8 +595,14 @@
       "neighborhood": "Textilviertel",
       "address": "Textilstraße 5, Augsburg",
       "opening_hours": "19:00–02:00",
-      "cuisine_tags": ["Bar", "Charcoal bread"],
-      "vibe_tags": ["Vinyl", "Highballs"],
+      "cuisine_tags": [
+        "Bar",
+        "Charcoal bread"
+      ],
+      "vibe_tags": [
+        "Vinyl",
+        "Highballs"
+      ],
       "is_bookable": true
     },
     {
@@ -477,8 +619,13 @@
       "neighborhood": "Annstraße",
       "address": "Annstraße 4, Augsburg",
       "opening_hours": "19:30–23:30",
-      "cuisine_tags": ["Supper club"],
-      "vibe_tags": ["Curtain", "One seating"],
+      "cuisine_tags": [
+        "Supper club"
+      ],
+      "vibe_tags": [
+        "Curtain",
+        "One seating"
+      ],
       "is_bookable": true
     },
     {
@@ -495,8 +642,14 @@
       "neighborhood": "Oberhausen",
       "address": "Getreidestraße 1, Augsburg",
       "opening_hours": "11:30–23:00",
-      "cuisine_tags": ["Swabian", "Rösthaus"],
-      "vibe_tags": ["Granary beams", "Copper pans"],
+      "cuisine_tags": [
+        "Swabian",
+        "Rösthaus"
+      ],
+      "vibe_tags": [
+        "Granary beams",
+        "Copper pans"
+      ],
       "is_bookable": true
     },
     {
@@ -513,8 +666,14 @@
       "neighborhood": "Lechviertel",
       "address": "Lechgasse 3, Augsburg",
       "opening_hours": "17:30–23:00",
-      "cuisine_tags": ["Grill", "Whole birds"],
-      "vibe_tags": ["Ember", "Counter pies"],
+      "cuisine_tags": [
+        "Grill",
+        "Whole birds"
+      ],
+      "vibe_tags": [
+        "Ember",
+        "Counter pies"
+      ],
       "is_bookable": true
     }
   ]

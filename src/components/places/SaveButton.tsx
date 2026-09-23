@@ -80,11 +80,11 @@ export function SaveButton({
       aria-pressed={saved}
       aria-label={saved ? "Remove from favourites" : "Save to favourites"}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-md transition hover:bg-white hover:text-ink",
+        "relative z-20 flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-[6px] transition hover:bg-white hover:text-ink",
         className,
       )}
     >
-      <Heart className={cn("h-[18px] w-[18px]", saved && "fill-white")} strokeWidth={1.8} aria-hidden />
+      <Heart className={cn("h-4 w-4", saved && "fill-white")} strokeWidth={2} aria-hidden />
     </button>
   );
 }

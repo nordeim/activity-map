@@ -4,26 +4,32 @@
 /* ============================================================
    ROAM — Augsburg City Guide · design tokens
    Tailwind CSS v4 CSS-first configuration (no tailwind.config.*).
-   Palette measured from the reference app:
-     cream paper  #F9F7F2 (page background)
-     ink          #1A1A1A (primary text / black buttons)
-     roam violet  #5A18FB (the View All accent)
-   Typography (measured from the live app, session 2): Libre Baskerville
-   (serif display — every h1/h2 on the live app) + Inter (UI sans) + Poppins
-   (nav links), loaded via Google Fonts in the root layout.
+   Palette re-measured from the live app (session 3, 2026-09-23):
+     cream paper  #F8F7F4 (page background, body bg)
+     ink          #0E0E0E (roam-text — primary text / black buttons)
+     roam violet  #571AFF (Learn More / Book Now accent)
+     secondary    #3A3A3A · muted #888580 · surface2 #F2F1EE
+     line         #E8E6DC (navbar bottom rule) · border #DDDBD5
+   Typography: Libre Baskerville (serif display — every h1/h2) + Inter
+   (UI sans AND nav — the live app removed Poppins after session 2).
    ============================================================ */
 
 @theme {
-  --color-cream: #f9f7f2;
-  --color-cream-deep: #f3efe7;
-  --color-ink: #1a1a1a;
-  --color-roam: #5a18fb;
+  --color-cream: #f8f7f4;
+  --color-cream-deep: #f2f1ee;
+  --color-ink: #0e0e0e;
+  --color-roam: #571aff;
   --color-roam-deep: #4a0fe0;
   --color-electric: #4d61ff; /* the live home "Highlighted Restaurants" band */
+  --color-secondary: #3a3a3a;
+  --color-muted: #888580;
+  --color-surface2: #f2f1ee;
+  --color-line: #e8e6dc;
+  --color-border: #dddbd5;
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: "Libre Baskerville", ui-serif, Georgia, "Times New Roman", serif;
-  --font-nav: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-nav: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --shadow-card: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
   --shadow-float: 0 4px 24px rgba(0, 0, 0, 0.06);
@@ -72,7 +78,7 @@ body {
 }
 
 ::selection {
-  background: rgba(90, 24, 251, 0.18);
+  background: rgba(87, 26, 255, 0.16);
 }
 
 /* Leaflet (map view) — pin the basemap to the app's visual language. */
@@ -100,13 +106,13 @@ body {
   width: 16px;
   height: 16px;
   border-radius: 9999px;
-  background: #1a1a1a;
+  background: #0e0e0e;
   border: 2.5px solid #ffffff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .roam-marker[data-active="true"] {
-  background: #5a18fb;
+  background: #571aff;
   width: 22px;
   height: 22px;
   border-width: 3px;

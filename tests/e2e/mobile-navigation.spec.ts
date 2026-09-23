@@ -1,14 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-// Mobile navigation (390×844 — the reference app's mobile chrome):
-// the full-width top bar with the compact text-only view links, the
-// right-cluster icon actions (map pin / heart / user), and the active
-// link's light-gray pill. This is the highest-regression-risk chrome —
-// the original scaffold's Tailwind v4 validation found that class-based
-// responsive utilities can silently push nav links UNDER neighbouring
-// flex clusters (failure class D) or off-screen (class C). These specs
-// pin: one-line layout, no element overlap, tap-to-navigate on every
-// link, and the active-pill state tracking the route.
+// Mobile navigation (390×844 — the live app's session-3 chrome):
+// a FIXED top tab-bar (cream glass #F8F7F4/62, blur, border-b) capped at
+// 430px, with the compact text-only view links (16px Inter — ACTIVE =
+// weight 700 ink, inactive = 500 ink-40%), the right-cluster icon actions
+// (map pin / heart / user), and no element overlap. This is the
+// highest-regression-risk chrome — the original scaffold's Tailwind v4
+// validation found that class-based responsive utilities can silently push
+// nav links UNDER neighbouring flex clusters (failure class D) or off-screen
+// (class C). These specs pin: one-line layout, no element overlap,
+// tap-to-navigate on every link, and the active state tracking the route.
 // Contexts arrive AUTHENTICATED (setup-project storageState).
 
 // A touch-enabled 390×844 chromium context (the iPhone geometry without
@@ -67,30 +68,32 @@ test.describe("mobile navigation", () => {
     }
   });
 
-  test("the ACTIVE link carries the light-gray pill", async ({ page }) => {
+  test("the ACTIVE link is the bold ink one (no pill on mobile)", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
     const highlights = nav.getByRole("link", { name: "Highlights", exact: true });
-    await expect(highlights).toHaveCSS("background-color", "rgb(243, 244, 246)");
+    await expect(highlights).toHaveCSS("font-weight", "700");
+    await expect(highlights).toHaveCSS("color", "rgb(14, 14, 14)");
     await expect(highlights).toHaveAttribute("aria-current", "page");
 
-    // Inactive links render transparent.
+    // Inactive links render dimmed (rgba(14,14,14,0.4)) at weight 500.
     const eat = nav.getByRole("link", { name: "Eat", exact: true });
-    await expect(eat).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(eat).toHaveCSS("color", "rgba(14, 14, 14, 0.4)");
     await expect(eat).not.toHaveAttribute("aria-current", "page");
   });
 
-  test("view-link taps switch routes and move the pill", async ({ page }) => {
+  test("view-link taps switch routes and move the active state", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
 
     await nav.getByRole("link", { name: "Eat", exact: true }).tap();
     await expect(page).toHaveURL(/\/eat\/?$/);
     await expect(page.getByRole("heading", { name: "Eat Well Tonight" })).toBeVisible();
     const eat = nav.getByRole("link", { name: "Eat", exact: true });
-    await expect(eat).toHaveCSS("background-color", "rgb(243, 244, 246)");
+    await expect(eat).toHaveCSS("font-weight", "700");
+    await expect(eat).toHaveCSS("color", "rgb(14, 14, 14)");
 
-    // Highlights lost the pill.
+    // Highlights lost the active weight/color.
     const home = nav.getByRole("link", { name: "Highlights", exact: true });
-    await expect(home).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(home).toHaveCSS("color", "rgba(14, 14, 14, 0.4)");
   });
 
   test("the right-cluster icon actions navigate", async ({ page }) => {
@@ -121,14 +124,14 @@ test.describe("mobile navigation", () => {
 test.describe("middle state (640) navigation", () => {
   test.use({ viewport: { width: 640, height: 844 } });
 
-  test("the floating pill carries the five view links with icons", async ({ page }) => {
+  test("the tab-bar caps at 430px and carries the mobile chrome", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
     await expect(nav).toBeVisible();
-    for (const label of ["Highlights", "Eat", "Stay", "Do", "Map"]) {
+    for (const label of ["Highlights", "Eat", "Stay", "Do"]) {
       await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
-    // The pill is centered and narrower than the viewport.
+    // The bar is centered and narrower than the viewport (max-w 430).
     const box = await nav.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.width).toBeLessThan(640);
@@ -139,16 +142,19 @@ test.describe("middle state (640) navigation", () => {
 test.describe("desktop (1280) navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("the floating pill renders the full chrome with the avatar chip", async ({ page }) => {
+  test("the full-width white bar renders the chrome with the avatar chip", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
     await expect(nav).toBeVisible();
     for (const label of ["Highlights", "Eat", "Stay", "Do", "Map", "Favourites", "Profile"]) {
       await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
-    // The avatar chip renders the user's initial on a black disc.
+    // The ACTIVE link sits on the rgba(14,14,14,0.08) pill.
+    const highlights = nav.getByRole("link", { name: "Highlights", exact: true });
+    await expect(highlights).toHaveCSS("background-color", "rgba(14, 14, 14, 0.08)");
+    // The avatar chip renders the user's initial on the black disc.
     const avatar = nav.getByRole("link", { name: "Profile", exact: true });
     await expect(avatar).toHaveText("S");
-    await expect(avatar).toHaveCSS("background-color", "rgb(26, 26, 26)");
+    await expect(avatar).toHaveCSS("background-color", "rgb(14, 14, 14)");
   });
 });

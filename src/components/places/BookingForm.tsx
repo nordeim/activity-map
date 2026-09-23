@@ -1,14 +1,15 @@
 "use client";
 
-// The booking card on the place detail page (right column): price line,
-// rating summary, Check-in / Checkout / Guests fields, the black primary
-// action and the "You won't be charged yet" reassurance — mirroring the
-// reference app's reservation card.
+// The booking request form on the place detail page — re-measured from the
+// live app (session 3): "Send your booking request for <place>." followed by
+// Name*, Surname*, Dates* ("Choose dates"), Time* ("Choose time"), Phone,
+// Email*, Message, and the violet #571AFF h-12 "Book Now" button. Submitting
+// posts to /api/bookings (guests stay server-clamped; the request fields are
+// persisted on the Booking row).
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Star, Loader2, CalendarDays, Users } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import type { PlaceCategory } from "@/types";
 
 export interface BookablePlace {
@@ -27,172 +28,201 @@ export interface BookablePlace {
   maxParty: number | null;
 }
 
-function actionLabel(category: PlaceCategory): string {
-  if (category === "stay") return "Check Availability";
-  if (category === "eat") return "Reserve a Table";
-  return "Book Experience";
-}
-
 export function BookingForm({ place }: { place: BookablePlace }) {
   const router = useRouter();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [guests, setGuests] = useState(2);
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [dates, setDates] = useState("");
+  const [time, setTime] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "busy" | "done" | "error">("idle");
-  const [message, setMessage] = useState<string | null>(null);
-
-  const priceLine =
-    place.category === "stay"
-      ? place.nightlyPrice
-        ? `${formatPrice(place.nightlyPrice, place.currency)} / night`
-        : null
-      : place.price != null
-        ? `${formatPrice(place.price, place.currency)} / person`
-        : place.priceLabel ?? null;
+  const [note, setNote] = useState<string | null>(null);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!place.isBookable || status === "busy") return;
     setStatus("busy");
-    setMessage(null);
+    setNote(null);
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           placeId: place.id,
-          startDate: startDate || null,
-          endDate: endDate || null,
-          guests,
+          startDate: dates || null,
+          endDate: dates || null,
+          guests: 2,
+          name,
+          surname,
+          time,
+          phone,
+          email,
+          message,
         }),
       });
       const body = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
         setStatus("error");
-        setMessage(body.error ?? "Could not save the reservation.");
+        setNote(body.error ?? "Could not send the booking request.");
         return;
       }
       setStatus("done");
-      setMessage("Reserved — see it under Profile → My bookings.");
+      setNote("Request sent — see it under Profile → My bookings.");
       router.refresh();
     } catch {
       setStatus("error");
-      setMessage("Could not reach the server. Please try again.");
+      setNote("Could not reach the server. Please try again.");
     }
   }
 
   if (!place.isBookable) {
     return (
-      <div className="rounded-2xl border border-black/5 bg-cream p-6">
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-ink">{priceLine ?? "Visit"}</span>
-          {place.reviewCount > 0 ? (
-            <span className="flex items-center gap-1 text-sm text-black/60">
-              <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
-              {place.avgRating.toFixed(1)} ({place.reviewCount})
-            </span>
-          ) : null}
-        </div>
-        <p className="mt-4 text-sm leading-relaxed text-black/55">
+      <div className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_18px_44px_rgba(14,14,14,0.1)]">
+        <p className="text-sm leading-relaxed text-secondary">
           This stop is browse-only — drop by any time, no reservation needed.
         </p>
       </div>
     );
   }
 
+  const field =
+    "flex h-12 w-full items-center rounded-full border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50";
+  const label = "mb-1.5 block text-sm font-semibold text-ink";
+
   return (
     <form
+      id="book-now"
       onSubmit={submit}
-      className="rounded-2xl border border-black/5 bg-cream p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]"
+      className="rounded-[28px] border border-black/5 bg-white p-6 shadow-[0_18px_44px_rgba(14,14,14,0.1)] sm:p-8"
     >
-      <div className="mb-5 flex items-center justify-between">
-        {priceLine ? (
-          <span className="text-2xl font-bold text-ink">{priceLine.split(" / ")[0]}</span>
-        ) : (
-          <span className="text-2xl font-bold text-ink">Reserve</span>
-        )}
-        {priceLine?.includes("/") ? (
-          <span className="text-sm text-black/50">/ {priceLine.split(" / ")[1]}</span>
-        ) : null}
-        {place.reviewCount > 0 ? (
-          <span className="flex items-center gap-1 text-sm text-black/60">
-            <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
-            {place.avgRating.toFixed(1)} ({place.reviewCount})
-          </span>
-        ) : null}
-      </div>
+      <h2 className="text-lg font-semibold text-ink">
+        Send your booking request for {place.name}.
+      </h2>
 
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="cursor-pointer rounded-xl border border-black/10 bg-white p-3 transition hover:border-black/25">
-            <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-black/40">
-              <CalendarDays className="h-3 w-3" strokeWidth={1.8} aria-hidden /> Check-in
-            </span>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-transparent text-sm font-semibold text-ink outline-none"
-            />
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label className={label} htmlFor="booking-name">
+            Name<span className="text-roam" aria-hidden>*</span>
           </label>
-          <label className="cursor-pointer rounded-xl border border-black/10 bg-white p-3 transition hover:border-black/25">
-            <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-black/40">
-              <CalendarDays className="h-3 w-3" strokeWidth={1.8} aria-hidden /> Checkout
-            </span>
-            <input
-              type="date"
-              value={endDate}
-              min={startDate || undefined}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-transparent text-sm font-semibold text-ink outline-none"
-            />
-          </label>
+          <input
+            id="booking-name"
+            aria-label="Name"
+            className={field}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            autoComplete="given-name"
+          />
         </div>
-
-        <label className="block cursor-pointer rounded-xl border border-black/10 bg-white p-3 transition hover:border-black/25">
-          <span className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-black/40">
-            <Users className="h-3 w-3" strokeWidth={1.8} aria-hidden /> Guests
-          </span>
-          <select
-            value={guests}
-            onChange={(e) => setGuests(Number(e.target.value))}
-            className="w-full appearance-none bg-transparent text-sm font-semibold text-ink outline-none"
-          >
-            {Array.from(
-              { length: (place.maxParty ?? 8) - (place.minParty ?? 1) + 1 },
-              (_, i) => (place.minParty ?? 1) + i,
-            ).map((n) => (
-              <option key={n} value={n}>
-                {n} {n === 1 ? "guest" : "guests"}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <button
-          type="submit"
-          disabled={status === "busy"}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-ink py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:bg-black disabled:opacity-60"
-        >
-          {status === "busy" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
-          {actionLabel(place.category)}
-        </button>
-
-        <p className="text-center text-xs text-black/45">You won&apos;t be charged yet</p>
-
-        {message ? (
-          <p
-            role="status"
-            className={
-              status === "error"
-                ? "rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-700"
-                : "rounded-lg bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-700"
-            }
-          >
-            {message}
-          </p>
-        ) : null}
+        <div>
+          <label className={label} htmlFor="booking-surname">
+            Surname<span className="text-roam" aria-hidden>*</span>
+          </label>
+          <input
+            id="booking-surname"
+            aria-label="Surname"
+            className={field}
+            value={surname}
+            onChange={(e) => setSurname(e.target.value)}
+            required
+            autoComplete="family-name"
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="booking-dates">
+            Dates<span className="text-roam" aria-hidden>*</span>
+          </label>
+          <input
+            id="booking-dates"
+            aria-label="Dates"
+            className={field}
+            value={dates}
+            onChange={(e) => setDates(e.target.value)}
+            placeholder="Choose dates"
+            required
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="booking-time">
+            Time<span className="text-roam" aria-hidden>*</span>
+          </label>
+          <input
+            id="booking-time"
+            aria-label="Time"
+            className={field}
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            placeholder="Choose time"
+            required
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="booking-phone">
+            Phone
+          </label>
+          <input
+            id="booking-phone"
+            aria-label="Phone"
+            className={field}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            type="tel"
+            autoComplete="tel"
+          />
+        </div>
+        <div>
+          <label className={label} htmlFor="booking-email">
+            Email<span className="text-roam" aria-hidden>*</span>
+          </label>
+          <input
+            id="booking-email"
+            aria-label="Email"
+            className={field}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            required
+            autoComplete="email"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className={label} htmlFor="booking-message">
+            Message
+          </label>
+          <textarea
+            id="booking-message"
+            aria-label="Message"
+            className="min-h-[120px] w-full rounded-[20px] border border-black/10 bg-white px-5 py-4 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Anything the host should know?"
+          />
+        </div>
       </div>
+
+      <button
+        type="submit"
+        disabled={status === "busy"}
+        className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-roam text-sm font-semibold text-white shadow-[0_12px_28px_rgba(87,26,255,0.28)] transition hover:bg-roam-deep disabled:opacity-60"
+      >
+        {status === "busy" ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
+        Book Now
+      </button>
+
+      {note ? (
+        <p
+          role="status"
+          className={
+            status === "error"
+              ? "mt-4 rounded-xl bg-red-50 px-3 py-2 text-center text-xs text-red-700"
+              : "mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-center text-xs text-emerald-700"
+          }
+        >
+          {note}
+        </p>
+      ) : null}
     </form>
   );
 }

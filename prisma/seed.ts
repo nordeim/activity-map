@@ -229,6 +229,49 @@ async function main() {
     }
   }
   console.log(`seeded ${homeCount} home-only places (route/sights/restaurants, status "home")`);
+
+  // ---------------------------------------------------------------------------
+  // Map demo places (session 3 parity): the live map renders a hardcoded set
+  // of 9 demo pins (bundle array `oP`, ids map-*) — NOT the browse entities
+  // (none of the Eat/Stay/Do entities carry coordinates on the live app).
+  // Seeded with status "map" so only the map view selects them.
+  // ---------------------------------------------------------------------------
+  const mapFile = JSON.parse(readFileSync(path.join(__dirname, "data", "map.json"), "utf-8")) as {
+    places: HomeRecord[];
+  };
+  let mapCount = 0;
+  for (let i = 0; i < mapFile.places.length; i++) {
+    const r = mapFile.places[i];
+    await db.place.create({
+      data: {
+        slug: String(r.slug),
+        name: String(r.name),
+        category: typeof r.category === "string" ? r.category : "do",
+        subCategory: str(r.sub_category),
+        shortDescription: str(r.short_description),
+        description: str(r.description),
+        coverImageUrl: str(r.cover_image_url),
+        galleryImages: jsonArray([r.cover_image_url]),
+        priceRange: num(r.price_range),
+        price: num(r.price),
+        currency: "EUR",
+        avgRating: num(r.avg_rating) ?? 0,
+        reviewCount: int(r.review_count) ?? 0,
+        isBookable: r.is_bookable === true,
+        neighborhood: str(r.neighborhood),
+        vibeTags: jsonArray(r.vibe_tags),
+        cuisineTags: jsonArray(r.cuisine_tags),
+        amenities: jsonArray(r.amenities),
+        tags: jsonArray(r.tags),
+        status: "map",
+        lat: num(r.lat),
+        lng: num(r.lng),
+        sortOrder: 600 + i,
+      },
+    });
+    mapCount++;
+  }
+  console.log(`seeded ${mapCount} map demo places (status "map")`);
 }
 
 main()

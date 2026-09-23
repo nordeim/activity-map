@@ -6,11 +6,11 @@ IMPORTANT: File is read fresh for every conversation. Be brief and practical.
 
 A production-grade, self-hosted clone of `activity-map.base44.app`: an authenticated city guide for Augsburg with a trip-planner home page, Eat / Stay / Do browse views, place detail with booking, an interactive Leaflet map, favourites, and a profile with trips and bookings. Maintained by nordeim; cloned and rebuilt to be locally deployable with zero external services.
 
-**Tech Stack**: Next.js 16 (App Router, standalone output), React 19, TypeScript 5, Tailwind CSS 4 (CSS-first), Prisma 6 + SQLite, Leaflet, Vitest, Playwright. Fonts: Libre Baskerville (display serif) + Inter (UI sans) + Poppins (nav), measured from the live app.
+**Tech Stack**: Next.js 16 (App Router, standalone output), React 19, TypeScript 5, Tailwind CSS 4 (CSS-first), Prisma 6 + SQLite, Leaflet, Vitest, Playwright. Fonts: Libre Baskerville (display serif) + Inter (UI sans AND nav — re-measured session 3; the live app dropped Poppins).
 
 ## Core Identity & Purpose
 
-ROAM solves one problem: the reference trip-planning app is locked behind a hosted platform. This repo reproduces it — every view, the measured filter semantics, the visual design tokens, and the 42 seeded places captured from the live app plus its 27 home-only showcase rows (route, sights, restaurants) — as a single Next.js application with cookie-session auth and a SQLite store, so it runs anywhere with `bun install && bun run db:push && bun run db:seed`.
+ROAM solves one problem: the reference trip-planning app is locked behind a hosted platform. This repo reproduces it — every view, the measured filter semantics, the visual design tokens, and the 42 seeded places captured from the live app plus its 27 home-only showcase rows (route, sights, restaurants) and 9 map-demo rows — as a single Next.js application with cookie-session auth and a SQLite store, so it runs anywhere with `bun install && bun run db:push && bun run db:seed`.
 
 ## Foundational Principles
 
@@ -33,7 +33,7 @@ ROAM solves one problem: the reference trip-planning app is locked behind a host
 
 ### Next.js 16 Specific
 
-- App Router conventions (`src/app/`); Server Components by default, `"use client"` only for interactivity (the 12 client components: LoginForm, Navbar, Hero, HighlightedRestaurants, CategoryExplorer, PlaceCard, SaveButton, BookingForm, MapExplorer, LeafletCanvas, FavouritesView, ProfileView).
+- App Router conventions (`src/app/`); Server Components by default, `"use client"` only for interactivity (the 16 client components: LoginForm, Navbar, Hero, RecommendedRoute, HighlightedRestaurants, CategoryExplorer, PlaceCard, StayCard, SaveButton, BookingForm, TripPlanner, DateRangePicker, MapExplorer, LeafletCanvas, FavouritesView, ProfileView).
 - Route handlers for the API surface (`src/app/api/**/route.ts`), `export const dynamic = "force-dynamic"` on session-scoped routes.
 - Leaflet mounts through `next/dynamic` with `ssr: false` — `react-leaflet` in a server component crashes the build.
 - Remote images restricted via `next.config.ts` `remotePatterns` (`media.base44.com`, `z-cdn.chatglm.cn`).
@@ -46,10 +46,10 @@ ROAM solves one problem: the reference trip-planning app is locked behind a host
 
 ### Tailwind CSS 4
 
-- **CSS-first configuration — there is NO `tailwind.config.*`.** Tokens are `@theme` variables in `src/app/globals.css`: `--color-cream #F9F7F2`, `--color-cream-deep`, `--color-ink #1A1A1A`, `--color-roam #5A18FB`, `--color-electric #4D61FF` (the live home's blue band), `--font-sans` (Inter), `--font-serif` (Libre Baskerville — the live app's display serif), `--font-nav` (Poppins — the live app's nav font), `--shadow-card/-float/-hero`, `--radius-4xl`.
+- **CSS-first configuration — there is NO `tailwind.config.*`.** Tokens are `@theme` variables in `src/app/globals.css` (re-measured session 3): `--color-cream #F8F7F4`, `--color-cream-deep`/`--color-surface2 #F2F1EE`, `--color-ink #0E0E0E`, `--color-roam #571AFF`, `--color-electric #4D61FF` (the live home's blue band), `--color-secondary #3A3A3A`, `--color-muted #888580`, `--color-line #E8E6DC`, `--color-border #DDDBD5`, `--font-sans` (Inter), `--font-serif` (Libre Baskerville — the live app's display serif), `--font-nav` (Inter — the live app dropped Poppins), `--shadow-card/-float/-hero`, `--radius-4xl`.
 - Custom primitives are `@utility` definitions: `bg-grid`, `no-scrollbar`, `hero-shade`.
 - Mobile navigation is the known v4 hazard — failure classes (no-nav / invisible / clipped / under-layer / breakpoint mismatch) are regression-pinned by `tests/e2e/mobile-navigation.spec.ts`. The Navbar's `no-scrollbar` overflow safety valve must stay.
-- Mobile chrome: below `sm`, a full-width flat top bar with text-only links, the image wordmark (`public/images/roam-logo.png`, mobile wordmark span ≤52px), and Map folded into the right-cluster pin; from `sm`, the floating white pill with icons + avatar chip. Measured from the reference — do not "fix" the asymmetry.
+- Mobile chrome (measured session 3): below `md`, a fixed-top cream-glass tab-bar (52px, ≤430px centered, text-only 16px Inter links, MapPin/Heart/User right icons; the home hero slides under the glass); from `md`, a sticky transparent header wrapping the full-width white `h-14` bar (border-b `#E8E6DC`, icon+text links, active `rgba(14,14,14,0.08)` pill, hide-on-scroll choreography). Do not "fix" the asymmetry.
 
 ### React 19
 
@@ -64,7 +64,7 @@ ROAM solves one problem: the reference trip-planning app is locked behind a host
 bun install
 cp .env.example .env
 bun run db:push     # apply schema (db push — no migrations folder)
-bun run db:seed     # 42 places + 27 home-only rows + demo user (wipes domain tables)
+bun run db:seed     # 78 places (42 published + 27 home-only + 9 map-demo) + demo user (wipes domain tables)
 bun run dev         # http://localhost:3000
 ```
 
@@ -79,7 +79,7 @@ Demo login: `sepnetflix2023@outlook.com` / `$Abcd1234`.
 | `bun run start` | Production standalone server |
 | `bun run lint` | ESLint (next core-web-vitals + typescript) |
 | `bun run typecheck` | `tsc --noEmit` |
-| `bun run test` | Vitest unit suite (32 checks) |
+| `bun run test` | Vitest unit suite (42 checks) |
 | `bun run test:e2e` | Playwright E2E (35 checks; requires a build) |
 | `bun run db:push` / `db:generate` / `db:seed` | Prisma schema / client / seed |
 
@@ -97,14 +97,14 @@ Schema changes go through `db push`, never `prisma migrate` — `prisma/migratio
 
 ### Test Pyramid
 
-- **Unit (Vitest, 32 checks)**: pure seams — `tests/db-path.test.ts` (17: SQLite URL resolution contract, quote-stripping, standalone anchors) and `tests/filters.test.ts` (15: chip AND-composition, special chips, search haystack).
-- **E2E (Playwright, 35 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (hero/planner, category filtering, detail + booking, favourites round-trip, map, profile), `home.spec.ts` (session-2 parity: glass planner, Recommended Route, blue restaurants, stay showcase, sights, footer, home-place detail resolution, browse purity), `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
+- **Unit (Vitest, 42 checks)**: pure seams — `tests/db-path.test.ts` (17: SQLite URL resolution contract, quote-stripping, standalone anchors), `tests/filters.test.ts` (15: chip AND-composition, special chips, search haystack), and `tests/planner.test.ts` (10: planner query params, browse-target routing, date-range label formatting).
+- **E2E (Playwright, 35 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (planner submit → category params, sticky planner pill, redesigned cards, detail booking-request round-trip, favourites round-trip, map 9 demo places, profile tabs), `home.spec.ts` (glass planner + category-card glass/black VIEW ALL, sticky Recommended Route, blue restaurants, stay showcase, sights, footer, home-place detail resolution, browse purity), `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
 - **Smoke (bash, 27 checks)**: `./scripts/smoke-test.sh` against a fresh production server — health, auth, rate limiting, places, favourites, bookings, 404s.
 
 ### Test Commands
 
 ```bash
-bun run test        # 32 unit checks
+bun run test        # 42 unit checks
 bun run build && bun run test:e2e   # 35 E2E checks
 bun run build && ./scripts/smoke-test.sh   # 27 smoke checks
 ```
@@ -112,7 +112,7 @@ bun run build && ./scripts/smoke-test.sh   # 27 smoke checks
 ### Testing Rules
 
 - E2E auth is shared: the `setup` project signs in once into `tests/e2e/.auth/user.json` (storageState) — per-test logins would trip the 10/15-min rate limiter. `auth.spec.ts` opts out with an empty storageState deliberately.
-- Extend `tests/filters.test.ts` when changing `src/lib/filters.ts`; extend `tests/db-path.test.ts` when changing `src/lib/db-path.ts`. These contracts are the point, not the coverage number.
+- Extend `tests/filters.test.ts` when changing `src/lib/filters.ts`; extend `tests/db-path.test.ts` when changing `src/lib/db-path.ts`; extend `tests/planner.test.ts` when changing `src/lib/planner.ts`. These contracts are the point, not the coverage number.
 - Playwright runs single-worker (`workers: 1`) — the specs share one seeded SQLite file. Don't parallelize without isolating databases.
 
 ## Code Quality Standards
@@ -161,8 +161,8 @@ bun run lint && bun run typecheck
 ### Architecture
 
 - **Auth gate at the layout**: `src/app/(app)/layout.tsx` resolves the session server-side and redirects to `/login`; `/login` and `/api` are the only public surfaces. Every route handler re-checks `getSessionUser()`.
-- **Category pages are server components** that query Prisma (`src/lib/places.ts`) and hydrate `CategoryExplorer` (client) with DTOs; the explorer owns search + chip state in the URL-free local state.
-- **MapExplorer** (client) receives all 42 places, owns the category pills + search, and mounts `LeafletCanvas` via `next/dynamic({ ssr: false })`.
+- **Category pages are server components** that query Prisma (`src/lib/places.ts`) and hydrate `CategoryExplorer` (client) with DTOs; the explorer owns search + chip state in the URL-free local state. The shared `TripPlanner` renders as the Hero's glass pill (home) and the browse sticky white pill (pre-filled from `searchParams`: `people`/`start_date`/`end_date`); its submit routes to the category pages with those params and the grids date-filter accordingly.
+- **MapExplorer** (client) receives the 9 `status: "map"` demo places (the live app's map is a hardcoded array, not entity-fed), owns the category pills + search, and mounts `LeafletCanvas` via `next/dynamic({ ssr: false })`.
 
 ### API Design
 
@@ -179,9 +179,9 @@ bun run lint && bun run typecheck
 
 ### Database / Data Layer
 
-- Models: `User`, `Place` (category eat/stay/do + JSON-array string columns), `SavedPlace` (unique per user+place), `Booking` (status confirmed/cancelled). See `prisma/schema.prisma`.
+- Models: `User`, `Place` (category eat/stay/do + JSON-array string columns), `SavedPlace` (unique per user+place), `Booking` (status confirmed/cancelled + the session-3 request-form fields `name`/`surname`/`time`/`phone`/`email`/`message`). See `prisma/schema.prisma`.
 - `import { db } from "@/lib/db"` — the Prisma singleton with runtime URL resolution. **Never construct `PrismaClient` directly**: the standalone server's SQLite path depends on `src/lib/db-path.ts` anchor logic.
-- Seed data (`prisma/data/{eat,stay,do}.json`) was captured from the live app's entity API; coordinates are deterministic per neighborhood (see `prisma/seed.ts`).
+- Seed data (`prisma/data/{eat,stay,do,home,map}.json`) was captured from the live app's entity API (the home/map files mirror the live page's showcase and hardcoded-map arrays); browse-row coordinates are deterministic per neighborhood (see `prisma/seed.ts`).
 
 ### Environment Variables
 
