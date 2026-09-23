@@ -90,6 +90,22 @@ export async function countPlaces(): Promise<Record<PlaceCategory, number>> {
   return { eat, stay, do: doit };
 }
 
+// Home-only showcase rows (status "home"): the Recommended Route itinerary,
+// the Highlighted Sights grid, the Highlighted Restaurants strip. Selected by
+// slug prefix, ordered by sortOrder — invisible to browses/counts, resolvable
+// on /place/[slug] exactly like the reference app's home links.
+export async function listHomePlaces(
+  slugPrefix: string,
+  userId?: string,
+): Promise<PlaceDTO[]> {
+  const rows = await db.place.findMany({
+    where: { status: "home", slug: { startsWith: slugPrefix } },
+    orderBy: [{ sortOrder: "asc" }],
+    include: userId ? { savedBy: { where: { userId }, select: { userId: true } } } : undefined,
+  });
+  return rows.map((r) => toPlaceDTO(r, userId));
+}
+
 export async function listFavourites(userId: string): Promise<PlaceDTO[]> {
   const rows = await db.savedPlace.findMany({
     where: { userId },

@@ -17,7 +17,11 @@ test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true
 
 test.describe("mobile navigation", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/");
+    // domcontentloaded: the home page pulls ~35 card images from the
+    // reference CDN; waiting for the full "load" event has hit spurious
+    // 45s timeouts under network contention. The nav assertions below
+    // auto-wait for hydration anyway.
+    await page.goto("/", { waitUntil: "domcontentloaded" });
   });
 
   test("the full-width top bar renders every element on one line", async ({ page }) => {

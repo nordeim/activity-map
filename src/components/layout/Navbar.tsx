@@ -20,7 +20,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Sun, UtensilsCrossed, BedDouble, Compass, MapPin, Heart, User } from "lucide-react";
+import { Sun, UtensilsCrossed, BedDouble, Compass, MapPin, Heart, User } from "lucide-react";
 import { cn, initials } from "@/lib/utils";
 
 const LINKS = [
@@ -50,21 +50,34 @@ export function Navbar({ userName }: { userName: string }) {
           "sm:w-full sm:max-w-[1000px] sm:rounded-full sm:border sm:px-2 sm:shadow-[0_4px_24px_rgba(0,0,0,0.07)]",
         )}
       >
-        {/* Wordmark */}
+        {/* Wordmark — the live app's image logo (icon + wordmark sprite,
+            /images/roam-logo.png, captured from the reference CDN), shown
+            with the reference's two-span crop technique: an 18px icon span
+            plus a wordmark span offset by -18px. */}
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-1.5 pl-0.5 pr-1 sm:pl-2 sm:pr-4"
+          className="flex shrink-0 items-center pl-0.5 pr-1 sm:pl-2 sm:pr-4"
           aria-label="ROAM home"
         >
-          <Sparkles className="h-[18px] w-[18px] text-ink sm:h-5 sm:w-5" strokeWidth={1.8} aria-hidden />
-          <span className="text-[15px] font-bold tracking-wide text-ink sm:text-xl">ROAM</span>
+          <span aria-hidden className="relative block h-[18px] w-[18px] shrink-0 overflow-hidden">
+              <img src="/images/roam-logo.png" alt="" className="block h-[18px] w-auto max-w-none" />
+          </span>
+          <span aria-hidden className="relative ml-[4px] block h-[18px] w-[52px] shrink-0 overflow-hidden sm:w-[70px]">
+              <img
+              src="/images/roam-logo.png"
+              alt=""
+              className="block h-[18px] w-auto max-w-none"
+              style={{ transform: "translateX(-18px)" }}
+            />
+          </span>
+          <span className="sr-only">ROAM</span>
         </Link>
 
         {/* View links — text-only and compact below sm (reference), with
             icons + the Map link from sm up. The no-scrollbar overflow is a
             safety valve: at extreme widths links scroll instead of sliding
             under the logo or the right cluster. */}
-        <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-0 overflow-x-auto sm:gap-1">
+        <div className="no-scrollbar flex min-w-0 flex-1 items-center justify-center gap-3 overflow-x-auto sm:gap-1">
           {LINKS.map(({ href, label, icon: Icon }) => {
             const active = isActive(href);
             return (
@@ -73,11 +86,11 @@ export function Navbar({ userName }: { userName: string }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex shrink-0 items-center whitespace-nowrap rounded-full font-medium transition-colors",
+                  "font-nav flex shrink-0 items-center whitespace-nowrap rounded-full tracking-[0.01em] transition-colors",
                   active
-                    ? "bg-[#F3F4F6] font-semibold text-ink"
-                    : "text-black/60 hover:bg-black/[0.04] hover:text-ink",
-                  "px-1.5 py-2 text-[13px] sm:px-3 sm:text-sm",
+                    ? "bg-[#F3F4F6] font-bold text-ink"
+                    : "font-medium text-black/60 hover:bg-black/[0.04] hover:text-ink",
+                  "px-0 py-2 text-xs sm:px-3 sm:text-sm",
                 )}
               >
                 <Icon className="mr-1.5 hidden h-4 w-4 sm:block" strokeWidth={1.5} aria-hidden />
@@ -92,10 +105,10 @@ export function Navbar({ userName }: { userName: string }) {
             aria-label="Map"
             aria-current={isActive("/map") ? "page" : undefined}
             className={cn(
-              "hidden shrink-0 items-center whitespace-nowrap rounded-full font-medium transition-colors sm:flex",
+              "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full tracking-[0.01em] transition-colors sm:flex",
               isActive("/map")
-                ? "bg-[#F3F4F6] font-semibold text-ink"
-                : "text-black/60 hover:bg-black/[0.04] hover:text-ink",
+                ? "bg-[#F3F4F6] font-bold text-ink"
+                : "font-medium text-black/60 hover:bg-black/[0.04] hover:text-ink",
               "px-3 py-2 text-sm",
             )}
           >

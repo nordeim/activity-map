@@ -11,16 +11,17 @@ test.describe("home (Highlights)", () => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Augsburg City Guide" })).toBeVisible();
 
-    // The planner pill fields.
-    await expect(page.getByLabel("Dates")).toBeVisible();
-    await expect(page.getByLabel("Guests")).toBeVisible();
-    await expect(page.getByLabel("Category")).toHaveValue("eat");
+    // The glass planner pill fields (live aria-labels; see home.spec.ts for
+    // the full session-2 home content parity coverage).
+    await expect(page.getByLabel("Choose trip dates")).toBeVisible();
+    await expect(page.getByLabel("Number of people")).toBeVisible();
+    await expect(page.getByLabel("Type of Activities")).toBeVisible();
 
     // The measured category cards with their counts and VIEW ALL buttons.
     await expect(page.getByRole("heading", { name: "12 Hotels" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "12 Places to Eat" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "18 Sights to Discover" })).toBeVisible();
-    await expect(page.getByRole("link", { name: /View All/ })).toHaveCount(3);
+    await expect(page.locator("#category-cards").getByRole("link", { name: /View All/ })).toHaveCount(3);
   });
 
   test("VIEW ALL navigates to the category view", async ({ page }) => {
@@ -32,9 +33,9 @@ test.describe("home (Highlights)", () => {
 
   test("the planner submits to the map with its parameters", async ({ page }) => {
     await page.goto("/");
-    await page.getByLabel("Guests").fill("3");
-    await page.getByLabel("Category").selectOption("stay");
-    await page.getByRole("button", { name: "Search", exact: true }).click();
+    await page.getByLabel("Number of people").selectOption("3");
+    await page.getByLabel("Type of Activities").selectOption("stay");
+    await page.getByLabel("Search trip matches").click();
     await expect(page).toHaveURL(/\/map\?/);
     await expect(page).toHaveURL(/guests=3/);
     await expect(page).toHaveURL(/category=stay/);
@@ -115,7 +116,10 @@ test.describe("favourites round-trip", () => {
     await firstCard.getByRole("button", { name: "Save to favourites" }).click();
     await expect(firstCard.getByRole("button", { name: "Remove from favourites" })).toBeVisible();
 
-    await page.goto("/favourites");
+    // domcontentloaded: card imagery comes from the reference CDN — the
+    // full "load" event can stall behind a slow image under network
+    // contention and has caused spurious 45s timeouts.
+    await page.goto("/favourites", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Favourites" })).toBeVisible();
     await expect(page.getByText("All saved restaurants, hotels, and places in one calm collection.")).toBeVisible();
     await expect(page.locator("article")).toHaveCount(1);

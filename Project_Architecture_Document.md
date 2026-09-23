@@ -10,6 +10,7 @@
 #### Revision Block — v1.0 (Tracked Changes)
 
 - `[SYN]` Initial PAD for the completed ROAM clone — generated after all verification gates passed (lint ✓, typecheck ✓, 32 unit ✓, 27 E2E ✓, 27 smoke ✓).
+- `[v1.1]` Session 2 remediation — live-app parity pass (Libre Baskerville/Poppins fonts, image logo, glass planner hero, home showcase: Recommended Route / blue Highlighted Restaurants / Choose Your Vibe stays / Highlighted Sights / footer + legal pages; `status:"home"` seeding; env pinning on db scripts). Gates re-verified: 32 unit ✓, 27 smoke ✓, 35 E2E ✓.
 
 ### Table of Contents
 
@@ -130,7 +131,7 @@ flowchart TB
     subgraph External
         IMG[media.base44.com<br/>place imagery CDN]
         TILES[CARTO basemap tiles]
-        FONTS[Google Fonts<br/>Playfair Display + Inter]
+        FONTS[Google Fonts<br/>Libre Baskerville + Inter + Poppins]
     end
     B -->|HTML + hydrated client components| RSC
     B -->|fetch JSON| API
@@ -169,8 +170,9 @@ Layer 3: API route handlers — src/app/api/**/route.ts.
          Rule: envelope { ok: true, data } | { ok: false, error }, real status
          codes, getSessionUser() guard on every non-public route.
 Layer 4: UI — server components by default; "use client" only for interactivity.
-         Rule: the (app) route-group layout authenticates; /login and /api are
-         the only public surfaces; Leaflet only behind next/dynamic ssr:false.
+         Rule: the (app) route-group layout authenticates; /login, /privacy,
+         /accessibility, and /api are the only public surfaces; Leaflet only
+         behind next/dynamic ssr:false.
 ```
 
 **The Golden Rule:** data flows downward only (UI → API → seams → Prisma); a layer never reaches up. Everything the UI needs arrives as typed DTOs.
@@ -183,7 +185,9 @@ activity-map/
 │   ├── app/
 │   │   ├── (app)/                    ← auth-gated route group; layout.tsx redirects to /login
 │   │   │   ├── layout.tsx            ← resolves session, renders Navbar shell
-│   │   │   ├── page.tsx              ← Highlights: Hero + trip planner + category cards
+│   │   │   ├── page.tsx              ← Highlights: Hero + planner + category cards + Recommended
+│   │   │   │                              Route + blue restaurants + stay showcase + sights
+│   │   │   │                              + SiteFooter (the live app's home, measured session 2)
 │   │   │   ├── eat|stay|do/page.tsx  ← server components → Prisma → CategoryExplorer
 │   │   │   ├── place/[slug]/page.tsx ← detail: gallery, description, booking card
 │   │   │   ├── map/page.tsx          ← MapExplorer (client) with all 42 places
@@ -197,14 +201,21 @@ activity-map/
 │   │   │   ├── favourites/route.ts   ← GET/POST/DELETE
 │   │   │   └── bookings/route.ts     ← GET/POST (guests clamped server-side)
 │   │   ├── login/page.tsx            ← public login route; bounces authenticated visits
+│   │   ├── privacy|accessibility/page.tsx ← public legal pages (footer links)
 │   │   ├── layout.tsx                ← root layout: fonts, metadata, globals.css
 │   │   ├── not-found.tsx             ← branded 404
 │   │   └── globals.css               ← @theme tokens + @utility primitives + Leaflet skin
 │   ├── components/
 │   │   ├── auth/LoginForm.tsx        ← client: credentials → /api/auth/login → router.refresh()
 │   │   ├── layout/Navbar.tsx         ← client: mobile full-width bar / desktop floating pill
-│   │   ├── home/Hero.tsx             ← client: full-bleed hero + TripPlanner card
+│   │   ├── home/Hero.tsx             ← client: traveller-photo hero + glass planner pill
 │   │   ├── home/CategoryCards.tsx    ← server: the three VIEW ALL cards
+│   │   ├── home/RecommendedRoute.tsx ← server: 5 timed itinerary stops (status:home rows)
+│   │   ├── home/HighlightedRestaurants.tsx ← client: blue band, featured card + strip
+│   │   ├── home/StayShowcase.tsx     ← server: the 12-stay Choose Your Vibe grid
+│   │   ├── home/HighlightedSights.tsx ← server: 6 sight cards + More Things to Do
+│   │   ├── layout/SiteFooter.tsx     ← server: nav links + legal line
+│   │   └── layout/LegalPage.tsx      ← server: shared shell for the legal pages
 │   │   ├── places/CategoryExplorer.tsx ← client: search + chip state → filtered grid
 │   │   ├── places/PlaceCard.tsx      ← client: card + SaveButton
 │   │   ├── places/SaveButton.tsx     ← client: heart toggle → router.refresh()
@@ -212,22 +223,25 @@ activity-map/
 │   │   ├── map/MapExplorer.tsx       ← client: pills + search; mounts canvas dynamically
 │   │   ├── map/LeafletCanvas.tsx     ← client-only: react-leaflet map + dot markers
 │   │   ├── favourites/FavouritesView.tsx
-│   │   └── profile/ProfileView.tsx
+│   │   └── profile/ProfileView.tsx  (12 client components total — see §3.1)
 │   ├── lib/                          ← Layer 1-2 seams (see §3.1)
 │   └── types/index.ts                ← PlaceDTO, BookingDTO, PlaceCategory
 ├── prisma/
 │   ├── schema.prisma                 ← User, Place, SavedPlace, Booking
 │   ├── seed.ts                       ← idempotent: wipes domain tables, maps captured JSON
-│   └── data/{eat,stay,do}.json       ← entity captures from the live app (12/12/18)
+│   └── data/{eat,stay,do,home}.json  ← entity captures (12/12/18) + home-only showcase
+│                                      rows (5 route stops / 6 sights / 16 restaurants,
+│                                      seeded with status:"home")
 ├── tests/
 │   ├── db-path.test.ts               ← 17 checks: URL resolution contract
 │   ├── filters.test.ts               ← 15 checks: chip semantics
 │   └── e2e/                          ← Playwright: global-setup, auth.setup, helpers,
-│                                      │   auth.spec (4), browse.spec (12),
+│                                      │   auth.spec (4), browse.spec (12), home.spec (8),
 │                                      └   mobile-navigation.spec (8) + .auth/user.json state
 ├── scripts/smoke-test.sh             ← 27-check production API suite
-├── docs/                             ← DEPLOYMENT.md, Tailwind-V4-Validation-Report.md,
-│                                      ssh_git_wrapper_v3.py + runbook, screenshots/ (10)
+├── docs/                             ← DEPLOYMENT.md, remediation-plan.md (session 2),
+│                                      Tailwind-V4-Validation-Report.md,
+│                                      ssh_git_wrapper_v3.py + runbook, screenshots/ (14)
 └── AGENTS.md · CLAUDE.md · README.md · this PAD
 ```
 
@@ -351,6 +365,7 @@ erDiagram
         string id PK
         string slug UK
         string category "eat | stay | do"
+        string status "published | home (27 home-only rows)"
         string subCategory
         float priceRange "1..4 → €..€€€€"
         float price "do: ticket"
@@ -394,6 +409,8 @@ Field naming mirrors the reference app's entity API (Eat / Stay / Do / SavedPlac
 
 ### 4.3 Persistence Strategy
 
+**Home-only showcase rows (session 2).** The seed inserts 27 additional Place rows with `status: "home"`: 5 Recommended Route stops (`home-route-*`), 6 Highlighted Sights (`home-sight-*`), and 16 Highlighted Restaurants (`home-restaurant-*`). They are invisible to `listPlacesForUser`/`countPlaces` (both filter `status: "published"`, keeping browses and category cards at 12/12/18) but resolve on `/place/[slug]` because `getPlaceBySlug` deliberately does not filter status — reproducing the reference app's home links. `listHomePlaces(slugPrefix, userId)` selects them by slug prefix for the home showcase sections.
+
 - **No connection pooling** — SQLite via a single Prisma client singleton (`globalThis`-cached in dev to survive HMR; fresh instance in production).
 - **Migrations:** intentionally none. `bun run db:push` applies the schema; `bun run db:seed` is idempotent (wipes domain tables, reseeds from `prisma/data/*.json`, recreates the demo user).
 - **Backups:** the entire state is one file — `db/custom.db` (git-ignored). Production guidance in `docs/DEPLOYMENT.md` §4: absolute path on a persisted volume + file-level backup.
@@ -406,7 +423,8 @@ Field naming mirrors the reference app's entity API (Eat / Stay / Do / SavedPlac
 
 | Face | Role | Fallback | Notes |
 |------|------|----------|-------|
-| Playfair Display | Display serif — hero wordmark, view headlines, place titles | `ui-serif, Georgia, serif` | Loaded via Google Fonts in the root layout; `--font-serif` token |
+| Libre Baskerville | Display serif — the live app's every h1/h2 (hero wordmark, section headlines, place titles), measured session 2 | `ui-serif, Georgia, serif` | Loaded via Google Fonts in the root layout; `--font-serif` token |
+| Poppins | Navigation links — the live app's `font-poppins`, 12px, 700 active / 500 inactive, `letter-spacing: 0.01em` | `Inter, sans-serif` fallback | Loaded via Google Fonts; `--font-nav` token |
 | Inter | UI sans — body, nav, chips, forms, map popups | `ui-sans-serif, system-ui, -apple-system, "Segoe UI"` | `--font-sans` token; `-webkit-font-smoothing: antialiased` |
 
 ### 5.2 Color Tokens (measured from the reference app)
@@ -418,6 +436,7 @@ Field naming mirrors the reference app's entity API (Eat / Stay / Do / SavedPlac
 | `--color-ink` | `#1A1A1A` | Primary text, black buttons, map markers | 16.26:1 (AAA) |
 | `--color-roam` | `#5A18FB` | VIEW ALL accent, active marker, selection | 6.63:1 (AA); white on it: 7.10:1 (AAA) |
 | `--color-roam-deep` | `#4A0FE0` | Accent hover/pressed | 8.05:1 (AAA) |
+| `--color-electric` | `#4D61FF` | The live home's Highlighted Restaurants band (session 2) | white on it: 4.56:1 (AA) |
 
 Inactive nav text is `black/60` on white ≈ `#666666` → 5.74:1 (AA). Shadows: `--shadow-card`, `--shadow-float`, `--shadow-hero`. Radius scale ends at `--radius-4xl` (2rem). Selection highlight `rgba(90,24,251,0.18)`.
 
@@ -488,7 +507,7 @@ Single role (authenticated user); no RBAC. Authorization = ownership: favourites
 | E2E — auth setup | 1 | 1 | `tests/e2e/auth.setup.ts` | Playwright (setup project) |
 | Smoke — production API | 1 script | 27 | `scripts/smoke-test.sh` | bash + curl |
 
-**Totals: 32 unit + 27 E2E + 27 smoke — all green at the documented commit.**
+**Totals: 32 unit + 35 E2E + 27 smoke — all green at the documented commit.** (Session 2 added the 8-check `home.spec.ts` parity suite.)
 
 ### 7.2 Test Patterns
 
@@ -587,6 +606,7 @@ See the table in `AGENTS.md` (single source for the command list): dev / build /
 | LOW | In-memory rate limiter is per-process | A multi-process deployment would not share buckets | Accepted (single-node design); swap for Redis before scaling out |
 | INFO | Login rate limiter applies to the demo account too | Rapid manual testing can self-throttle (429) | Accepted — E2E shares one login via storageState for exactly this reason |
 | INFO | `noImplicitAny: false` | Weaker inference safety than full strict | Kept intentionally (scaffold default, documented) |
+| INFO | Home page loads ~35 card images from `media.base44.com` | Slow-network E2E `load` waits can time out | Mitigated — specs navigate with `waitUntil: "domcontentloaded"` |
 
 No CRITICAL or HIGH issues are open. The three build-time infrastructure bugs (Turbopack minifier mis-compilation, quoted `.env` values, parent-directory `.env` hijack) are fixed AND regression-pinned — see §3.3 Pattern 1 and the tests.
 

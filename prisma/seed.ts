@@ -166,6 +166,69 @@ async function main() {
   }
 
   console.log(`seeded ${count} places (eat/stay/do) → ${process.env.DATABASE_URL ?? "db/custom.db"}`);
+
+  // ---------------------------------------------------------------------------
+  // Home-only content (session 2 parity): the Recommended Route itinerary
+  // stops, the Highlighted Sights grid, and the Highlighted Restaurants strip.
+  // These rows carry status "home" — browses and counts filter on
+  // status "published", so the 12/12/18 category views stay untouched while
+  // /place/home-route-* | home-sight-* | home-restaurant-* resolve like the
+  // reference app's home links.
+  // ---------------------------------------------------------------------------
+  interface HomeRecord {
+    [key: string]: unknown;
+  }
+  const home = JSON.parse(readFileSync(path.join(__dirname, "data", "home.json"), "utf-8")) as {
+    route: HomeRecord[];
+    sights: HomeRecord[];
+    restaurants: HomeRecord[];
+  };
+  const homeGroups: Array<{ records: HomeRecord[]; category: string; sortBase: number }> = [
+    { records: home.route, category: "mixed", sortBase: 300 },
+    { records: home.sights, category: "mixed", sortBase: 400 },
+    { records: home.restaurants, category: "mixed", sortBase: 500 },
+  ];
+  let homeCount = 0;
+  for (const { records, sortBase } of homeGroups) {
+    for (let i = 0; i < records.length; i++) {
+      const r = records[i];
+      const slug = String(r.slug);
+      const [lat, lng] = coordsFor(str(r.neighborhood), slug);
+      await db.place.create({
+        data: {
+          slug,
+          name: String(r.name),
+          category: typeof r.category === "string" ? r.category : "do",
+          subCategory: str(r.sub_category),
+          shortDescription: str(r.short_description),
+          description: str(r.description),
+          coverImageUrl: str(r.cover_image_url),
+          galleryImages: jsonArray([r.cover_image_url]),
+          priceRange: num(r.price_range),
+          price: num(r.price),
+          priceLabel: str(r.price_label),
+          currency: "EUR",
+          avgRating: num(r.avg_rating) ?? 0,
+          reviewCount: int(r.review_count) ?? 0,
+          isBookable: r.is_bookable === true,
+          neighborhood: str(r.neighborhood),
+          address: str(r.address),
+          openingHours: str(r.opening_hours),
+          durationMin: int(r.duration_min),
+          vibeTags: jsonArray(r.vibe_tags),
+          cuisineTags: jsonArray(r.cuisine_tags),
+          highlights: jsonArray(r.highlights),
+          tags: jsonArray(r.tags),
+          status: "home",
+          lat,
+          lng,
+          sortOrder: sortBase + i,
+        },
+      });
+      homeCount++;
+    }
+  }
+  console.log(`seeded ${homeCount} home-only places (route/sights/restaurants, status "home")`);
 }
 
 main()
