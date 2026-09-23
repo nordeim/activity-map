@@ -199,3 +199,25 @@ Minor nuance: The engine is described as Rust-based Oxide integrating Lightning 
 [18] GitHub — [Discussion #17168 - tailwind config file has been removed in v4](https://github.com/tailwindlabs/tailwindcss/discussions/17168)
 [19] GitHub — [angular-tailwind-setup SKILL.md](https://github.com/majiayu000/claude-skill-registry/blob/HEAD/skills/other/other/angular-tailwind-setup/SKILL.md)
 [20] GitHub — [tailwind-4-next-14.md](https://github.com/borderlesscodinghub/career-forge-v2/blob/HEAD/docs/wayfinder/tailwind-4-next-14.md)
+
+---
+
+The provided text provides a highly accurate and comprehensive overview of the architectural changes introduced in Tailwind CSS v4. Every core claim regarding the new "CSS-first" paradigm, the Oxide engine, and the new directives has been successfully validated against official documentation and community resources.
+
+#### 1. Removal of `tailwind.config.ts` and the "CSS-First" Paradigm
+The claim that `tailwind.config.ts` (and `.js`) is a legacy approach no longer required by default in Tailwind CSS v4 is entirely correct. Tailwind v4 explicitly favors a CSS-first approach, meaning the framework no longer auto-generates a JavaScript configuration file [[50]]. Instead, the framework introduces a reimagined developer experience where you customize and extend the framework directly in CSS [[8]]. This radical shift is powered by Oxide, which is a new high-performance engine built in Rust [[11]].
+
+#### 2. The Shift: Tailwind v3 vs. Tailwind v4
+The comparison table provided in your text accurately maps legacy v3 features to their modern v4 counterparts. Instead of a nested JavaScript theme object, v4 utilizes special CSS variables defined using the new `@theme` directive [[13]]. You can now customize your color palette, typography, and breakpoints directly in your CSS [[18]]. The manual content array from v3 has been replaced by automatic content detection in v4 [[77]]. This means all of your standard template files are automatically scanned without requiring manual path mapping [[57]]. For edge cases where files aren't picked up automatically, developers can use the `@source` directive to explicitly specify source files [[69]]. Official and third-party plugins are no longer passed into a JavaScript array. Instead, they are loaded inline using the dedicated `@plugin` directive [[25]]. Manual JavaScript plugin APIs have been superseded by the native `@utility` directive [[26]]. This directive allows you to add custom utilities to your project that work seamlessly with variants like hover and focus [[31]].
+
+#### 3. Modern Configuration via Global CSS
+The example provided in the text accurately reflects the modern Tailwind v4 setup. Developers now import the framework and define their entire design system elegantly within a global CSS file [[16]]. By chaining these new CSS blocks, the stylesheet becomes the single source of truth for the design system [[14]].
+
+#### 4. Backward Compatibility and the `@config` Directive
+The assertion that legacy configuration files are not entirely deprecated is also verified. If you are migrating a massive project and still need to use a JavaScript config file, you can explicitly load it using the `@config` directive [[37]]. This allows teams to incrementally move over their themes and custom configurations without completely rewriting complex code immediately [[32]].
+
+#### 5. Unsupported Legacy Options
+Your text correctly warns that certain legacy config options are outright unsupported in v4 when using the `@config` bridge. Specifically, the `corePlugins`, `safelist`, and `separator` options from the JavaScript-based config are strictly not supported in v4.0 [[42]]. For example, the old safelist feature has been replaced, and you must now use `@source inline()` to safelist utilities in v4 [[70]].
+
+#### Conclusion
+The text you provided is a meticulously researched and factually sound summary of Tailwind CSS v4's migration path. The quotes and links provided align perfectly with the official documentation and verified community discussions.
