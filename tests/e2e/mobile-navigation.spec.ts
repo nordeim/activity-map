@@ -1,12 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-// Mobile navigation (390×844 — the reference's mobile chrome, v1.7–v2.4):
-// the full-bleed app bar, the bottom tab bar with the ACTIVE tab's
-// inset-well chip, the MORE bottom sheet, and the 768 middle state's
-// floating pill nav. This is the highest-regression-risk chrome — the
-// active-tab well was added in v2.3 after re-measuring the live app, and
-// v2.4 pinned the chip's FULL-TAB WIDTH (the live's chips stretch across
-// the whole tab; the More button renders 8px wider via its flex basis).
+// Mobile navigation (390×844 — the reference app's mobile chrome):
+// the full-width top bar with the compact text-only view links, the
+// right-cluster icon actions (map pin / heart / user), and the active
+// link's light-gray pill. This is the highest-regression-risk chrome —
+// the original scaffold's Tailwind v4 validation found that class-based
+// responsive utilities can silently push nav links UNDER neighbouring
+// flex clusters (failure class D) or off-screen (class C). These specs
+// pin: one-line layout, no element overlap, tap-to-navigate on every
+// link, and the active-pill state tracking the route.
 // Contexts arrive AUTHENTICATED (setup-project storageState).
 
 // A touch-enabled 390×844 chromium context (the iPhone geometry without
@@ -18,162 +20,131 @@ test.describe("mobile navigation", () => {
     await page.goto("/");
   });
 
-  test("app bar and bottom tab bar render", async ({ page }) => {
-    const bar = page.getByRole("banner");
-    await expect(bar).toBeVisible();
-    await expect(bar).toHaveCSS("height", "62px");
-
+  test("the full-width top bar renders every element on one line", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
     await expect(nav).toBeVisible();
-    for (const label of ["Home", "Goals", "My Tasks", "Agent", "More"]) {
-      await expect(nav.getByRole("button", { name: label, exact: true })).toBeVisible();
+
+    // Wordmark + the four text links + the three icon actions.
+    await expect(nav.getByRole("link", { name: "ROAM home" })).toBeVisible();
+    for (const label of ["Highlights", "Eat", "Stay", "Do"]) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
+    }
+    for (const label of ["Map", "Favourites", "Profile"]) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
+    }
+
+    // The bar must not overflow the 390px viewport (failure class C/E).
+    const barBox = await nav.boundingBox();
+    expect(barBox).not.toBeNull();
+    expect(barBox!.x).toBeGreaterThanOrEqual(0);
+    expect(barBox!.x + barBox!.width).toBeLessThanOrEqual(391);
+  });
+
+  test("no nav element is covered by a neighbour (failure class D)", async ({ page }) => {
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const links = nav.getByRole("link");
+    const boxes = await links.evaluateAll((els) =>
+      els
+        .filter((el) => el instanceof HTMLElement && el.offsetParent !== null)
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { text: (el as HTMLElement).innerText || el.getAttribute("aria-label") || "", left: r.left, right: r.right };
+        }),
+    );
+    expect(boxes.length).toBeGreaterThanOrEqual(7);
+    // Pairwise: visible links must not horizontally overlap each other.
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i];
+        const b = boxes[j];
+        const ix = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+        expect(Math.max(0, ix), `"${a.text}" overlaps "${b.text}" by ${ix}px`).toBeLessThanOrEqual(1);
+      }
     }
   });
 
-  test("the ACTIVE tab carries the inset-well chip (v2.3/v2.4 parity)", async ({ page }) => {
-    const home = page.getByRole("navigation", { name: "Primary" }).getByRole("button", { name: "Home", exact: true });
-    const chip = home.locator("span").first();
-
-    // The wrapper chip: well background + the BRIGHT inset pair.
-    await expect(chip).toHaveCSS("background-color", "rgb(235, 231, 226)");
-    await expect(chip).toHaveCSS("border-radius", "14px");
-    const shadow = await chip.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(shadow).toContain("rgba(255, 252, 248, 0.75)");
-    expect(shadow).toContain("rgba(180, 165, 150, 0.32)");
-    expect(shadow).toContain("inset");
-
-    // v2.4 (measured live): the chip FILLS the tab — the live's tab anchors
-    // carry no padding and the inner chip stretches to the full tab width
-    // (73.2 of 73.2 at 390). A content-width chip (the v2.3 clone bug) is
-    // ~36px — half the tab.
-    const chipBox = await chip.boundingBox();
-    const tabBox = await home.boundingBox();
-    expect(chipBox).not.toBeNull();
-    expect(tabBox).not.toBeNull();
-    expect(Math.abs((chipBox?.width ?? 0) - (tabBox?.width ?? 0))).toBeLessThan(2);
-  });
-
-  test("the MORE tab renders wider than the view tabs (v2.4 flex-basis parity)", async ({ page }) => {
+  test("the ACTIVE link carries the light-gray pill", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    const home = nav.getByRole("button", { name: "Home", exact: true });
-    const more = nav.getByRole("button", { name: "More", exact: true });
-    const homeBox = await home.boundingBox();
-    const moreBox = await more.boundingBox();
-    expect(homeBox).not.toBeNull();
-    expect(moreBox).not.toBeNull();
-    // The live's More button carries 8px of horizontal padding that
-    // participates in its flex basis (content-box sizing), rendering it
-    // ~6.4px wider than each view tab (81.2 vs 73.2 at 390).
-    expect((moreBox?.width ?? 0) - (homeBox?.width ?? 0)).toBeGreaterThan(4);
+    const highlights = nav.getByRole("link", { name: "Highlights", exact: true });
+    await expect(highlights).toHaveCSS("background-color", "rgb(243, 244, 246)");
+    await expect(highlights).toHaveAttribute("aria-current", "page");
+
+    // Inactive links render transparent.
+    const eat = nav.getByRole("link", { name: "Eat", exact: true });
+    await expect(eat).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(eat).not.toHaveAttribute("aria-current", "page");
   });
 
-  test("tab bar icons render at the live's 1.5 stroke (v2.4)", async ({ page }) => {
+  test("view-link taps switch routes and move the pill", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    const home = nav.getByRole("button", { name: "Home", exact: true });
-    const icon = home.locator("svg").first();
-    await expect(icon).toBeVisible();
-    await expect(icon).toHaveCSS("stroke-width", "1.5px");
-    // The bar is content-height driven: pad 8/12 + chip 53.5 = 73.5 (the
-    // v2.3 clone's min-h-[54px] forced 74).
-    const bar = nav;
-    await expect(bar).toHaveCSS("padding", "8px 8px 12px");
+
+    await nav.getByRole("link", { name: "Eat", exact: true }).tap();
+    await expect(page).toHaveURL(/\/eat\/?$/);
+    await expect(page.getByRole("heading", { name: "Eat Well Tonight" })).toBeVisible();
+    const eat = nav.getByRole("link", { name: "Eat", exact: true });
+    await expect(eat).toHaveCSS("background-color", "rgb(243, 244, 246)");
+
+    // Highlights lost the pill.
+    const home = nav.getByRole("link", { name: "Highlights", exact: true });
+    await expect(home).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   });
 
-  test("INACTIVE tabs render no well", async ({ page }) => {
+  test("the right-cluster icon actions navigate", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
-    const goalsChip = nav.getByRole("button", { name: "Goals", exact: true }).locator("span").first();
-    await expect(goalsChip).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-    const shadow = await goalsChip.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(shadow).toBe("none");
+
+    await nav.getByRole("link", { name: "Map", exact: true }).tap();
+    await expect(page).toHaveURL(/\/map\/?$/);
+    await expect(page.getByRole("heading", { name: "Map", exact: true })).toBeVisible();
+
+    await nav.getByRole("link", { name: "Favourites", exact: true }).tap();
+    await expect(page).toHaveURL(/\/favourites\/?$/);
+    await expect(page.getByRole("heading", { name: "Favourites", exact: true })).toBeVisible();
+
+    await nav.getByRole("link", { name: "Profile", exact: true }).tap();
+    await expect(page).toHaveURL(/\/profile\/?$/);
   });
 
-  test("tab taps switch views and move the well", async ({ page }) => {
-    const nav = page.getByRole("navigation", { name: "Primary" });
-    await nav.getByRole("button", { name: "Goals", exact: true }).tap();
-    await expect(page).toHaveURL(/\/goals\/?$/);
-    await expect(page.getByRole("heading", { name: "Goals", exact: true }).filter({ visible: true }).first()).toBeVisible();
-
-    const goalsChip = nav.getByRole("button", { name: "Goals", exact: true }).locator("span").first();
-    await expect(goalsChip).toHaveCSS("background-color", "rgb(235, 231, 226)");
-    // Home lost the well.
-    const homeChip = nav.getByRole("button", { name: "Home", exact: true }).locator("span").first();
-    await expect(homeChip).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  });
-
-  test("MORE opens the bottom sheet and navigates; never carries the well", async ({ page }) => {
-    const nav = page.getByRole("navigation", { name: "Primary" });
-    const more = nav.getByRole("button", { name: "More", exact: true });
-
-    // MORE has no well wrapper at all (its active state is color-only).
-    await expect(more.locator("span.orb-nav-active")).toHaveCount(0);
-
-    await more.tap();
-    const sheet = page.getByRole("dialog");
-    await expect(sheet).toBeVisible();
-    // (The brand renders as "Orbital" in the DOM — uppercase is CSS.)
-    await expect(sheet).toContainText("Orbital");
-    await expect(sheet.getByRole("button", { name: "Tasks", exact: true })).toBeVisible();
-
-    await sheet.getByRole("button", { name: "Team", exact: true }).tap();
-    await expect(page).toHaveURL(/\/team\/?$/);
-    await expect(page.getByRole("heading", { name: "Team", exact: true }).filter({ visible: true }).first()).toBeVisible();
-    // The sheet closed on navigation.
-    await expect(page.getByRole("dialog")).toBeHidden();
-
-    // MORE stays well-free while Team is active.
-    await expect(more.locator("span.orb-nav-active")).toHaveCount(0);
-  });
-
-  test("mobile team header shows the short INVITE label; AI Agents header stays inline", async ({ page }) => {
-    await page.goto("/team");
-    // The header pill (aria-label "Invite Member") is the FIRST match — the
-    // empty-state button carries the same visible text.
-    const invite = page.getByRole("button", { name: "Invite Member" }).first();
-    await expect(invite).toBeVisible();
-    // v2.3: below sm the visible label is just "Invite" (the long text is
-    // the accessible name; the sm:hidden span carries the short one).
-    await expect(invite.getByText("Invite Member")).toBeHidden();
-    await expect(invite.getByText("Invite", { exact: true })).toBeVisible();
-
-    // v2.3: the NEW AGENT button stays on the AI Agents header row.
-    const agentsHeading = page.getByRole("heading", { name: "AI Agents" });
-    const newAgent = page.getByRole("button", { name: "New Agent" });
-    const headingBox = await agentsHeading.boundingBox();
-    const buttonBox = await newAgent.boundingBox();
-    expect(headingBox).not.toBeNull();
-    expect(buttonBox).not.toBeNull();
-    expect(Math.abs((headingBox?.y ?? 0) - (buttonBox?.y ?? 0))).toBeLessThan(40);
-    expect(buttonBox!.x).toBeGreaterThan(200); // right-aligned on the row
+  test("the hero planner fits the 390px canvas", async ({ page }) => {
+    const heading = page.getByRole("heading", { name: "Augsburg City Guide" });
+    await expect(heading).toBeVisible();
+    const box = await heading.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(8);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(382);
   });
 });
 
-test.describe("middle state (768) navigation", () => {
-  test.use({ viewport: { width: 768, height: 844 } });
+test.describe("middle state (640) navigation", () => {
+  test.use({ viewport: { width: 640, height: 844 } });
 
-  test("the floating pill nav carries the six desktop tabs with an inset-well active chip", async ({ page }) => {
+  test("the floating pill carries the five view links with icons", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
     await expect(nav).toBeVisible();
-    for (const label of ["Home", "Goals", "Tasks", "Activity", "Team", "Settings"]) {
-      await expect(nav.getByRole("button", { name: label, exact: true })).toBeVisible();
+    for (const label of ["Highlights", "Eat", "Stay", "Do", "Map"]) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
-    const home = nav.getByRole("button", { name: "Home", exact: true });
-    await expect(home).toHaveCSS("background-color", "rgb(235, 231, 226)");
+    // The pill is centered and narrower than the viewport.
     const box = await nav.boundingBox();
-    expect(box?.width).toBeGreaterThan(400);
-    expect(box?.width).toBeLessThan(560);
-    expect(box?.x).toBeGreaterThan(100); // centered, not full-width
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeLessThan(640);
+    expect(box!.x).toBeGreaterThan(4);
   });
+});
 
-  test("no app bar and no bottom tab bar at md", async ({ page }) => {
+test.describe("desktop (1280) navigation", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("the floating pill renders the full chrome with the avatar chip", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("banner")).toBeHidden();
-    // The mobile bottom bar is the Primary nav that CONTAINS the More
-    // button — it stays in the DOM (display:none) at md, so assert it is
-    // hidden rather than absent.
-    const mobileBar = page
-      .locator('nav[aria-label="Primary"]')
-      .filter({ has: page.getByRole("button", { name: "More", exact: true }) });
-    await expect(mobileBar).toBeHidden();
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    await expect(nav).toBeVisible();
+    for (const label of ["Highlights", "Eat", "Stay", "Do", "Map", "Favourites", "Profile"]) {
+      await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
+    }
+    // The avatar chip renders the user's initial on a black disc.
+    const avatar = nav.getByRole("link", { name: "Profile", exact: true });
+    await expect(avatar).toHaveText("S");
+    await expect(avatar).toHaveCSS("background-color", "rgb(26, 26, 26)");
   });
 });

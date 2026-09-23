@@ -81,6 +81,19 @@ describe("resolveDatabaseUrl", () => {
     expect(toPosix(out)).toBe(`file:${toPosix(path.join(repo, "db", "custom.db"))}`);
   });
 
+  it("strips surrounding double quotes from the env value", () => {
+    // Some .env loaders pass KEY="value" through with quotes intact — the
+    // resolver must neutralise them or the URL dodges the file: branch and
+    // Prisma receives a literally-quoted path (SQLite error 14).
+    const out = resolveDatabaseUrl('"file:../db/custom.db"', [repo]);
+    expect(toPosix(out)).toBe(`file:${toPosix(path.join(repo, "db", "custom.db"))}`);
+  });
+
+  it("strips surrounding single quotes from the env value", () => {
+    const out = resolveDatabaseUrl("'file:../db/custom.db'", [repo]);
+    expect(toPosix(out)).toBe(`file:${toPosix(path.join(repo, "db", "custom.db"))}`);
+  });
+
   it("treats file:./dev.db as relative to the schema anchor's prisma/ dir", () => {
     const out = resolveDatabaseUrl("file:./dev.db", [repo]);
     expect(toPosix(out)).toBe(`file:${toPosix(path.join(repo, "prisma", "dev.db"))}`);

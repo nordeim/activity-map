@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ============================================================
+   ROAM — Augsburg City Guide · design tokens
+   Tailwind CSS v4 CSS-first configuration (no tailwind.config.*).
+   Palette measured from the reference app:
+     cream paper  #F9F7F2 (page background)
+     ink          #1A1A1A (primary text / black buttons)
+     roam violet  #5A18FB (the View All accent)
+   Typography: Playfair Display (serif display) + Inter (UI sans),
+   loaded via Google Fonts in the root layout.
+   ============================================================ */
+
+@theme {
+  --color-cream: #f9f7f2;
+  --color-cream-deep: #f3efe7;
+  --color-ink: #1a1a1a;
+  --color-roam: #5a18fb;
+  --color-roam-deep: #4a0fe0;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, "Times New Roman", serif;
+
+  --shadow-card: 0 10px 40px -10px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --shadow-hero: 0 18px 50px -12px rgba(0, 0, 0, 0.25);
+
+  --radius-4xl: 2rem;
+}
+
+/* Subtle graph-paper grid used on the Favourites / Profile canvases. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(26, 26, 26, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 26, 26, 0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Hide scrollbars on horizontal chip rows. */
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Full-bleed hero image with the legibility gradient used on the
+   reference home page (dark bottom for the white serif wordmark). */
+@utility hero-shade {
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 14, 24, 0.18) 0%,
+    rgba(10, 14, 24, 0.05) 45%,
+    rgba(10, 14, 24, 0.42) 100%
+  );
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(90, 24, 251, 0.18);
+}
+
+/* Leaflet (map view) — pin the basemap to the app's visual language. */
+.leaflet-container {
+  font-family: var(--font-sans);
+  border-radius: 1.5rem;
+  z-index: 0;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 1rem;
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.18);
+  padding: 2px 4px;
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+  line-height: 1.45;
+}
+
+.roam-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: #1a1a1a;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.roam-marker[data-active="true"] {
+  background: #5a18fb;
+  width: 22px;
+  height: 22px;
+  border-width: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
