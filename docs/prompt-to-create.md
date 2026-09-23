@@ -3,7 +3,9 @@ Now, please meticulously plan to create a complete, fully functioning, productio
 
 Consider using the included skills `skills/clone-app-pat-pro`, `skills/agent-browser`, `skills/rootless-postgresql`, `skills/e-commerce-nextjs16-monorepo`, `skills/nextjs-postgresql-single-app`, and `skills/tdd`.
 
-Do not run your default `init-fullstack.sh` to initialize the new codebase, `git clone https://github.com/nordeim/activity-map.git` and use the cloned `activity-map/` folder as the root of your new folder. The repo folder contains minimal documentation and config files for scaffolding purposes and for you to customize and extend as necessary. List and read the repo included `.md` markdown files before you begin planning to build the complete codebase for a complete, fully functioning, production-ready and enterprise-grade polished website that is a clone of `https://activity-map.base44.app/`
+Do not run your default `init-fullstack.sh` to initialize the new codebase, `git clone https://github.com/nordeim/activity-map.git` and use the cloned `activity-map/` folder as the root of your new folder. The repo folder contains minimal documentation and config files for scaffolding purposes and for you to customize and extend as necessary. List and read the repo included `.md` markdown files, particularly `docs/Tailwind-V4-Validation-Report.md` before you begin planning to build the complete codebase for a complete, fully functioning, production-ready and enterprise-grade polished website that is a clone of `https://activity-map.base44.app/`
+
+Pay particular attention to compare the mobile navigation menu to ensure that the mobile menu is working as expected. Look out for possible TailwindCSS v4 related bug. The solution can be found in the Tailwind CSS v4 related skills in the repo `skill/` folder (check out the repo `skills/skills-catalog.md for the relevant skills for help).
 
 Next, please `git commit` and then `git push` the root of the new codebase to my GitHub repo `git@github.com:nordeim/activity-map.git` using the ssh key below and wrapper script `https://github.com/nordeim/activity-map/blob/main/docs/ssh_git_wrapper_v3.py`.  Refer to `https://github.com/nordeim/activity-map/blob/main/docs/how-to-git-push-using-ssh-wrapper_SKILL.md` for instruction to use ssh wrapper script for `git push`.
 
@@ -14,7 +16,7 @@ Next, please meticulously plan to create `AGENTS.md`, `CLAUDE.md`, `README.md` a
 - `https://github.com/nordeim/activity-map/blob/main/skills/readme-md/SKILL.md`
 - `https://github.com/nordeim/activity-map/blob/main/skills/project-architecture-document-md/SKILL.md`
 
-Capture some screenshots for the dev server running the remediated codebase, save the screen captures as image files under the `docs/screenshots/` folder in the new `activity-map` repo. Also, create a working `.env.example` that matches the codebase, include the `.env.example` in the git commit.
+Capture some screenshots for the dev server running the remediated codebase, save the screen captures as image files under the `docs/screenshots/` folder in the new `activity-map` repo. 
 
 All documents to be in markdown format and to be created in the root folder of the new codebase.
 Finally, `git commit` locally and then `git push` to `git@github.com:nordeim/activity-map.git` using the ssh key:
