@@ -5,8 +5,23 @@ import { CategoryExplorer } from "@/components/places/CategoryExplorer";
 
 export const metadata = { title: CATEGORY_META.eat.title };
 
-export default async function EatPage() {
+export default async function EatPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ people?: string; start_date?: string; end_date?: string }>;
+}) {
   const user = await getSessionUser();
+  const sp = await searchParams;
   const places = await listPlacesForUser(user!.uid, "eat");
-  return <CategoryExplorer meta={CATEGORY_META.eat} places={places} />;
+  return (
+    <CategoryExplorer
+      meta={CATEGORY_META.eat}
+      places={places}
+      planner={{
+        people: Number(sp.people) > 0 ? Number(sp.people) : 2,
+        start: sp.start_date ?? null,
+        end: sp.end_date ?? null,
+      }}
+    />
+  );
 }

@@ -10,16 +10,17 @@ export default async function ProfilePage() {
   const session = await getSessionUser();
   if (!session) redirect("/login");
 
-  const [bookings, user] = await Promise.all([
+  const [bookings, user, favourites] = await Promise.all([
     listBookings(session.uid),
     db.user.findUnique({ where: { id: session.uid }, select: { email: true, name: true, createdAt: true } }),
+    db.savedPlace.count({ where: { userId: session.uid } }),
   ]);
 
   return (
     <ProfileView
       user={{ name: user?.name ?? session.name, email: user?.email ?? session.email }}
       bookings={bookings}
-      favouriteCount={null}
+      favouriteCount={favourites}
     />
   );
 }
