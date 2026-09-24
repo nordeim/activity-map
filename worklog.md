@@ -164,3 +164,19 @@ Stage Summary:
 - Deliverables: session-8 evolution parity remediation (text route cards, 6-card deck, letter reveal, unified browse planner, detail/profile/map chrome), 52-check E2E suite, remediation plan, 14 screenshots, 7 aligned docs.
 - Key decisions: the date/people browse fields AUTO-FORWARD (no explicit submit, matching the natural live behavior); the desktop carousel keeps the DOM-transform deviation; numbered route waypoints kept (minor enhancement over the live's plain circles).
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 8 (final)
+Agent: Super Z (main agent)
+Task: Session 8 finalization — commit + push.
+
+Work Log:
+- Commit 2c28628 on main (35 files, +999/−279): the session-8 evolution parity remediation (text route cards + early pin, six-card mobile deck + 460vh carousel, LetterReveal, 24px mobile titles, dark More-Things pill, BrowsePlanner, detail rating pill/About/photo, 300px mobile photos, profile chrome, map chrome), 7 new E2E checks (52 total), remediation plan + session log, 14 refreshed screenshots, 7 aligned docs. Working tree clean; secret scan clean (the three hits are the pre-existing runbook/wrapper docs).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 52/52 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 present, /home/z/my-project/bin/ssh shim alive, operator key materialized at /home/z/.ssh-tmp (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6 records).
+- Dry-run: fast-forward fa8666e..2c28628 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 2c28628 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 2c28628; working tree clean; no branches created; no key material on disk.
