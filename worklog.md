@@ -71,3 +71,23 @@ Work Log:
 
 Stage Summary:
 - main is 1 commit ahead of origin (853414b), tree clean, all gates green. Single remaining step: re-provide the deploy key, then `python3 docs/ssh_git_wrapper_v3.py --key-file <key> --remote git@github.com:nordeim/activity-map.git`.
+
+---
+Task ID: 4
+Agent: Super Z (main agent)
+Task: Session 4 — recover the interrupted hand-off (owner commits dropped three load-bearing files), re-verify live-app parity, re-gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Re-cloned fresh (main @ bfb14b5); reviewed all 6 root docs + session_2/session_3 logs + skills catalog; validated the codebase against the docs.
+- Root cause of the "interrupted" state: owner commits 22342d5/d6c64b3 re-pushed session-3 work but deleted src/app/(app)/layout.tsx (auth gate + Navbar), src/app/(app)/page.tsx (home), and src/app/api/auth/login/route.ts (login API — survived only as a byte-identical orphan at /api/auth). Evidence: / → 404, /eat → 500 (null-user), POST /api/auth/login → 404, build has no / route.
+- Wrote docs/remediation-plan-session-4.md (findings F1–F7, plan R1–R9) and validated it against the codebase before executing.
+- Env traps (parent .env + shell DATABASE_URL) neutralized; db/ recreated at repo root and seeded (42+27+9+user); .env/.env.example already correct (DATABASE_URL="file:../db/custom.db").
+- R1: git mv api/auth/route.ts → api/auth/login/route.ts (login at documented path). R2/R3: restored (app)/layout.tsx + (app)/page.tsx from 22342d5. R4 no-op: suspected grid-cols-inmax typo proved to be bash display-mangling of [minmax (hex-dump verified both files canonical; session-3 "false alarm" note was right).
+- Gates after restoration: lint ✓ typecheck ✓ (cleared stale .next/types validators) 42 unit ✓ build ✓ 27/27 smoke ✓ 35/35 E2E ✓ (incl. all 8 mobile-nav Tailwind v4 failure-class checks).
+- Live app re-measured (logged in, 390px audit): still session-3 chrome — matches the clone exactly (right-cluster icons at x=304/330/356, active 700/ink, Inter, scrollWidth=390).
+- 14 screenshots refreshed via scripts/capture-screens-v3.sh + crop-sections-v3.py (favourite saved first for 07); all variance-validated non-blank; VLM visual checks clean.
+- Docs: README session-4 status row, docs/session_4.md, remediation plan, this worklog. .env.example verified matching codebase usage.
+- Commit on main + push via docs/ssh_git_wrapper_v3.py with the re-provided ed25519 key (see final entry).
+
+Stage Summary:
+- The interrupted-session state is fully recovered: app, tests, docs all back to the session-3 documented architecture, all gates green, parity re-verified against the live reference.
