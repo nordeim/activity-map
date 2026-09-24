@@ -91,3 +91,19 @@ Work Log:
 
 Stage Summary:
 - The interrupted-session state is fully recovered: app, tests, docs all back to the session-3 documented architecture, all gates green, parity re-verified against the live reference.
+
+---
+Task ID: 4 (final)
+Agent: Super Z (main agent)
+Task: Session 4 finalization — commit + push.
+
+Work Log:
+- Commit 4133e37 on main (14 files, +342): restored (app) layout + home page + /api/auth/login (orphan /api/auth removed via git mv), session-4 docs (remediation plan + session log), README status row, worklog, capture scripts v3, 5 refreshed screenshots. Tree clean; secret scan clean.
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27 smoke ✓ 35 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed, Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2 record).
+- Dry-run: fast-forward bfb14b5..4133e37 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 4133e37 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 4133e37; working tree clean; no branches created; no key material on disk.
