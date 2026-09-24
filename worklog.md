@@ -200,3 +200,19 @@ Stage Summary:
 - Deliverables: session-10 residual-gap parity remediation (category-card internals + snap carousel, measured hero geometry, shadcn login chrome, de-gridded favourites, wide detail card, profile/heart/h2 polish), 54-check E2E suite, remediation plan, 14 screenshots, 7 aligned docs.
 - Key decisions: the login card uses the platform system font (the live's own choice — Inter would not wrap the heading like the reference); the category-card mobile carousel is real overflow scroll with snap (tap/keyboard navigable), not transforms; the favourites h1 pins the live's DECLARED 55px (the 50.7px mobile reading is environment noise).
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 10 (final)
+Agent: Super Z (main agent)
+Task: Session 10 finalization — commit + push.
+
+Work Log:
+- Commit 2ee6e0b on main (35 files, +736/−257): the session-10 residual-gap parity remediation (CategoryCards internals + snap carousel, hero geometry, shadcn login chrome, de-gridded favourites, max-w-6xl detail card, profile heart button, 44px hearts, h2 route stops), 2 new E2E checks (54 total), remediation plan + session log, 14 refreshed screenshots, 7 aligned docs, the new login-logo.png asset. Working tree clean; secret scan clean (the hits are the pre-existing runbook/wrapper docs + the excluded skills/ folder).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 54/54 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed (venv), Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8 records).
+- Dry-run: fast-forward 219c927..2ee6e0b confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 2ee6e0b == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 2ee6e0b; working tree clean; no branches created; no key material on disk.
