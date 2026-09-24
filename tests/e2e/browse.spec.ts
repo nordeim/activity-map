@@ -119,6 +119,22 @@ test.describe("place detail", () => {
   });
 });
 
+test.describe("footer on every app page (session 6)", () => {
+  const PAGES = ["/eat", "/stay", "/do", "/map", "/favourites", "/profile", "/place/moss-marble"];
+  for (const path of PAGES) {
+    test(`footer renders on ${path}`, async ({ page }) => {
+      await page.goto(path, { waitUntil: "domcontentloaded" });
+      const footer = page.getByRole("contentinfo");
+      await expect(footer).toBeVisible();
+      // The white icon-cell pill carries the six view links.
+      await expect(footer.getByRole("navigation", { name: "Footer" })).toBeVisible();
+      await expect(footer.getByRole("link", { name: "Favourites", exact: true })).toBeVisible();
+      await expect(footer.getByText("© 2026 Roam. Activity Map for Augsburg.")).toBeVisible();
+      await expect(footer.getByRole("link", { name: "Privacy policy" })).toBeVisible();
+    });
+  }
+});
+
 test.describe("favourites round-trip", () => {
   test("a heart tap saves a place; Favourites lists and clears it", async ({ page }) => {
     await page.goto("/eat");
@@ -163,11 +179,12 @@ test.describe("map view", () => {
 });
 
 test.describe("profile", () => {
-  test("renders the Explorer identity, booking tabs and the empty state", async ({ page }) => {
+  test("renders the profile identity, booking tabs and the empty state", async ({ page }) => {
     await page.goto("/profile");
-    // The live app's session-3 profile: PROFILE eyebrow + Explorer title.
+    // The live app's session-6 profile: PROFILE eyebrow + the USERNAME as
+    // the h1 ("Explorer" is now the badge chip below), email, Augsburg.
     await expect(page.getByText("Profile", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Explorer" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toBeVisible();
     await expect(page.getByText("Your Roam account")).toBeVisible();
     await expect(page.getByText("Saved places")).toBeVisible();
     await expect(page.getByText("My bookings")).toBeVisible();

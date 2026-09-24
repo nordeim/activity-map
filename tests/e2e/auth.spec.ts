@@ -11,21 +11,23 @@ import { DEMO_EMAIL, DEMO_PASSWORD } from "./helpers";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("login route", () => {
-  test("renders the auth card with the circular logo chip", async ({ page }) => {
+  test("renders the live-parity auth card (session-6 chrome)", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Augsburg City Guide" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome to Activity Map" })).toBeVisible();
+    await expect(page.getByText("Sign in to continue")).toBeVisible();
 
-    // The logo is a white CIRCULAR chip (rounded-full + ring-4
-    // ring-white/50 + shadow-lg). Tailwind v4 computes rounded-full as
-    // calc(infinity * 1px) → Chrome reports 33554432px, and ring-white/50
-    // serializes in oklab() — so the assertions check the geometry and the
-    // 4px ring, not exact strings.
-    const chip = page.locator("span.rounded-full.ring-4").first();
-    await expect(chip).toBeVisible();
-    const radius = await chip.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
-    expect(radius).toBeGreaterThan(1000);
-    const shadow = await chip.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(shadow).toMatch(/0\.5\) 0px 0px 0px 4px/);
+    // The hosted-platform chrome rendered for parity: the Google button,
+    // the "or" divider, the forgot-password link, and the sign-up link —
+    // each answers with an inline notice instead of navigating.
+    await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
+    await expect(page.getByText("or", { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Forgot password?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
+
+    // The card is the rounded-28 white panel.
+    const card = page.locator("div.rounded-\\[28px\\]").first();
+    await expect(card).toBeVisible();
+    await expect(card).toHaveCSS("border-radius", "28px");
   });
 
   test("wrong password is rejected without a session", async ({ page }) => {

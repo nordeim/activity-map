@@ -9,7 +9,7 @@ description: >
   re-discovering them.
 version: 1.2.0
 last_updated: 2026-09-23
-project_state: 42 unit + 27 smoke + 35 E2E checks green; 42 published + 27 home-only + 9 map-demo seeded places
+project_state: "42 unit + 27 smoke + 45 E2E green; 42 published + 27 home-only + 9 map-demo places; session-6 redesign parity (floating-pill navbar, planner card, restaurants carousel/deck, square stay/sight cards, footer on all pages)"
 ---
 
 # activity-map — ROAM (Augsburg City Guide) Engineering SKILL

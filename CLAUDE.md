@@ -49,7 +49,7 @@ ROAM solves one problem: the reference trip-planning app is locked behind a host
 - **CSS-first configuration — there is NO `tailwind.config.*`.** Tokens are `@theme` variables in `src/app/globals.css` (re-measured session 3): `--color-cream #F8F7F4`, `--color-cream-deep`/`--color-surface2 #F2F1EE`, `--color-ink #0E0E0E`, `--color-roam #571AFF`, `--color-electric #4D61FF` (the live home's blue band), `--color-secondary #3A3A3A`, `--color-muted #888580`, `--color-line #E8E6DC`, `--color-border #DDDBD5`, `--font-sans` (Inter), `--font-serif` (Libre Baskerville — the live app's display serif), `--font-nav` (Inter — the live app dropped Poppins), `--shadow-card/-float/-hero`, `--radius-4xl`.
 - Custom primitives are `@utility` definitions: `bg-grid`, `no-scrollbar`, `hero-shade`.
 - Mobile navigation is the known v4 hazard — failure classes (no-nav / invisible / clipped / under-layer / breakpoint mismatch) are regression-pinned by `tests/e2e/mobile-navigation.spec.ts`. The Navbar's `no-scrollbar` overflow safety valve must stay.
-- Mobile chrome (measured session 3): below `md`, a fixed-top cream-glass tab-bar (52px, ≤430px centered, text-only 16px Inter links, MapPin/Heart/User right icons; the home hero slides under the glass); from `md`, a sticky transparent header wrapping the full-width white `h-14` bar (border-b `#E8E6DC`, icon+text links, active `rgba(14,14,14,0.08)` pill, hide-on-scroll choreography). Do not "fix" the asymmetry.
+- Mobile chrome (re-measured session 6): below `md`, a fixed-top cream-glass tab-bar (52px, ≤430px centered, text-only 12px Inter links, MapPin/Heart/User right icons; the home hero slides under the glass); from `md`, a sticky transparent header centering the WHITE floating pill (`h-14`, max-w 820, radius 999, full `#E8E6DC` border, 13px icon+text links, active 700 on the `rgba(14,14,14,0.08)` pill, inactive `#555550`, hide-on-scroll choreography). The icon-cell footer pill renders from the `(app)` layout on every page. Do not "fix" the asymmetry.
 
 ### React 19
 
@@ -80,7 +80,7 @@ Demo login: `sepnetflix2023@outlook.com` / `$Abcd1234`.
 | `bun run lint` | ESLint (next core-web-vitals + typescript) |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run test` | Vitest unit suite (42 checks) |
-| `bun run test:e2e` | Playwright E2E (35 checks; requires a build) |
+| `bun run test:e2e` | Playwright E2E (45 checks; requires a build) |
 | `bun run db:push` / `db:generate` / `db:seed` | Prisma schema / client / seed |
 
 ### Database (Prisma)
@@ -98,14 +98,14 @@ Schema changes go through `db push`, never `prisma migrate` — `prisma/migratio
 ### Test Pyramid
 
 - **Unit (Vitest, 42 checks)**: pure seams — `tests/db-path.test.ts` (17: SQLite URL resolution contract, quote-stripping, standalone anchors), `tests/filters.test.ts` (15: chip AND-composition, special chips, search haystack), and `tests/planner.test.ts` (10: planner query params, browse-target routing, date-range label formatting).
-- **E2E (Playwright, 35 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (planner submit → category params, sticky planner pill, redesigned cards, detail booking-request round-trip, favourites round-trip, map 9 demo places, profile tabs), `home.spec.ts` (glass planner + category-card glass/black VIEW ALL, sticky Recommended Route, blue restaurants, stay showcase, sights, footer, home-place detail resolution, browse purity), `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
+- **E2E (Playwright, 45 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (planner submit → category params, sticky planner pill, redesigned cards, detail booking-request round-trip, favourites round-trip, map 9 demo places, profile tabs), `home.spec.ts` (white planner card, desktop floating-pill navbar, violet mobile VIEW ALL, pinned route card-swap, blue restaurants carousel + mobile card deck, square stay/sight cards, footer, home-place detail resolution, browse purity), `browse.spec.ts` footer-on-every-page checks, `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
 - **Smoke (bash, 27 checks)**: `./scripts/smoke-test.sh` against a fresh production server — health, auth, rate limiting, places, favourites, bookings, 404s.
 
 ### Test Commands
 
 ```bash
 bun run test        # 42 unit checks
-bun run build && bun run test:e2e   # 35 E2E checks
+bun run build && bun run test:e2e   # 45 E2E checks
 bun run build && ./scripts/smoke-test.sh   # 27 smoke checks
 ```
 

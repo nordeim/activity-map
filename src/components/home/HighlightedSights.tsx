@@ -3,14 +3,18 @@ import { Star, ArrowRight } from "lucide-react";
 import { SaveButton } from "@/components/places/SaveButton";
 import type { PlaceDTO } from "@/types";
 
-// The Highlighted Sights grid — six calm stops (Fuggerei → Schaezlerpalais)
-// as image cards with the rating badge and heart overlay measured on the
-// live home page, closing with the "More Things to Do" hand-off to /do.
+// The Highlighted Sights grid — re-measured from the live app (session 6):
+// six calm stops (Fuggerei → Schaezlerpalais) as SQUARE photo cards (aspect
+// 1/1, rounded 24, dark bg) with the heart overlay, the white rating pill,
+// and a hanging white-on-photo panel (absolute bottom-[-30px]) — Inter 18/500
+// title, the neighborhood | category meta row, and the full-width VIOLET
+// Learn More pill that slides in on hover. Closes with the "More Things to
+// Do" hand-off to /do.
 
 export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
   if (sights.length === 0) return null;
   return (
-    <section id="highlighted-sights" className="mx-auto max-w-[1100px] px-4 pb-6 sm:px-6">
+    <section id="highlighted-sights" className="mx-auto max-w-[1120px] px-4 pb-6 sm:px-6">
       <div className="mx-auto mb-10 max-w-3xl text-center">
         <h2 className="font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-ink sm:text-[clamp(42px,6.5vw,86px)]">
           Highlighted Sights
@@ -20,42 +24,57 @@ export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
         </p>
       </div>
 
-      <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="relative mx-auto mt-16 grid grid-cols-1 gap-5 md:grid-cols-3">
         {sights.map((sight) => (
           <li key={sight.slug}>
-            <article className="group overflow-hidden rounded-3xl border border-black/5 bg-white shadow-float transition-shadow hover:shadow-card">
-              <div className="relative">
-                <Link href={`/place/${sight.slug}`} className="block overflow-hidden">
-                          <img
-                    src={sight.coverImageUrl ?? ""}
+            <article className="group h-full">
+              <Link href={`/place/${sight.slug}`} className="block h-full">
+                <div className="relative aspect-square cursor-pointer overflow-hidden rounded-[24px] bg-[#181818] shadow-[0_18px_44px_rgba(14,14,14,0.1)] transition-transform duration-300 ease-out group-hover:-translate-y-1">
+                {sight.coverImageUrl ? (
+                  <img
+                    src={sight.coverImageUrl}
                     alt={sight.name}
-                    className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.03]"
                   />
-                </Link>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center font-serif text-4xl text-white/20">
+                    {sight.name.charAt(0)}
+                  </div>
+                )}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/[0.72]"
+                />
+
                 <SaveButton
                   placeId={sight.id}
                   initialSaved={sight.saved ?? false}
-                  className="absolute left-3 top-3"
+                  className="absolute left-4 top-4"
                 />
-                <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-semibold text-ink shadow-float">
-                  <Star className="h-3 w-3 fill-ink text-ink" aria-hidden />
-                  {sight.avgRating.toFixed(1)}
+                <span className="absolute right-4 top-4 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5">
+                  <Star className="h-[13px] w-[13px] fill-ink text-ink" aria-hidden />
+                  <span className="text-xs font-bold text-ink">{sight.avgRating.toFixed(1)}</span>
                 </span>
-              </div>
-              <div className="p-5">
-                <h3 className="font-serif text-xl text-ink">{sight.name}</h3>
-                <p className="mt-1 text-xs font-medium text-black/50">
-                  {[sight.neighborhood, sight.subCategory].filter(Boolean).join(" · ")}
-                </p>
-                <div className="mt-3.5">
-                  <Link
-                    href={`/place/${sight.slug}`}
-                    className="text-sm font-semibold text-roam underline-offset-4 transition hover:text-roam-deep hover:underline"
-                  >
-                    Learn More
-                  </Link>
+
+                {/* The hanging white panel — title + meta on the photo, the
+                    violet Learn More pill slides up on hover. */}
+                <div className="absolute bottom-[-30px] left-[18px] right-[18px] font-inter text-white transition-transform duration-300 ease-out group-hover:-translate-y-12">
+                  <h3 className="m-0 text-[18px] font-medium leading-tight tracking-[-0.03em] text-white">
+                    {sight.name}
+                  </h3>
+                  <p className="mt-2 flex items-center justify-between gap-3 text-xs text-white/70">
+                    <span className="truncate">{sight.neighborhood}</span>
+                    <span className="shrink-0">{sight.subCategory}</span>
+                  </p>
+                  <div className="mt-3 flex translate-y-4 items-center justify-center opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100">
+                    <span className="flex h-9 w-full items-center justify-center rounded-full bg-roam text-xs font-bold text-white shadow-[0_12px_28px_rgba(87,26,255,0.28)]">
+                      Learn More
+                    </span>
+                  </div>
                 </div>
-              </div>
+                </div>
+              </Link>
             </article>
           </li>
         ))}

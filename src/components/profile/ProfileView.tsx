@@ -66,8 +66,8 @@ export function ProfileView({
         {/* Identity — the live app's PROFILE block. */}
         <section className="mb-10 flex flex-col items-center text-center">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">Profile</p>
-          <h1 className="font-serif text-[36px] leading-none tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
-            Explorer
+          <h1 className="font-serif text-[clamp(42px,13vw,55px)] leading-[0.98] tracking-[-0.06em] text-ink">
+            {user.name}
           </h1>
           <p className="mt-3 text-sm text-black/50">
             Your Roam account{user.email ? ` · ${user.email}` : ""}

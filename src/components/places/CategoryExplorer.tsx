@@ -45,7 +45,7 @@ export function CategoryExplorer({
     <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12 md:pt-16">
       {/* Headline */}
       <section className="mx-auto mb-8 max-w-3xl text-center">
-        <h1 className="mb-4 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
+        <h1 className="mb-4 font-serif text-[clamp(42px,13vw,55px)] leading-[0.95] tracking-[-0.06em] text-ink">
           {meta.title}
         </h1>
         <p className="text-sm font-light text-black/60 sm:text-base">{meta.subtitle}</p>

@@ -1,21 +1,24 @@
 "use client";
 
-// The primary navigation, re-measured from the live app (session 3).
+// The primary navigation, re-measured from the live app (sessions 3 + 6).
 //
 // Mobile (<md): a FIXED top "tab bar" — cream glass (#F8F7F4/62, blur 20,
 // border-b rgba(14,14,14,0.08)), 52px tall, capped at 430px and centered:
 //   [✳ ROAM]  Highlights Eat Stay Do        [pin] [♥] [user]
-// Text-only links, 16px Inter — ACTIVE = weight 700 / #0E0E0E, inactive =
-// weight 500 / #0E0E0E-40%. The three right icons are 18px. On the home page
-// the hero photo slides UNDER the glass; every other page gets a 52px spacer.
+// Text-only links, 12px Inter (session-6 re-measure; was 16px) — ACTIVE =
+// weight 700 / #0E0E0E, inactive = weight 500 / #0E0E0E-40%. The three right
+// icons are 18px. On the home page the hero photo slides UNDER the glass;
+// every other page gets a 52px spacer.
 //
-// Desktop (md+): a sticky TRANSPARENT header (pt 1vh, px-6, pb-2) holding a
-// full-width WHITE bar (h-14, border-b #E8E6DC) — the floating pill is gone:
+// Desktop (md+): a sticky TRANSPARENT header (pt 9px, px-6, pb-2) holding a
+// centered WHITE floating PILL (h-14, max-w 820, radius 999, 1px #E8E6DC
+// border all round, shadow 0 2px 12px rgba(14,14,14,0.08)):
 //   [✳ ROAM]  Highlights Eat Stay Do Map     [♥] (S)
-// Links are icon+text 16px Inter with the ACTIVE link on a rgba(14,14,14,0.08)
-// pill; the right cluster is the heart (w-9 h-9, #0E0E0E/7 disc) plus the
-// black avatar disc. The whole header hides on scroll-down and returns on
-// scroll-up (the live app's translateY(-120%) choreography).
+// Links are icon+text 13px Inter (session-6 re-measure) — the ACTIVE link
+// is weight 700 ink on the rgba(14,14,14,0.08) pill; inactive links are
+// weight 500 #555550. The right cluster is the heart (#0E0E0E/7 disc) plus
+// the black avatar disc. The whole header hides on scroll-down near the
+// bottom and returns on scroll-up (the live app's translateY choreography).
 //
 // The links row keeps a horizontal no-scrollbar overflow as a safety valve so
 // links can never slide under the logo or the right cluster (Tailwind v4
@@ -76,8 +79,10 @@ export function Navbar({ userName }: { userName: string }) {
           // Mobile tab-bar: fixed top, cream glass, 52px, centered, ≤430px.
           "fixed left-1/2 top-0 z-40 w-full max-w-[430px] -translate-x-1/2",
           "border-b border-[#0e0e0e]/[0.08] bg-cream/60 backdrop-blur-[20px]",
-          // md+: in-flow sticky transparent header wrapping the white bar.
-          "md:sticky md:top-0 md:left-auto md:max-w-none md:translate-x-0 md:border-b-0 md:bg-transparent md:p-0 md:backdrop-blur-none md:px-6 md:pb-2",
+          // md+: in-flow sticky transparent header CENTERING the white pill
+          // (session-6: pt 9px / px-6 / pb-2, flex justify-center).
+          "md:sticky md:top-0 md:left-auto md:max-w-none md:translate-x-0 md:border-b-0 md:bg-transparent md:backdrop-blur-none",
+          "md:flex md:justify-center md:px-6 md:pb-2 md:pt-[9px]",
         )}
       >
         {/* The nav IS the bar — it wraps the wordmark, the view links, and
@@ -86,9 +91,11 @@ export function Navbar({ userName }: { userName: string }) {
         <nav
           aria-label="Primary"
           className={cn(
-            // Inner bar — mobile: the 52px tab row; desktop: white h-14 bar.
-            "flex h-[52px] items-center justify-between px-4 md:h-14 md:w-full md:px-3",
-            "md:border-b md:border-line md:bg-white",
+            // Inner bar — mobile: the 52px tab row; desktop: the white
+            // floating PILL (session-6: max-w 820, radius 999, full border,
+            // soft shadow — no longer the full-width bottom-bordered bar).
+            "flex h-[52px] items-center justify-between px-4 md:h-14 md:w-full md:max-w-[820px] md:px-3",
+            "md:rounded-full md:border md:border-line md:bg-white md:shadow-[0_2px_12px_rgba(14,14,14,0.08)]",
             !hidden && "md:translate-y-0 md:opacity-100",
             hidden && "md:-translate-y-[130%] md:opacity-0",
             "md:transition-transform md:duration-300",
@@ -115,12 +122,13 @@ export function Navbar({ userName }: { userName: string }) {
             <span className="sr-only">ROAM</span>
           </Link>
 
-          {/* View links — mobile: text-only 16px (active 700 ink / inactive
-              500 ink-40%); md+: icon+text with the rgba(14,14,14,0.08) active
-              pill. no-scrollbar keeps the row from ever sliding under the
-              logo or right cluster at 390px. Explicit rgba() utilities (not
-              hex/α-modifiers) pin exact computed colors for the specs —
-              Tailwind v4 α-modifiers compile to color-mix() instead. */}
+          {/* View links — mobile: text-only 12px (session-6 re-measure; active
+              700 ink / inactive 500 ink-40%); md+: icon+text 13px with the
+              rgba(14,14,14,0.08) active pill and inactive #555550. no-scrollbar
+              keeps the row from ever sliding under the logo or right cluster
+              at 390px. Explicit rgba() utilities (not hex/α-modifiers) pin
+              exact computed colors for the specs — Tailwind v4 α-modifiers
+              compile to color-mix() instead. */}
           <div
             className={cn(
               "no-scrollbar flex min-w-0 flex-1 items-center justify-center overflow-x-auto",
@@ -135,11 +143,11 @@ export function Navbar({ userName }: { userName: string }) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-base transition-colors",
+                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-[12px] transition-colors md:text-[13px]",
                     "md:h-auto md:rounded-full md:px-4 md:py-2",
                     active
-                      ? "font-bold text-ink md:bg-[rgba(14,14,14,0.08)] md:font-normal"
-                      : "font-medium text-[rgba(14,14,14,0.4)] hover:text-ink md:text-ink/70 md:hover:bg-black/[0.04] md:hover:text-ink",
+                      ? "font-bold text-ink md:bg-[rgba(14,14,14,0.08)]"
+                      : "font-medium text-[rgba(14,14,14,0.4)] hover:text-ink md:text-[#555550] md:hover:bg-black/[0.04] md:hover:text-ink",
                   )}
                 >
                   <Icon className="mr-2 hidden h-4 w-4 md:block" strokeWidth={1.5} aria-hidden />
@@ -154,10 +162,10 @@ export function Navbar({ userName }: { userName: string }) {
               href="/map"
               aria-current={isActive("/map") ? "page" : undefined}
               className={cn(
-                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-base transition-colors md:flex",
+                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-[13px] transition-colors md:flex",
                 isActive("/map")
                   ? "bg-[rgba(14,14,14,0.08)] text-ink"
-                  : "text-ink/70 hover:bg-black/[0.04] hover:text-ink",
+                  : "text-[#555550] hover:bg-black/[0.04] hover:text-ink",
               )}
             >
               <MapPin className="mr-2 h-4 w-4" strokeWidth={1.5} aria-hidden />

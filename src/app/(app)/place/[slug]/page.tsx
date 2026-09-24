@@ -46,7 +46,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
             {meta.eyebrow}
           </p>
-          <h1 className="mb-5 font-serif text-[36px] leading-[1.05] tracking-[-0.06em] text-ink sm:text-[clamp(36px,6.4vw,82px)]">
+          <h1 className="mb-5 font-serif text-[clamp(42px,13vw,82px)] leading-[1.02] tracking-[-0.06em] text-ink">
             {place.name}
           </h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-black/55">
@@ -102,7 +102,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
         {/* Body — About this place + tags, then the booking request form. */}
         <div className="grid grid-cols-1 gap-10 p-6 sm:p-12 lg:grid-cols-5">
           <div className="space-y-6 lg:col-span-3">
-            <h2 className="text-xl font-semibold text-ink">About this place</h2>
+            <h2 className="font-serif text-[clamp(26px,7.2vw,34px)] leading-[1.08] tracking-[-0.03em] text-ink">About this place</h2>
             {place.description ? (
               <p className="text-base leading-relaxed text-secondary">{place.description}</p>
             ) : null}

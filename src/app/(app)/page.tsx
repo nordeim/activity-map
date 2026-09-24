@@ -6,7 +6,6 @@ import { RecommendedRoute } from "@/components/home/RecommendedRoute";
 import { HighlightedRestaurants } from "@/components/home/HighlightedRestaurants";
 import { StayShowcase } from "@/components/home/StayShowcase";
 import { HighlightedSights } from "@/components/home/HighlightedSights";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 
 // The Highlights page, structured exactly like the live app's home (session 2
 // parity): photo hero + glass planner pill → the three category cards → the
@@ -39,7 +38,6 @@ export default async function HomePage() {
       </main>
       {/* The footer is a sibling of <main> — a footer nested inside <main>
           loses its contentinfo landmark role. */}
-      <SiteFooter />
     </>
   );
 }

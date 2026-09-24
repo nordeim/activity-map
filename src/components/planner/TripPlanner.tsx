@@ -1,6 +1,6 @@
 "use client";
 
-// The trip-planner pill, re-measured from the live app (session 3):
+// The trip planner, re-measured from the live app (sessions 3 + 6):
 //
 //   ( [📅 Select dates] [👥 2] [📍 Restaurants] [⌕] )
 //
@@ -9,13 +9,18 @@
 // that opens the DateRangePicker popover; People and Type of Activities are
 // labels with an INVISIBLE native <select> overlaid (absolute, opacity-0)
 // so the pill keeps its clean look while remaining fully operable. The
-// search button is a transparent 46px disc that inverts to black on hover
-// and carries data-ready once anything is chosen.
+// search button is a transparent disc that inverts to black on hover and
+// carries data-ready once anything is chosen.
 //
-// Two skins: "glass" (the home hero — #F8F7F4/35 + blur, ≤548px) and
-// "white" (the browse pages — solid white, sticky top-24 shell). Searching
-// routes to the category page: /eat|/stay|/do?people=N&start_date&end_date
-// (never the map — live parity).
+// Two skins:
+// - "glass" (the home hero): session-6 re-measure — below md the planner
+//   renders as a near-opaque WHITE CARD (bg white/94, radius 30, p-2, big
+//   soft shadow, 2-col grid `1fr 76px` with two rows: [dates|people] then
+//   [type|search], every field a gray pill rgba(242,241,238,0.76) radius 20
+//   h-50). From md up it is the frosted GLASS PILL (#F8F7F4/35 + blur,
+//   ≤548px, 4-col grid). Searching routes to the category page:
+//   /eat|/stay|/do?people=N&start_date&end_date (never the map).
+// - "white" (the browse pages): solid white pill, sticky shell.
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -63,25 +68,30 @@ export function TripPlanner({
   const valueClass =
     "flex min-w-0 items-center justify-center gap-1.5 text-xs font-semibold text-[#141413] transition-transform duration-500 ease-out group-hover:translate-y-2";
   const segmentClass =
-    "group relative min-w-0 cursor-pointer rounded-full border border-transparent bg-transparent text-center shadow-none transition-all duration-500 ease-out hover:border-white/60 hover:bg-[#F8F7F4]/50 hover:shadow-[0_8px_20px_rgba(14,14,14,0.08),inset_0_1px_0_rgba(255,255,255,0.48)]";
+    // Mobile (<md, glass variant): every segment is a GRAY field pill
+    // (rgba(242,241,238,0.76), radius 20) inside the white planner card;
+    // from md the segments go transparent inside the glass pill again.
+    "group relative min-w-0 cursor-pointer rounded-[20px] border border-transparent bg-[rgba(242,241,238,0.76)] text-center shadow-none transition-all duration-500 ease-out md:rounded-full md:bg-transparent hover:border-white/60 hover:bg-[#F8F7F4]/50 hover:shadow-[0_8px_20px_rgba(14,14,14,0.08),inset_0_1px_0_rgba(255,255,255,0.48)]";
   const hiddenSelect =
     "absolute -inset-px h-[calc(100%+2px)] w-[calc(100%+2px)] cursor-pointer rounded-full opacity-0";
 
   return (
     <div
       className={cn(
-        "relative mx-auto mt-4 rounded-full p-1",
+        "trip-planner-card relative mx-auto mt-4 rounded-[30px] p-2",
         variant === "glass"
-          ? "z-50 w-full max-w-[548px] border border-white/35 bg-[#F8F7F4]/35 shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)] backdrop-blur-[28px] backdrop-saturate-150"
-          : "w-full border border-black/5 bg-white shadow-[0_8px_22px_rgba(0,0,0,0.08)]",
+          ? // Session-5: below md a near-opaque white CARD (radius 30, p-2,
+            // big soft shadow); from md the frosted GLASS PILL returns.
+            "z-50 w-full border border-transparent bg-white/95 shadow-[0_16px_34px_rgba(14,14,14,0.16)] md:max-w-[548px] md:rounded-full md:border-white/35 md:bg-[#F8F7F4]/35 md:p-1 md:shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)] md:backdrop-blur-[28px] md:backdrop-saturate-150"
+          : "w-full border border-black/5 bg-white/95 p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.08)]",
         open && "z-[30000]",
         className,
       )}
     >
       <div
         className={cn(
-          "grid items-stretch gap-1 overflow-hidden rounded-full",
-          "grid-cols-2 sm:grid-cols-[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_46px]",
+          "grid items-stretch gap-1.5 overflow-hidden rounded-[24px] md:gap-1 md:rounded-full",
+          "grid-cols-[minmax(0,1fr)_76px] md:grid-cols-[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_46px]",
         )}
       >
         {/* Dates — the lead segment (button → range popover). */}
@@ -89,7 +99,7 @@ export function TripPlanner({
           type="button"
           aria-label="Choose trip dates"
           onClick={() => setOpen((o) => !o)}
-          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+          className={cn(segmentClass, "flex min-h-[50px] items-center justify-center px-[15px] md:min-h-[40px]")}
         >
           <p className={labelClass}>Let&apos;s Plan Your Trip</p>
           <span className={cn(valueClass, "w-full")}>
@@ -104,7 +114,7 @@ export function TripPlanner({
             <label aria-label=…>): the select below carries the only
             aria-label, keeping getByLabel single-matched for specs and AT. */}
         <div
-          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+          className={cn(segmentClass, "flex min-h-[50px] items-center justify-center px-[15px] md:min-h-[40px]")}
         >
           <p className={labelClass}>People</p>
           <span className={cn(valueClass, "w-full")}>
@@ -130,7 +140,7 @@ export function TripPlanner({
         {/* Type of Activities — invisible native select overlay (same
             single-aria-label pattern as the People segment). */}
         <div
-          className={cn(segmentClass, "flex min-h-[40px] items-center justify-center px-[15px]")}
+          className={cn(segmentClass, "flex min-h-[50px] items-center justify-center px-[15px] md:min-h-[40px]")}
         >
           <p className={labelClass}>Type of Activities</p>
           <span className={cn(valueClass, "w-full")}>
@@ -159,7 +169,7 @@ export function TripPlanner({
           aria-label="Search trip matches"
           data-ready={ready ? "true" : "false"}
           onClick={search}
-          className="flex h-[46px] w-full items-center justify-center rounded-full border border-transparent bg-transparent text-[#141413] backdrop-blur-[18px] transition-colors duration-300 hover:bg-[#0e0e0e] hover:text-white hover:shadow-[0_12px_28px_rgba(14,14,14,0.28)]"
+          className="flex h-[50px] w-full items-center justify-center rounded-[20px] border border-transparent bg-[rgba(242,241,238,0.76)] text-[#141413] transition-colors duration-300 hover:bg-[#0e0e0e] hover:text-white hover:shadow-[0_12px_28px_rgba(14,14,14,0.28)] md:h-[46px] md:rounded-full md:bg-transparent md:backdrop-blur-[18px]"
         >
           <Search className="h-[17px] w-[17px]" strokeWidth={2} aria-hidden />
         </button>

@@ -107,3 +107,24 @@ Work Log:
 
 Stage Summary:
 - main fully in sync with origin at 4133e37; working tree clean; no branches created; no key material on disk.
+
+---
+Task ID: 6
+Agent: Super Z (main agent)
+Task: Session 6 — re-measure the redesigned live app, remediate the clone to parity, pass the full gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Workspace refreshed to 04fd822 (fast-forward; added the owner's docs/session_5.md narration of the session-4 continuation). All 6 root docs + session_4/remediation-plan-session-4/worklog/session_5 reviewed; scandihaven patterns confirmed same stack.
+- Baseline validation: lint ✓ typecheck ✓ 42 unit ✓; dev probes healthy; db/ at repo root (42+27+9 places + demo user); .env/.env.example already correct (DATABASE_URL="file:../db/custom.db").
+- Live re-measure (logged in; DOM audits at 1280/768/390 + strip sequences + VLM): 14 findings — desktop floating-pill navbar (max-w 820/radius 999/13px links/active 700/#555550), mobile 12px nav links, white hero planner card below md (radius 30, gray field pills, 1fr-76px grid), violet mobile VIEW ALL, desktop route = pinned card-swap + photo cards + black Learn More + inline meta, restaurants = desktop canvas-style carousel + mobile sticky 16-card deck, square stay/sight cards with overlaid white Inter 18px titles, icon-cell footer pill on ALL pages, 50.7px mobile h1 scale, profile h1 = username, live login chrome. Wrote docs/remediation-plan-session-6.md and validated it before executing.
+- TDD execution (specs updated first, then implementations): Navbar pill + 12/13px links; TripPlanner white mobile card; CategoryCards violet mobile VIEW ALL; RecommendedRoute photo cards + 340vh pinned swap; HighlightedRestaurants carousel + deck; StayShowcase reusing square StayCard (home meta); HighlightedSights hanging-panel square cards; SiteFooter icon-cell pill moved to the (app) layout; typography scale; LoginForm live chrome (hosted flows answer with inline notices).
+- En-route fixes: hero h1 container was max-w-3xl and clipped the nowrap wordmark (live spans ~1232px) — widened; sights card link lost its accessible name via link→article nesting — restructured to article→Link (StayCard pattern); SaveButton moved to a sibling of the deck card link.
+- E2E spec updates: desktop pill + mobile 12px + planner card + violet VIEW ALL + route swap + carousel watermark/detail + mobile deck (16 cards) + footer on 7 pages + profile h1 = username + login chrome. Tailwind v4 gotchas solved in specs: rounded-full ≈ 3.35e7px (numeric assertions), bg-white/95 arrives as oklab() (assert the rgba shadow), stale :3100 server reuse trap.
+- Full gate on the exact push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 45/45 E2E ✓.
+- 14 screenshots refreshed (capture-screens-v3 + crop-sections-v3; variance-validated; VLM spot-checks clean).
+- Docs aligned: README (features/status/testing), AGENTS (gate 45, navbar bullet, footer bullet, stale-server lesson, computed-style gotchas), CLAUDE (same), PAD (v1.3 revision), activity-map_SKILL (project_state), docs/session_6.md, worklog.
+
+Stage Summary:
+- Deliverables: session-6 parity remediation (floating-pill navbar, white planner card, violet VIEW ALL, pinned route swap, restaurants carousel/deck, square stay/sight cards, footer everywhere, typography scale, login chrome), 45-check E2E suite, remediation plan, 14 screenshots, 6 aligned docs.
+- Key decisions: DOM-transform carousel instead of the live's canvas (maintainable parity); the live's "API KEY REQUIRED" watermark is deliberately not cloned; browse pages keep the clone's planner/explorer split (functionally equivalent).
+- Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.

@@ -23,9 +23,11 @@ export function Hero() {
         />
         <div aria-hidden className="hero-shade absolute inset-0" />
 
-        {/* Wordmark (low over the photo) + glass planner pill. */}
+        {/* Wordmark (low over the photo) + the planner card. The text
+            container spans the full bleed (the live h1 measures ~1232px at
+            1280 — a max-w-3xl box would clip the nowrap wordmark). */}
         <div className="relative z-10 flex h-full flex-col px-4 pb-16 pt-[38vh] sm:pb-24">
-          <div className="mx-auto w-full max-w-3xl text-center">
+          <div className="mx-auto w-full text-center">
             <h1
               className="font-serif whitespace-nowrap text-white"
               style={{

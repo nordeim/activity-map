@@ -1,10 +1,11 @@
 import { expect, test } from "@playwright/test";
 
-// Mobile navigation (390×844 — the live app's session-3 chrome):
+// Mobile navigation (390×844 — the live app's session-6 chrome):
 // a FIXED top tab-bar (cream glass #F8F7F4/62, blur, border-b) capped at
-// 430px, with the compact text-only view links (16px Inter — ACTIVE =
-// weight 700 ink, inactive = 500 ink-40%), the right-cluster icon actions
-// (map pin / heart / user), and no element overlap. This is the
+// 430px, with the compact text-only view links (12px Inter — ACTIVE =
+// weight 700 ink, inactive = 500 ink-40%; re-measured session 5: the live
+// app dropped the link text from 16px to 12px), the right-cluster icon
+// actions (map pin / heart / user), and no element overlap. This is the
 // highest-regression-risk chrome — the original scaffold's Tailwind v4
 // validation found that class-based responsive utilities can silently push
 // nav links UNDER neighbouring flex clusters (failure class D) or off-screen
@@ -75,6 +76,9 @@ test.describe("mobile navigation", () => {
     await expect(highlights).toHaveCSS("color", "rgb(14, 14, 14)");
     await expect(highlights).toHaveAttribute("aria-current", "page");
 
+    // Session-5 re-measure: the link text renders at 12px (was 16px).
+    await expect(highlights).toHaveCSS("font-size", "12px");
+
     // Inactive links render dimmed (rgba(14,14,14,0.4)) at weight 500.
     const eat = nav.getByRole("link", { name: "Eat", exact: true });
     await expect(eat).toHaveCSS("color", "rgba(14, 14, 14, 0.4)");
@@ -142,13 +146,23 @@ test.describe("middle state (640) navigation", () => {
 test.describe("desktop (1280) navigation", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("the full-width white bar renders the chrome with the avatar chip", async ({ page }) => {
+  test("the floating white pill renders the chrome with the avatar chip", async ({ page }) => {
     await page.goto("/");
     const nav = page.getByRole("navigation", { name: "Primary" });
     await expect(nav).toBeVisible();
     for (const label of ["Highlights", "Eat", "Stay", "Do", "Map", "Favourites", "Profile"]) {
       await expect(nav.getByRole("link", { name: label, exact: true })).toBeVisible();
     }
+    // Session-5 redesign: the inner bar is a centered PILL (rounded-full —
+    // Tailwind v4 compiles to calc(infinity*1px), so assert the numeric
+    // radius; max-w 820) — not the full-width bar.
+    const navRadius = await nav.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+    expect(navRadius).toBeGreaterThan(1000);
+    const box = await nav.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThan(100);
+    expect(box!.width).toBeLessThanOrEqual(820);
+
     // The ACTIVE link sits on the rgba(14,14,14,0.08) pill.
     const highlights = nav.getByRole("link", { name: "Highlights", exact: true });
     await expect(highlights).toHaveCSS("background-color", "rgba(14, 14, 14, 0.08)");
