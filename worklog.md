@@ -128,3 +128,19 @@ Stage Summary:
 - Deliverables: session-6 parity remediation (floating-pill navbar, white planner card, violet VIEW ALL, pinned route swap, restaurants carousel/deck, square stay/sight cards, footer everywhere, typography scale, login chrome), 45-check E2E suite, remediation plan, 14 screenshots, 6 aligned docs.
 - Key decisions: DOM-transform carousel instead of the live's canvas (maintainable parity); the live's "API KEY REQUIRED" watermark is deliberately not cloned; browse pages keep the clone's planner/explorer split (functionally equivalent).
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 6 (final)
+Agent: Super Z (main agent)
+Task: Session 6 finalization — commit + push.
+
+Work Log:
+- Commit c176d84 on main (42 files, +1086/−462): the session-6 parity remediation (Navbar pill, TripPlanner card, CategoryCards violet VIEW ALL, RecommendedRoute photo cards + pinned swap, HighlightedRestaurants carousel + deck, StayShowcase/HighlightedSights square cards, SiteFooter icon-cell pill on all pages, typography scale, LoginForm chrome), 10 new E2E checks, remediation plan + session log, 14 refreshed screenshots, 6 aligned docs. Working tree clean; secret scan clean (one variable-reference false positive).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27 smoke ✓ 45 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 present, /home/z/my-project/bin/ssh shim alive, operator key materialized at /home/z/.ssh-tmp (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4 records).
+- Dry-run: fast-forward 04fd822..c176d84 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ c176d84 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at c176d84; working tree clean; no branches created; no key material on disk.
