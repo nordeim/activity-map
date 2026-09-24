@@ -11,23 +11,57 @@ import { DEMO_EMAIL, DEMO_PASSWORD } from "./helpers";
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("login route", () => {
-  test("renders the live-parity auth card (session-6 chrome)", async ({ page }) => {
+  test("renders the live-parity auth card (session-10 shadcn chrome)", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/login");
     await expect(page.getByRole("heading", { name: "Welcome to Activity Map" })).toBeVisible();
     await expect(page.getByText("Sign in to continue")).toBeVisible();
 
     // The hosted-platform chrome rendered for parity: the Google button,
-    // the "or" divider, the forgot-password link, and the sign-up link —
+    // the "or" divider chip, the forgot-password link, and the sign-up link —
     // each answers with an inline notice instead of navigating.
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
     await expect(page.getByText("or", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Forgot password?" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
 
-    // The card is the rounded-28 white panel.
-    const card = page.locator("div.rounded-\\[28px\\]").first();
+    // Session-10 re-measure: the card is the shadcn-style rounded-16 white
+    // panel (radius 16px, white/95) — NOT the old rounded-28 card.
+    const card = page.locator("div.rounded-2xl").first();
     await expect(card).toBeVisible();
-    await expect(card).toHaveCSS("border-radius", "28px");
+    await expect(card).toHaveCSS("border-radius", "16px");
+
+    // The circular logo image rides above the heading (80px below sm).
+    const logo = page.getByRole("img", { name: /logo/i });
+    await expect(logo).toBeVisible();
+
+    // The heading uses the shadcn STOCK SYSTEM stack (the live's login card
+    // does not apply its Inter — the h1 computes to ui-sans-serif/system-ui,
+    // which is also why it wraps to two lines like the reference).
+    const h1 = page.getByRole("heading", { name: "Welcome to Activity Map" });
+    const h1Font = await h1.evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(h1Font.toLowerCase()).not.toContain("baskerville");
+    expect(h1Font.toLowerCase()).toContain("system-ui");
+
+    // The inputs carry the Mail / Lock icons (lucide) inside their fields.
+    const emailField = page.getByLabel("Email").locator("xpath=..");
+    await expect(emailField.locator("svg")).toBeVisible();
+    const passwordField = page.getByLabel("Password").locator("xpath=..");
+    await expect(passwordField.locator("svg")).toBeVisible();
+
+    // The Sign in button is slate-900 (#0F172A) with a 12px radius (not the
+    // old black pill).
+    const signIn = page.getByRole("button", { name: "Sign in", exact: true });
+    await expect(signIn).toHaveCSS("background-color", "rgb(15, 23, 42)");
+    await expect(signIn).toHaveCSS("border-radius", "12px");
+
+    // The page behind the card is plain white — the old photographic wash
+    // is gone (session-10: the live login has no background image).
+    const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundImage);
+    expect(bodyBg).toBe("none");
+    const main = page.locator("main").first();
+    const mainBgImage = await main.evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(mainBgImage).toBe("none");
   });
 
   test("wrong password is rejected without a session", async ({ page }) => {

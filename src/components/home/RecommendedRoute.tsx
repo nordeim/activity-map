@@ -224,10 +224,11 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                         {stop.time}
                       </span>
 
-                      {/* The serif stop title — dark on cream (no photo). */}
-                      <h3 className="mt-3 font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
+                      {/* The serif stop title — dark on cream (no photo).
+                          Session-10: h2, matching the live's stop headings. */}
+                      <h2 className="mt-3 font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
                         {stop.title}
-                      </h3>
+                      </h2>
 
                       {/* The white info card (the live's link card). */}
                       <Link

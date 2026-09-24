@@ -38,6 +38,48 @@ test.describe("home content parity (session 2)", () => {
     expect(plannerShadow).toContain("rgba(14, 14, 14, 0.16)");
   });
 
+  test("hero geometry: taller photo, content positions match the live (session 10)", async ({ page }) => {
+    // Mobile (390×844): the live hero photo is 591px tall with the h1 at
+    // viewport y≈203 and the planner at y≈365 (124px card + a 126px gap
+    // under the 36px h1 — a much taller hero than the old 86vh build).
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const heroImg = page.locator("section img").first();
+    await expect(heroImg).toBeVisible();
+    const mobileGeom = await page.evaluate(() => {
+      const img = document.querySelector("section img");
+      const h1 = document.querySelector("h1");
+      return {
+        imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
+        h1Y: Math.round(h1?.getBoundingClientRect().y ?? 0),
+      };
+    });
+    expect(mobileGeom.imgH).toBeGreaterThanOrEqual(570);
+    expect(mobileGeom.imgH).toBeLessThanOrEqual(610);
+    expect(mobileGeom.h1Y).toBeGreaterThanOrEqual(180);
+    expect(mobileGeom.h1Y).toBeLessThanOrEqual(225);
+
+    // Desktop (1280×800): the photo is ~938px (the live's hero section) with
+    // the h1 at viewport y≈290 (the content rides higher over the taller
+    // photo; the photo shows behind the transparent header strip).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const desktopGeom = await page.evaluate(() => {
+      const img = [...document.querySelectorAll("img")].find((i) => i.getBoundingClientRect().height > 400);
+      const h1 = document.querySelector("h1");
+      return {
+        imgY: Math.round(img?.getBoundingClientRect().y ?? 0),
+        imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
+        h1Y: Math.round(h1?.getBoundingClientRect().y ?? 0),
+      };
+    });
+    expect(desktopGeom.imgH).toBeGreaterThanOrEqual(920);
+    expect(desktopGeom.imgH).toBeLessThanOrEqual(960);
+    expect(desktopGeom.imgY).toBeLessThanOrEqual(10); // behind/under the header
+    expect(desktopGeom.h1Y).toBeGreaterThanOrEqual(265);
+    expect(desktopGeom.h1Y).toBeLessThanOrEqual(315);
+  });
+
   test("desktop navbar is the floating pill (session-6 redesign)", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -66,20 +108,55 @@ test.describe("home content parity (session 2)", () => {
     await expect(inactive.locator("span")).toHaveCSS("color", "rgb(85, 85, 80)");
   });
 
-  test("category cards: mobile VIEW ALL is violet, desktop stays near-black", async ({ page }) => {
-    // Mobile (390): the VIEW ALL pills are violet #571AFF, full card width.
+  test("category cards: live row internals, full-width VIEW ALL, mobile snap carousel (session 10)", async ({ page }) => {
+    // Mobile (390): the cards form a HORIZONTAL snap carousel (the live's
+    // today-category-cards row scrolls sideways — scrollWidth 978 at 390).
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
+    const cardRow = page.locator("#category-cards").first();
+    const scrollInfo = await cardRow.evaluate((el) => ({ scrollW: el.scrollWidth, clientW: el.clientWidth }));
+    expect(scrollInfo.scrollW).toBeGreaterThan(scrollInfo.clientW + 200); // 3 off-screen-ish cards
+    // The mobile VIEW ALL pills are violet #571AFF, full card width.
     const mobileViewAll = page.getByRole("link", { name: /View All/ }).first();
     await expect(mobileViewAll).toHaveCSS("background-color", "rgb(87, 26, 255)");
     const viewAllRadius = await mobileViewAll.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
     expect(viewAllRadius).toBeGreaterThan(1000);
 
-    // Desktop (1280): the VIEW ALL pills stay near-black #141413.
+    // Desktop (1280): the VIEW ALL pills stay near-black #141413 and are
+    // 54px full-card-width pills (session-10 re-measure).
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const desktopViewAll = page.getByRole("link", { name: /View All/ }).first();
     await expect(desktopViewAll).toHaveCSS("background-color", "rgb(20, 20, 19)");
+    await expect(desktopViewAll).toHaveCSS("height", "54px");
+    const vaBox = await desktopViewAll.boundingBox();
+    const card = desktopViewAll.locator("xpath=ancestor::article[1]");
+    const cardBox = await card.boundingBox();
+    expect(vaBox).not.toBeNull();
+    expect(cardBox).not.toBeNull();
+    // Full INNER width: the card carries 16px side padding (263 → 231
+    // inner; the live: 263 → 229 with 17px padding).
+    expect(vaBox!.width).toBeGreaterThan(cardBox!.width - 40);
+
+    // Session-10 re-measure: each row is a 12px/500 title + 12px 30%-black
+    // subtitle beside a 28×28 rounded-8 GLASS icon cell (white/0.48 +
+    // white/0.52 border) — three curated rows per card.
+    const firstTagRow = card.locator("ul li").first();
+    const iconCell = firstTagRow.locator("span").first();
+    await expect(iconCell).toHaveCSS("width", "28px");
+    await expect(iconCell).toHaveCSS("height", "28px");
+    await expect(iconCell).toHaveCSS("border-radius", "8px");
+    const title = firstTagRow.locator("span").nth(1).locator("span").first();
+    await expect(title).toHaveCSS("font-size", "12px");
+    await expect(title).toHaveCSS("font-weight", "500");
+    // Three two-line rows per card (the live's curated set).
+    await expect(card.locator("ul li")).toHaveCount(3);
+    await expect(card.getByText("City center", { exact: true })).toBeVisible();
+    // The live's icon set (FerrisWheel on the do card, Wine on eat) —
+    // :visible scopes to the desktop row (the hidden mobile carousel also
+    // carries one of each).
+    await expect(page.locator("[data-category-card]:visible svg.lucide-ferris-wheel")).toHaveCount(1);
+    await expect(page.locator("[data-category-card]:visible svg.lucide-wine")).toHaveCount(1);
   });
 
   test("recommended route renders the five timed TEXT stops (session 8)", async ({ page }) => {
@@ -125,13 +202,13 @@ test.describe("home content parity (session 2)", () => {
     // Session-8 swap: at desktop the right panel pins EARLY and swaps ONE
     // card at a time across the long trap — scrolling deep moves the active
     // card past Morning Coffee (its absolute siblings stay opacity-0 until
-    // their turn).
+    // their turn). Session-10: the stop titles are h2 (the live's semantics).
     await page.setViewportSize({ width: 1280, height: 800 });
     const trap = page.locator("#recommended-route > div");
     await trap.scrollIntoViewIfNeeded();
     await page.mouse.wheel(0, 2600);
     await page.waitForTimeout(700);
-    const visibleStop = page.locator('#recommended-route article[data-active="true"] h3');
+    const visibleStop = page.locator('#recommended-route article[data-active="true"] h2');
     await expect(visibleStop).not.toHaveText("Morning Coffee", { timeout: 8000 });
   });
 

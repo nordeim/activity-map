@@ -55,6 +55,13 @@
   }
 }
 
+/* The shadcn stock system stack — the live app's LOGIN card uses the
+   platform default (NOT the app's Inter), so its heading wraps exactly
+   like the reference on every OS. */
+@utility font-system {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
 /* Full-bleed hero image with the legibility gradient used on the
    reference home page (dark bottom for the white serif wordmark). */
 @utility hero-shade {

@@ -18,6 +18,7 @@ import {
   Sparkles,
   Flame,
   Compass,
+  Heart,
   Sun,
   UtensilsCrossed,
   BedDouble,
@@ -104,12 +105,14 @@ export function ProfileView({
             </span>
           </div>
 
-          {/* Saved places — the live's dark button into /favourites. */}
+          {/* Saved places — the live's dark button into /favourites
+              (session-10: heart icon + the bare label, no count). */}
           <Link
             href="/favourites"
-            className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-ink px-8 text-sm font-semibold text-white transition hover:bg-black"
+            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-semibold text-white transition hover:bg-black"
           >
-            Saved places{favouriteCount === null ? "" : ` · ${favouriteCount}`}
+            <Heart className="h-4 w-4" strokeWidth={2} aria-hidden />
+            Saved places
           </Link>
         </section>
 

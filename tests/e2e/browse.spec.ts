@@ -18,10 +18,13 @@ test.describe("home (Highlights)", () => {
     await expect(page.getByLabel("Type of Activities")).toBeVisible();
 
     // The measured category cards with their counts and VIEW ALL buttons.
+    // Session-10: #category-cards is the MOBILE carousel row — at the desktop
+    // default viewport the three View All links live in the desktop card
+    // row (all [data-category-card] articles).
     await expect(page.getByRole("heading", { name: "12 Hotels" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "12 Places to Eat" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "18 Sights to Discover" })).toBeVisible();
-    await expect(page.locator("#category-cards").getByRole("link", { name: /View All/ })).toHaveCount(3);
+    await expect(page.locator("[data-category-card]:visible").getByRole("link", { name: /View All/ })).toHaveCount(3);
   });
 
   test("VIEW ALL navigates to the category view", async ({ page }) => {
@@ -171,6 +174,32 @@ test.describe("place detail", () => {
     const photo = page.locator("main img").first();
     const h = await photo.evaluate((el) => el.getBoundingClientRect().height);
     expect(Math.round(h)).toBe(260);
+
+    // Session-10 re-measure: the heart overlay is a 44×44 dark glass circle
+    // (the live's h-11 button), not the old 36px h-9.
+    const heart = page.getByRole("button", { name: "Save to favourites" }).first();
+    const heartBox = await heart.boundingBox();
+    expect(heartBox).not.toBeNull();
+    expect(Math.round(heartBox!.width)).toBe(44);
+    expect(Math.round(heartBox!.height)).toBe(44);
+  });
+
+  test("detail page container: max-w-6xl rounded-36 card, no border (session 10)", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/place/courtyard-stay", { waitUntil: "domcontentloaded" });
+    // The live detail page is ONE wide white card (max-w-6xl ≈ 1152px at
+    // 1280) with a 36px radius and NO border — shadow only.
+    const card = page.locator("main article").first();
+    await expect(card).toHaveCSS("border-radius", "36px");
+    await expect(card).toHaveCSS("border-top-width", "0px");
+    const cardBox = await card.boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(cardBox!.width).toBeGreaterThan(1100);
+    expect(cardBox!.width).toBeLessThan(1180);
+    // The desktop hero photo is 460px at lg (and 420px at md).
+    const photo = page.locator("main img").first();
+    const photoH = await photo.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(photoH).toBe(460);
   });
 
   test("booking records a request visible on the profile", async ({ page }) => {
@@ -220,9 +249,31 @@ test.describe("favourites round-trip", () => {
     await expect(page.getByText("All saved restaurants, hotels, and places in one calm collection.")).toBeVisible();
     await expect(page.locator("article")).toHaveCount(1);
 
+    // Session-10 re-measure: the h1 is the live's declared text-[55px] with
+    // leading-[0.92] and tracking-[-0.06em] (asserted at the desktop
+    // viewport — narrow viewports trigger Chromium's mobile text-size
+    // adjustment on the reference, which is environment noise, not design).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const favH1 = page.getByRole("heading", { name: "Favourites" });
+    await expect(favH1).toHaveCSS("font-size", "55px");
+    await expect(favH1).toHaveCSS("letter-spacing", "-3.3px");
+    // The page is plain cream — the graph-paper bg-grid is gone (live has
+    // no grid on the favourites page).
+    const mainBg = await page.locator("main").first().evaluate((el) => getComputedStyle(el).backgroundImage);
+    expect(mainBg).toBe("none");
+
     await page.locator("article").first().getByRole("button", { name: "Remove from favourites" }).click();
     await expect(page.getByText("No favourites yet")).toBeVisible();
     await expect(page.getByText("Tap a heart on any restaurant, hotel, or place card to save it here.")).toBeVisible();
+
+    // Session-10 re-measure: the empty state mirrors the live — Inter
+    // (sans) 20px semibold title over a 48px cream icon circle, not the old
+    // serif title in the 56px deep-cream circle.
+    const emptyTitle = page.getByText("No favourites yet");
+    const emptyFont = await emptyTitle.evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(emptyFont.toLowerCase()).toContain("inter");
+    await expect(emptyTitle).toHaveCSS("font-size", "20px");
+    await expect(emptyTitle).toHaveCSS("font-weight", "600");
   });
 });
 
@@ -269,10 +320,13 @@ test.describe("profile", () => {
     // "Your Roam account" prefix is gone).
     await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
     await expect(page.getByText("Your Roam account")).toHaveCount(0);
-    // Saved places is a DARK button linking to /favourites.
-    const savedBtn = page.getByRole("link", { name: /Saved places/ });
+    // Saved places is a DARK button linking to /favourites. Session-10
+    // re-measure: a heart icon + the bare label (no count) — 154×44.
+    const savedBtn = page.getByRole("link", { name: "Saved places", exact: true });
     await expect(savedBtn).toHaveAttribute("href", "/favourites");
     await expect(savedBtn).toHaveCSS("background-color", "rgb(14, 14, 14)");
+    await expect(savedBtn.locator("svg").first()).toBeVisible();
+    await expect(page.getByText(/Saved places ·/)).toHaveCount(0);
     await expect(page.getByText("My bookings")).toBeVisible();
     // Either the empty-upcoming state or an earlier test's reservation —
     // both prove the section renders. .first(): with zero bookings BOTH the

@@ -28,9 +28,7 @@ export default async function HomePage() {
     <>
       <main className="pb-16">
         <Hero />
-        <div id="category-cards" className="mx-auto max-w-[1000px] px-4 sm:px-6">
-          <CategoryCards counts={counts} signedInName={user?.name ?? null} />
-        </div>
+        <CategoryCards counts={counts} signedInName={user?.name ?? null} />
         <RecommendedRoute stops={route} />
         <HighlightedRestaurants restaurants={restaurants} />
         <StayShowcase stays={stays} />

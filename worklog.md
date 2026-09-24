@@ -180,3 +180,23 @@ Work Log:
 
 Stage Summary:
 - main fully in sync with origin at 2c28628; working tree clean; no branches created; no key material on disk.
+
+---
+Task ID: 10
+Agent: Super Z (main agent)
+Task: Session 10 — deep re-measure the live app, remediate the residual gaps to parity, pass the full gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Workspace re-cloned (reset environment) to 219c927 (main; the owner's `update session logs` commit adding docs/session_9.md). All 6 root docs + session_8/remediation-plan-session-8/worklog/session_9 reviewed; scandihaven patterns confirmed same stack.
+- Baseline validation: bun install → prisma generate → db:push/db:seed → lint ✓ typecheck ✓ 42 unit ✓; dev probes healthy; db/ at repo root (42+27+9 places + demo user); .env/.env.example already correct (DATABASE_URL="file:../db/custom.db").
+- Live re-measure (logged in; DOM audits at 1280/768/390 + scroll sweeps + VLM): every session-8 surface re-verified UNCHANGED (navbar, route text cards, 6-card deck, letter reveal, browses, mobile detail, map, profile). The deep audit of summary-verified surfaces found 9 residual gaps — category-card internals (28×28 glass icon cells, 12px/500 two-line rows, full-width 54px View All) + the mobile horizontal snap carousel (306px cards, scrollWidth 978), hero geometry (591/938px photo behind the transparent header, h1 y=203/290, 126px mobile planner gap), the login page's shadcn chrome (plain page, logo disc, system-font h1, input icons, slate-900 button), favourites grid + 48px h1, the detail page's max-w-6xl rounded-36 border-less card + 420px-md tier, the profile Saved button count, the 36px heart, and h3 route stops. Wrote docs/remediation-plan-session-10.md and validated it against the components before executing.
+- TDD execution (specs updated first, then implementations): CategoryCards rewrite (live internals + the snap carousel); Hero re-geometry (591/900/938px, -mt-[73px] under the header, pt 203/290, 126px mobile gap, cards flush via -mt-[261px]); LoginForm + login page redesign (shadcn chrome, login-logo.png downloaded from the live CDN, new font-system @utility — the live's login uses the platform stack, not Inter); FavouritesView de-gridded (55px h1, Inter empty state); detail page max-w-6xl rounded-36 (photo tiers 260/420/460); ProfileView heart button; SaveButton 44px; route stops h2.
+- En-route fixes: three spec locators (the View All full-width padding allowance, the #category-cards mobile-carousel scoping, the h2 route-swap selector); a login-h1 font assertion corrected to the system stack; the favourites h1 pinned at the declared 55px (desktop viewport — the reference's 50.7px mobile reading is Chromium text-size-adjustment noise, documented).
+- Full gate on the exact push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 54/54 E2E ✓ (52 prior + 2 new session-10 checks). The Turbopack db-path tracing warning is the known pre-existing one.
+- 14 screenshots refreshed (capture-screens-v3 + crop-sections-v3; dev server restarted to clear the rate limiter the audit logins had engaged; default browser session logged in + favourite saved for 07); variance-validated; VLM spot-checks clean; final VLM verdict on the desktop home: "visually equivalent".
+- Docs aligned: README (features/design/status/testing), AGENTS (gate 54 + session-10 facts), CLAUDE (same), PAD (v1.5 revision), activity-map_SKILL (project_state v1.3.0), docs/session_10.md, this worklog. .env.example verified matching the codebase.
+
+Stage Summary:
+- Deliverables: session-10 residual-gap parity remediation (category-card internals + snap carousel, measured hero geometry, shadcn login chrome, de-gridded favourites, wide detail card, profile/heart/h2 polish), 54-check E2E suite, remediation plan, 14 screenshots, 7 aligned docs.
+- Key decisions: the login card uses the platform system font (the live's own choice — Inter would not wrap the heading like the reference); the category-card mobile carousel is real overflow scroll with snap (tap/keyboard navigable), not transforms; the favourites h1 pins the live's DECLARED 55px (the 50.7px mobile reading is environment noise).
+- Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.

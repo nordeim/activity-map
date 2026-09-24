@@ -28,19 +28,20 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       : place.tags;
 
   return (
-    <main className="mx-auto max-w-[1000px] px-4 pb-20 pt-6 sm:px-6 sm:pt-10">
-      {/* Back */}
-      <div className="mb-6">
-        <Link
-          href={meta.href}
-          className="group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white py-2.5 pl-5 pr-7 text-sm font-semibold text-ink shadow-float transition hover:bg-black/[0.03]"
-        >
-          <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
-          Back
-        </Link>
-      </div>
+    <main className="w-full px-5 pb-20 pt-6 md:px-8 md:pt-10">
+      <div className="relative mx-auto max-w-6xl">
+        {/* Back — the live's white shadow pill (no border). */}
+        <div className="mb-6">
+          <Link
+            href={meta.href}
+            className="group inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-7 text-sm font-semibold text-ink shadow-float transition hover:bg-black/[0.03]"
+          >
+            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
+            Back
+          </Link>
+        </div>
 
-      <article className="overflow-hidden rounded-[32px] border border-black/5 bg-white shadow-[0_24px_70px_-20px_rgba(0,0,0,0.18)]">
+        <article className="overflow-hidden rounded-[36px] bg-white shadow-[0_24px_70px_rgba(14,14,14,0.12)]">
         {/* Header — the live app's measured stack: eyebrow, 82px h1, meta row. */}
         <header className="px-6 pb-8 pt-10 sm:px-12 sm:pb-10 sm:pt-14">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
@@ -63,10 +64,11 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </div>
         </header>
 
-        {/* Hero image — 260px on phones / 460px from sm (session-8
-            re-measure). The overlays: heart top-left + the white RATING
-            pill top-right (the live's photo chrome — no Map button). */}
-        <section className="relative h-[260px] w-full sm:h-[460px]">
+        {/* Hero image — 260px on phones / 420px at md / 460px at lg
+            (session-10 re-measure). The overlays: heart top-left + the white
+            RATING pill top-right (the live's photo chrome — no Map
+            button). */}
+        <section className="relative h-[260px] w-full md:h-[420px] lg:h-[460px]">
           {place.coverImageUrl ? (
             <img
               src={place.coverImageUrl}
@@ -135,7 +137,8 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
             />
           </aside>
         </div>
-      </article>
+        </article>
+      </div>
     </main>
   );
 }

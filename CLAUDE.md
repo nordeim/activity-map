@@ -80,7 +80,7 @@ Demo login: `sepnetflix2023@outlook.com` / `$Abcd1234`.
 | `bun run lint` | ESLint (next core-web-vitals + typescript) |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run test` | Vitest unit suite (42 checks) |
-| `bun run test:e2e` | Playwright E2E (52 checks; requires a build) |
+| `bun run test:e2e` | Playwright E2E (54 checks; requires a build) |
 | `bun run db:push` / `db:generate` / `db:seed` | Prisma schema / client / seed |
 
 ### Database (Prisma)
@@ -98,7 +98,7 @@ Schema changes go through `db push`, never `prisma migrate` — `prisma/migratio
 ### Test Pyramid
 
 - **Unit (Vitest, 42 checks)**: pure seams — `tests/db-path.test.ts` (17: SQLite URL resolution contract, quote-stripping, standalone anchors), `tests/filters.test.ts` (15: chip AND-composition, special chips, search haystack), and `tests/planner.test.ts` (10: planner query params, browse-target routing, date-range label formatting).
-- **E2E (Playwright, 52 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (unified browse planner + auto-forward params, browse cards, detail booking-request round-trip + rating pill/photo overlays, favourites round-trip, map pills/stats, profile chrome), `home.spec.ts` (white planner card, desktop floating-pill navbar, violet mobile VIEW ALL, text route cards + early pin swap, blue restaurants carousel + six-card mobile deck, letter-reveal spans, 24px mobile titles, dark More-Things pill, square stay/sight cards, footer, home-place detail resolution, browse purity), `browse.spec.ts` footer-on-every-page checks, `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
+- **E2E (Playwright, 54 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow + the session-10 shadcn login chrome), `browse.spec.ts` (unified browse planner + auto-forward params, browse cards, detail booking-request round-trip + rating pill/photo overlays + the session-10 max-w-6xl rounded-36 card, favourites round-trip + the session-10 h1/empty-state chrome, map pills/stats, profile chrome), `home.spec.ts` (white planner card, the session-10 hero geometry, desktop floating-pill navbar, the session-10 category-card internals + mobile snap carousel, violet mobile VIEW ALL, text route cards + early pin swap, blue restaurants carousel + six-card mobile deck, letter-reveal spans, 24px mobile titles, dark More-Things pill, square stay/sight cards, footer, home-place detail resolution, browse purity), `browse.spec.ts` footer-on-every-page checks, `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
 - **Smoke (bash, 27 checks)**: `./scripts/smoke-test.sh` against a fresh production server — health, auth, rate limiting, places, favourites, bookings, 404s.
 
 ### Test Commands
