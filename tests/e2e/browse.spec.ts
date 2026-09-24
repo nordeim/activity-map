@@ -56,11 +56,62 @@ test.describe("browse views", () => {
     });
   }
 
-  test("search narrows the eat grid", async ({ page }) => {
+  test("search narrows the eat grid (inside the unified planner card)", async ({ page }) => {
     await page.goto("/eat");
     await page.getByLabel("Search places").fill("moss");
     await expect(page.locator("article")).toHaveCount(1);
     await expect(page.locator("article").first()).toContainText("Moss & Marble");
+  });
+
+  test("the browse planner is ONE unified card: search + labelled fields + icon buttons (session 8)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/eat");
+    // The live browse planner: a single white card (radius 30) containing
+    // the search input, the labelled date + people fields, and two circular
+    // icon action buttons — no separate search row, no type selector.
+    const card = page.locator(".browse-planner-card");
+    await expect(card).toBeVisible();
+    await expect(card).toHaveCSS("border-radius", "30px");
+    const cardShadow = await card.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(cardShadow).toContain("rgba(14, 14, 14, 0.1)");
+    await expect(card.getByLabel("Search places")).toBeVisible();
+    await expect(card.getByText("Let's Plan Your Trip").first()).toBeVisible();
+    await expect(card.getByText("People", { exact: true }).first()).toBeVisible();
+    // No type-of-activities field on the browse planner (live parity).
+    await expect(card.getByLabel("Type of Activities")).toHaveCount(0);
+    await expect(card.getByLabel("Open category filters")).toBeVisible();
+
+    // Desktop: one sticky white PILL (radius 999, h-68) — search inline.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/eat");
+    const pill = page.locator(".browse-planner-card");
+    await expect(pill).toBeVisible();
+    const pillRadius = await pill.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+    expect(pillRadius).toBeGreaterThan(1000);
+    await expect(pill.getByLabel("Search places")).toBeVisible();
+    await expect(pill.getByText("Let's Plan Your Trip").first()).toBeVisible();
+  });
+
+  test("the browse planner forwards its params back to the category view", async ({ page }) => {
+    await page.goto("/eat");
+    // The date/people fields auto-forward — choosing people re-routes to the
+    // same browse with the params (the grid date-filters server-side).
+    await page.getByLabel("Number of people").selectOption("4");
+    await expect(page).toHaveURL(/\/eat\?people=4$/);
+  });
+
+  test("eat card photos render 300px on mobile, 372px on desktop (session 8)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/eat");
+    const photo = page.locator("article img").first();
+    const h = await photo.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.round(h)).toBe(300);
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/eat");
+    const photoDesktop = page.locator("article img").first();
+    const hD = await photoDesktop.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.round(hD)).toBe(372);
   });
 
   test("filter chips narrow the grid AND compose", async ({ page }) => {
@@ -96,11 +147,30 @@ test.describe("place detail", () => {
     // The live app's request form (session 3): About this place + the
     // Name/Surname/Dates/Time/Phone/Email/Message fields + violet Book Now.
     await expect(page.getByRole("heading", { name: "About this place" })).toBeVisible();
+    // Session-8 re-measure: About this place is a FIXED 34px heading.
+    await expect(page.getByRole("heading", { name: "About this place" })).toHaveCSS("font-size", "34px");
     await expect(page.getByText(/Send your booking request for Courtyard Stay/)).toBeVisible();
     for (const field of ["Name", "Surname", "Dates", "Time", "Phone", "Email", "Message"]) {
       await expect(page.getByLabel(field, { exact: false }).first()).toBeVisible();
     }
     await expect(page.getByRole("button", { name: "Book Now" })).toBeVisible();
+  });
+
+  test("photo overlays: the white rating pill on the photo, no Map button (session 8)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/place/courtyard-stay", { waitUntil: "domcontentloaded" });
+    // The rating rides ON the photo as a white pill (top-right)…
+    const ratingPill = page.locator("[data-photo-rating]");
+    await expect(ratingPill).toBeVisible();
+    await expect(ratingPill).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(ratingPill).toContainText("4.8");
+    // …and the Map link is GONE from the photo (live parity). Scoped to
+    // main: the navbar and footer carry their own Map links.
+    await expect(page.locator("main").getByRole("link", { name: "Map", exact: true })).toHaveCount(0);
+    // The mobile hero photo is 260px tall (desktop keeps 460px).
+    const photo = page.locator("main img").first();
+    const h = await photo.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.round(h)).toBe(260);
   });
 
   test("booking records a request visible on the profile", async ({ page }) => {
@@ -165,16 +235,26 @@ test.describe("map view", () => {
       await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
     }
 
+    // Session-8 re-measure: the pills are 44px tall WITH icons — the ACTIVE
+    // pill is violet-tinted (bg rgb(240,234,255), text rgb(87,26,255));
+    // inactive = white + rgba(14,14,14,0.08) border.
+    const activePill = page.getByRole("button", { name: "All Places", exact: true });
+    await expect(activePill).toHaveCSS("background-color", "rgb(240, 234, 255)");
+    await expect(activePill).toHaveCSS("color", "rgb(87, 26, 255)");
+    await expect(activePill.locator("svg").first()).toBeVisible();
+    const inactivePill = page.getByRole("button", { name: "Sights", exact: true });
+    await expect(inactivePill).toHaveCSS("background-color", "rgb(255, 255, 255)");
+
     // The nine demo pins plot as dot markers (session 3 parity — the
     // browse entities never appear on the live map).
     await expect(page.locator(".roam-marker")).toHaveCount(9);
-    await expect(page.getByText("0 events · 9 places")).toBeVisible();
+    await expect(page.getByText("9 places")).toBeVisible();
     await expect(page.getByText("Places on the map")).toBeVisible();
 
     // The Hotels pill narrows the canvas.
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
     await expect(page.locator(".roam-marker")).toHaveCount(3);
-    await expect(page.getByText("0 events · 3 places")).toBeVisible();
+    await expect(page.getByText("3 places")).toBeVisible();
   });
 });
 
@@ -185,8 +265,14 @@ test.describe("profile", () => {
     // the h1 ("Explorer" is now the badge chip below), email, Augsburg.
     await expect(page.getByText("Profile", { exact: true })).toBeVisible();
     await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toBeVisible();
-    await expect(page.getByText("Your Roam account")).toBeVisible();
-    await expect(page.getByText("Saved places")).toBeVisible();
+    // Session-8 re-measure: the email sits directly under the username (the
+    // "Your Roam account" prefix is gone).
+    await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
+    await expect(page.getByText("Your Roam account")).toHaveCount(0);
+    // Saved places is a DARK button linking to /favourites.
+    const savedBtn = page.getByRole("link", { name: /Saved places/ });
+    await expect(savedBtn).toHaveAttribute("href", "/favourites");
+    await expect(savedBtn).toHaveCSS("background-color", "rgb(14, 14, 14)");
     await expect(page.getByText("My bookings")).toBeVisible();
     // Either the empty-upcoming state or an earlier test's reservation —
     // both prove the section renders. .first(): with zero bookings BOTH the
@@ -196,5 +282,15 @@ test.describe("profile", () => {
       page.getByText("No upcoming reservations. Time to explore.").or(page.getByText("Upcoming (")).first(),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
+  });
+
+  test("profile category filters carry icons; a Back control exists (session 8)", async ({ page }) => {
+    await page.goto("/profile");
+    // The All/Eat/Stay/Do booking filter chips carry icons on the live app.
+    const eatChip = page.getByRole("button", { name: "eat", exact: true });
+    await expect(eatChip.locator("svg").first()).toBeVisible();
+    // A Back control returns to the home page.
+    const back = page.getByRole("link", { name: "Back to home" });
+    await expect(back).toBeVisible();
   });
 });

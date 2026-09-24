@@ -49,7 +49,7 @@ export function StayCard({ place, home = false }: { place: PlaceDTO; home?: bool
           </div>
 
           <div className="absolute bottom-[18px] left-[18px] right-[18px] text-white transition-transform duration-300 ease-out md:bottom-[-30px] md:group-hover:-translate-y-12">
-            <h3 className="text-lg font-medium leading-tight tracking-[-0.03em] text-white">
+            <h3 className="text-[24px] font-medium leading-tight tracking-[-0.03em] text-white md:text-lg">
               {place.name}
             </h3>
             <p className="mt-2 flex justify-between gap-3 text-xs text-white/70">

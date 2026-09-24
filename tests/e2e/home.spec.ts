@@ -82,7 +82,7 @@ test.describe("home content parity (session 2)", () => {
     await expect(desktopViewAll).toHaveCSS("background-color", "rgb(20, 20, 19)");
   });
 
-  test("recommended route renders the five timed stops with Learn More", async ({ page }) => {
+  test("recommended route renders the five timed TEXT stops (session 8)", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Recommended Route" })).toBeVisible();
     await expect(page.getByText(/of your day planned/).first()).toBeVisible();
@@ -93,15 +93,39 @@ test.describe("home content parity (session 2)", () => {
     await expect(page.getByText("9:00 AM")).toBeVisible();
     await expect(page.getByText("Specialty Coffee Bar")).toBeVisible();
 
+    // Session-8 re-measure: the live route cards are TEXT-ONLY — the photos
+    // are gone from the whole section (both breakpoints).
+    const routeSection = page.locator("#recommended-route");
+    await expect(routeSection.locator("img")).toHaveCount(0);
+
+    // The stop titles render DARK serif on cream (rgb(20,20,19)), not the
+    // old white-on-photo treatment.
+    const stopTitle = page.getByRole("heading", { name: "Morning Coffee", exact: true });
+    await expect(stopTitle).toHaveCSS("color", "rgb(20, 20, 19)");
+
+    // The time pill is a WHITE pill (radius 999).
+    const timePill = page.locator("[data-stop-time='9:00 AM']");
+    await expect(timePill).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    const timeRadius = await timePill.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+    expect(timeRadius).toBeGreaterThan(1000);
+
     // Route stop cards link to their place pages.
     await expect(page.getByRole("link", { name: /Learn More/ }).first()).toHaveAttribute(
       "href",
       /\/place\/home-route-/,
     );
 
-    // Session-5 swap: at desktop the right panel pins and swaps ONE card at
-    // a time — scrolling the trap deep moves the active card past Morning
-    // Coffee (its absolute siblings stay opacity-0 until their turn).
+    // The Learn More pill is BLACK full-width (h-11) — the pill is a span
+    // inside the white info-card link, so assert the pill element itself.
+    const learnMore = routeSection.locator("[data-learn-more]").first();
+    await expect(learnMore).toHaveCSS("background-color", "rgb(14, 14, 14)");
+    const learnMoreH = await learnMore.evaluate((el) => el.getBoundingClientRect().height);
+    expect(Math.round(learnMoreH)).toBe(44);
+
+    // Session-8 swap: at desktop the right panel pins EARLY and swaps ONE
+    // card at a time across the long trap — scrolling deep moves the active
+    // card past Morning Coffee (its absolute siblings stay opacity-0 until
+    // their turn).
     await page.setViewportSize({ width: 1280, height: 800 });
     const trap = page.locator("#recommended-route > div");
     await trap.scrollIntoViewIfNeeded();
@@ -132,17 +156,49 @@ test.describe("home content parity (session 2)", () => {
     await expect(watermark).toBeVisible();
   });
 
-  test("highlighted restaurants: the mobile card deck (session-6, 390px)", async ({ page }) => {
+  test("highlighted restaurants: the mobile card deck is SIX cards (session 8)", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const section = page.locator("#highlighted-restaurants");
-    // The deck: browse-style cards stacked sticky over each other.
+    // The deck: browse-style cards stacked sticky over each other — the live
+    // app reduced it from 16 to the first SIX restaurants (session 8).
     const deck = section.locator("article");
-    await expect(deck).toHaveCount(16, { timeout: 15_000 });
+    await expect(deck).toHaveCount(6, { timeout: 15_000 });
     const first = deck.first();
     await expect(first.getByRole("heading", { name: "Volta", exact: true })).toBeVisible();
+    // The sixth deck card is Ember (the live's last deck card).
+    await expect(deck.nth(5).getByRole("heading", { name: "Ember", exact: true })).toBeVisible();
     // No desktop View All on the mobile deck (live parity).
     await expect(section.getByRole("link", { name: /View All/ })).toHaveCount(0);
+  });
+
+  test("choose your vibe heading splits into per-letter reveal spans (session 8)", async ({ page }) => {
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const h2 = page.getByRole("heading", {
+      name: /Choose Your Vibe, Select The Dates & Enjoy Your Ultimate Getaway/,
+    });
+    await expect(h2).toBeVisible();
+    // The live heading renders one span per letter (64 for this string) and
+    // animates their colors cream → ink with scroll position.
+    const letters = h2.locator("span[data-letter]");
+    const count = await letters.count();
+    expect(count).toBeGreaterThanOrEqual(50);
+  });
+
+  test("stay + sight card titles render 24px on mobile, 18px on desktop (session 8)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const stayTitle = page.locator("#stay-showcase article h3").first();
+    await expect(stayTitle).toHaveCSS("font-size", "24px");
+    const sightTitle = page.locator("#highlighted-sights article h3").first();
+    await expect(sightTitle).toHaveCSS("font-size", "24px");
+
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const stayTitleDesktop = page.locator("#stay-showcase article h3").first();
+    await expect(stayTitleDesktop).toHaveCSS("font-size", "18px");
+    const sightTitleDesktop = page.locator("#highlighted-sights article h3").first();
+    await expect(sightTitleDesktop).toHaveCSS("font-size", "18px");
   });
 
   test("choose your vibe: the twelve stay cards with Learn More + Book Now", async ({ page }) => {
@@ -182,10 +238,14 @@ test.describe("home content parity (session 2)", () => {
     await expect(page.getByRole("heading", { name: "Specialty Coffee Bar" })).toBeVisible();
   });
 
-  test("more things to do links to the Do browse; footer carries the legal line", async ({ page }) => {
+  test("more things to do is a DARK pill linking to the Do browse; footer carries the legal line", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const more = page.getByRole("link", { name: /More Things to Do/ });
     await expect(more).toHaveAttribute("href", "/do");
+    // Session-8 re-measure: the live hand-off is a DARK pill (rgb(17,17,17)
+    // bg, white text, radius 999) — no border, no white bg.
+    await expect(more).toHaveCSS("background-color", "rgb(17, 17, 17)");
+    await expect(more).toHaveCSS("color", "rgb(255, 255, 255)");
 
     await expect(page.getByText("© 2026 Roam. Activity Map for Augsburg.")).toBeVisible();
     await expect(page.getByRole("contentinfo").getByRole("link", { name: "Privacy policy" })).toBeVisible();

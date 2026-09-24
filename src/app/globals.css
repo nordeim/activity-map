@@ -88,6 +88,30 @@ body {
   z-index: 0;
 }
 
+/* Session-8 live parity: the map's zoom controls are CIRCULAR white
+   buttons (Leaflet's default squares rounded into the app's pill
+   language), stacked with a hairline seam like the live app. */
+.leaflet-top.leaflet-left .leaflet-control-zoom {
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(14, 14, 14, 0.08);
+}
+
+.leaflet-control-zoom a {
+  width: 36px;
+  height: 36px;
+  line-height: 36px;
+  font-size: 18px;
+  color: #0e0e0e;
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid rgba(14, 14, 14, 0.08);
+}
+
+.leaflet-control-zoom a:last-child {
+  border-bottom: none;
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: 1rem;
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.18);

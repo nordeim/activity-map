@@ -60,20 +60,13 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
                 <span className="tracking-widest">{priceRangeSymbols(place.priceRange)}</span>
               </>
             ) : null}
-            {place.reviewCount > 0 ? (
-              <>
-                <span className="text-black/25">•</span>
-                <span className="flex items-center gap-1">
-                  <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
-                  {place.avgRating.toFixed(1)}
-                </span>
-              </>
-            ) : null}
           </div>
         </header>
 
-        {/* Hero image */}
-        <section className="relative h-[380px] w-full sm:h-[460px]">
+        {/* Hero image — 260px on phones / 460px from sm (session-8
+            re-measure). The overlays: heart top-left + the white RATING
+            pill top-right (the live's photo chrome — no Map button). */}
+        <section className="relative h-[260px] w-full sm:h-[460px]">
           {place.coverImageUrl ? (
             <img
               src={place.coverImageUrl}
@@ -88,21 +81,21 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
 
           <SaveButton placeId={place.id} initialSaved={place.saved ?? false} className="absolute left-5 top-5 sm:left-6 sm:top-6" />
 
-          <div className="absolute right-5 top-5 flex items-center gap-2 sm:right-6 sm:top-6">
-            <Link
-              href={`/map?place=${place.slug}`}
-              className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-semibold text-ink shadow-lg transition hover:bg-cream"
+          {place.reviewCount > 0 ? (
+            <div
+              data-photo-rating
+              className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 sm:right-6 sm:top-6"
             >
-              <MapPin className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
-              Map
-            </Link>
-          </div>
+              <Star className="h-[13px] w-[13px] fill-ink text-ink" aria-hidden />
+              <span className="text-xs font-bold text-ink">{place.avgRating.toFixed(1)}</span>
+            </div>
+          ) : null}
         </section>
 
         {/* Body — About this place + tags, then the booking request form. */}
         <div className="grid grid-cols-1 gap-10 p-6 sm:p-12 lg:grid-cols-5">
           <div className="space-y-6 lg:col-span-3">
-            <h2 className="font-serif text-[clamp(26px,7.2vw,34px)] leading-[1.08] tracking-[-0.03em] text-ink">About this place</h2>
+            <h2 className="font-serif text-[34px] leading-[1.08] tracking-[-0.03em] text-ink">About this place</h2>
             {place.description ? (
               <p className="text-base leading-relaxed text-secondary">{place.description}</p>
             ) : null}

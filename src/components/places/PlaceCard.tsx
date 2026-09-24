@@ -25,7 +25,7 @@ export function PlaceCard({ place }: { place: PlaceDTO }) {
     <article className="group h-full">
       <Link href={`/place/${place.slug}`} className="flex h-full flex-col">
         {/* Image with the overlaid name */}
-        <div className="relative h-[372px] flex-shrink-0 overflow-hidden bg-surface2">
+        <div className="relative h-[300px] flex-shrink-0 overflow-hidden bg-surface2 sm:h-[372px]">
           {place.coverImageUrl ? (
             <img
               src={place.coverImageUrl}

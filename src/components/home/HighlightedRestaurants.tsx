@@ -66,6 +66,11 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
 
   if (restaurants.length === 0) return null;
 
+  // Session-8 re-measure: the live mobile deck carries the FIRST SIX
+  // restaurants (Volta, Roux, Aura, Garbo, Kōan, Ember) — the desktop
+  // carousel still iterates all sixteen.
+  const deck = restaurants.slice(0, 6);
+
   const step = 100 / Math.max(restaurants.length, 1);
   const activeIndex = Math.min(restaurants.length - 1, Math.floor(progress / step));
   const active = restaurants[activeIndex];
@@ -73,7 +78,7 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
   return (
     <section id="highlighted-restaurants" className="bg-electric">
       {/* ---------- Desktop (md+): the scroll-driven carousel ---------- */}
-      <div ref={trapRef} className="relative hidden md:block md:h-[300vh]">
+      <div ref={trapRef} className="relative hidden md:block md:h-[460vh]">
         <div className="md:sticky md:top-0 md:h-screen md:overflow-hidden">
           {/* Heading + white View All pill. */}
           <div className="mx-auto flex max-w-[1000px] items-end justify-between gap-4 px-6 pt-20">
@@ -178,11 +183,11 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
         </h2>
 
         <div className="relative">
-          {restaurants.map((r, i) => (
+          {deck.map((r, i) => (
             <article
               key={r.slug}
               className="relative sticky top-[64px] block overflow-hidden rounded-[28px] bg-white"
-              style={{ zIndex: 10 + i, marginBottom: i === restaurants.length - 1 ? 0 : -290 }}
+              style={{ zIndex: 10 + i, marginBottom: i === deck.length - 1 ? 0 : -290 }}
             >
               <Link href={`/place/${r.slug}`} className="flex h-full flex-col">
                 {/* Photo with gradient, rating pill, overlaid title (the

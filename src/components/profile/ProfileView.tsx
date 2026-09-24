@@ -10,7 +10,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, LogOut, MapPin, Sparkles, Flame, Compass } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  LogOut,
+  MapPin,
+  Sparkles,
+  Flame,
+  Compass,
+  Sun,
+  UtensilsCrossed,
+  BedDouble,
+} from "lucide-react";
 import type { BookingDTO, PlaceCategory } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -52,8 +63,16 @@ export function ProfileView({
   return (
     <main className="bg-grid min-h-[calc(100dvh-84px)] px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
       <div className="mx-auto max-w-[960px]">
-        {/* Sign out — the live app's top-right action. */}
-        <div className="mb-8 flex justify-end">
+        {/* The top row: the icon-only Back control + the Sign-out action
+            (session-8 live parity). */}
+        <div className="mb-8 flex items-center justify-between">
+          <Link
+            href="/"
+            aria-label="Back to home"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream"
+          >
+            <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
+          </Link>
           <button
             type="button"
             onClick={signOut}
@@ -69,14 +88,13 @@ export function ProfileView({
           <h1 className="font-serif text-[clamp(42px,13vw,55px)] leading-[0.98] tracking-[-0.06em] text-ink">
             {user.name}
           </h1>
-          <p className="mt-3 text-sm text-black/50">
-            Your Roam account{user.email ? ` · ${user.email}` : ""}
-          </p>
+          <p className="mt-3 text-sm text-black/50">{user.email}</p>
           <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-black/55">
             <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden /> Augsburg
           </p>
 
-          {/* Stat chips */}
+          {/* Stat chips (session-8: the streak + Explorer badge; Saved
+              places became the dark hand-off button below). */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
             <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 font-medium text-black/55 shadow-float">
               <Flame className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> 0 day streak
@@ -84,10 +102,15 @@ export function ProfileView({
             <span className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 font-semibold text-white">
               <Compass className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Explorer
             </span>
-            <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 font-medium text-black/55 shadow-float">
-              Saved places · {favouriteCount ?? 0}
-            </span>
           </div>
+
+          {/* Saved places — the live's dark button into /favourites. */}
+          <Link
+            href="/favourites"
+            className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-ink px-8 text-sm font-semibold text-white transition hover:bg-black"
+          >
+            Saved places{favouriteCount === null ? "" : ` · ${favouriteCount}`}
+          </Link>
         </section>
 
         {/* Bookings — TRIPS / My bookings with tabs + category filters. */}
@@ -126,20 +149,28 @@ export function ProfileView({
               </button>
             ))}
             <span className="mx-1 hidden h-5 w-px bg-black/10 sm:block" />
-            {(["all", "eat", "stay", "do"] as const).map((value) => (
+            {(
+              [
+                ["all", "All", Sun],
+                ["eat", "eat", UtensilsCrossed],
+                ["stay", "stay", BedDouble],
+                ["do", "do", Compass],
+              ] as const
+            ).map(([value, label, Icon]) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setCat(value)}
                 aria-pressed={cat === value}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-sm font-medium capitalize transition",
+                  "flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium capitalize transition",
                   cat === value
                     ? "border-ink bg-ink text-white"
                     : "border-black/10 text-black/60 hover:border-black/30",
                 )}
               >
-                {value === "all" ? "All" : value}
+                <Icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
+                {label}
               </button>
             ))}
           </div>

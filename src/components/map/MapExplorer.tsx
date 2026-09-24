@@ -13,7 +13,7 @@
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Search, MapPin, Star, X } from "lucide-react";
+import { MapPin, Star, X, Sparkles, SlidersHorizontal, Map as MapIcon, UtensilsCrossed, BedDouble } from "lucide-react";
 import type { PlaceCategory, PlaceDTO } from "@/types";
 import { cn, priceRangeSymbols } from "@/lib/utils";
 
@@ -26,11 +26,11 @@ const LeafletCanvas = dynamic(() => import("./LeafletCanvas").then((m) => m.Leaf
   ),
 });
 
-const FILTERS: { label: string; value: PlaceCategory | "all" }[] = [
-  { label: "All Places", value: "all" },
-  { label: "Restaurants", value: "eat" },
-  { label: "Hotels", value: "stay" },
-  { label: "Sights", value: "do" },
+const FILTERS: { label: string; value: PlaceCategory | "all"; icon: React.ElementType }[] = [
+  { label: "All Places", value: "all", icon: MapIcon },
+  { label: "Restaurants", value: "eat", icon: UtensilsCrossed },
+  { label: "Hotels", value: "stay", icon: BedDouble },
+  { label: "Sights", value: "do", icon: Star },
 ];
 
 export function MapExplorer({
@@ -102,45 +102,61 @@ export function MapExplorer({
         </p>
       </section>
 
-      {/* Search bar */}
+      {/* Search bar — the session-8 live chrome: a CREAM pill (radius 999,
+          h-48) with the violet circular icon cell, plus the round filters
+          button beside it. */}
       <section className="mb-5">
-        <div className="mx-auto flex max-w-xl items-center gap-3 rounded-full border border-black/5 bg-white px-5 py-3.5 shadow-float">
-          <Search className="h-5 w-5 shrink-0 text-black/35" strokeWidth={1.8} aria-hidden />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Try: romantic hotels with a pool"
-            aria-label="Search the map"
-            className="w-full bg-transparent text-sm font-medium text-ink outline-none placeholder:text-black/40"
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              aria-label="Clear search"
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-black/40 hover:bg-black/5 hover:text-ink"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden />
-            </button>
-          ) : null}
+        <div className="mx-auto flex max-w-xl items-center gap-3">
+          <div className="flex h-12 flex-1 items-center gap-2 rounded-full bg-[rgba(248,247,244,0.55)] px-2 shadow-none">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-roam text-white">
+              <Sparkles className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+            </span>
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Try: romantic hotels with a pool"
+              aria-label="Search the map"
+              className="w-full bg-transparent text-sm font-medium text-ink outline-none placeholder:text-black/40"
+            />
+            {query ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="Clear search"
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-black/40 hover:bg-black/5 hover:text-ink"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden />
+              </button>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            aria-label="Open map filters"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream"
+          >
+            <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </button>
         </div>
 
-        {/* Filter pills */}
+        {/* Filter pills — 44px tall WITH icons; the ACTIVE pill is
+            violet-tinted (session-8: bg #F0EAFF, border #D8CAFF, text
+            #571AFF); inactive = white + rgba(14,14,14,0.08) + #555550. */}
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
-          {FILTERS.map(({ label, value }) => (
+          {FILTERS.map(({ label, value, icon: Icon }) => (
             <button
               key={value}
               type="button"
               onClick={() => setFilter(value)}
               aria-pressed={filter === value}
               className={cn(
-                "rounded-full px-5 py-2 text-sm font-medium transition-all",
+                "flex h-11 items-center gap-2 rounded-full px-5 text-sm font-medium transition-all",
                 filter === value
-                  ? "bg-ink text-white shadow-sm"
-                  : "border border-black/10 bg-white text-black/70 hover:border-black/25",
+                  ? "border border-[#D8CAFF] bg-[#F0EAFF] text-[#571AFF]"
+                  : "border border-[rgba(14,14,14,0.08)] bg-white text-[#555550] hover:border-black/25",
               )}
             >
+              <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
               {label}
             </button>
           ))}
@@ -153,24 +169,23 @@ export function MapExplorer({
           <LeafletCanvas places={visible} activeSlug={active} onSelect={(slug) => setActive(slug)} />
         </div>
 
-        {/* Status badge */}
-        <div className="absolute right-4 top-4 z-10 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-ink shadow-lg">
-          0 events · {visible.length} {visible.length === 1 ? "place" : "places"}
+        {/* The live's bottom stats overlay: Augsburg center · N places ·
+            € pricing (session-8 — replaces the old top-right status
+            badge). */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2 text-xs text-muted">
+          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">Augsburg center</span>
+          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">
+            {visible.length} {visible.length === 1 ? "place" : "places"}
+          </span>
+          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">€ pricing</span>
         </div>
       </section>
 
-      {/* Geolocation notice + stats chips (the live app's map footer row). */}
+      {/* Geolocation notice (the live app's permission banner). */}
       <section className="mt-6">
         {geoNotice ? (
           <p className="mb-4 text-center text-sm text-muted">📍 {geoNotice}</p>
         ) : null}
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
-          <span className="rounded-full bg-white px-3 py-2">Augsburg center</span>
-          <span className="rounded-full bg-white px-3 py-2">
-            {visible.length} {visible.length === 1 ? "place" : "places"}
-          </span>
-          <span className="rounded-full bg-white px-3 py-2">€ pricing</span>
-        </div>
       </section>
 
       {/* Selected place card */}

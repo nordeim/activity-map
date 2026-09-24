@@ -33,7 +33,7 @@ ROAM solves one problem: the reference trip-planning app is locked behind a host
 
 ### Next.js 16 Specific
 
-- App Router conventions (`src/app/`); Server Components by default, `"use client"` only for interactivity (the 16 client components: LoginForm, Navbar, Hero, RecommendedRoute, HighlightedRestaurants, CategoryExplorer, PlaceCard, StayCard, SaveButton, BookingForm, TripPlanner, DateRangePicker, MapExplorer, LeafletCanvas, FavouritesView, ProfileView).
+- App Router conventions (`src/app/`); Server Components by default, `"use client"` only for interactivity (the 18 client components: LoginForm, Navbar, Hero, RecommendedRoute, HighlightedRestaurants, LetterReveal, CategoryExplorer, PlaceCard, StayCard, SaveButton, BookingForm, TripPlanner, BrowsePlanner, DateRangePicker, MapExplorer, LeafletCanvas, FavouritesView, ProfileView).
 - Route handlers for the API surface (`src/app/api/**/route.ts`), `export const dynamic = "force-dynamic"` on session-scoped routes.
 - Leaflet mounts through `next/dynamic` with `ssr: false` — `react-leaflet` in a server component crashes the build.
 - Remote images restricted via `next.config.ts` `remotePatterns` (`media.base44.com`, `z-cdn.chatglm.cn`).
@@ -80,7 +80,7 @@ Demo login: `sepnetflix2023@outlook.com` / `$Abcd1234`.
 | `bun run lint` | ESLint (next core-web-vitals + typescript) |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run test` | Vitest unit suite (42 checks) |
-| `bun run test:e2e` | Playwright E2E (45 checks; requires a build) |
+| `bun run test:e2e` | Playwright E2E (52 checks; requires a build) |
 | `bun run db:push` / `db:generate` / `db:seed` | Prisma schema / client / seed |
 
 ### Database (Prisma)
@@ -98,14 +98,14 @@ Schema changes go through `db push`, never `prisma migrate` — `prisma/migratio
 ### Test Pyramid
 
 - **Unit (Vitest, 42 checks)**: pure seams — `tests/db-path.test.ts` (17: SQLite URL resolution contract, quote-stripping, standalone anchors), `tests/filters.test.ts` (15: chip AND-composition, special chips, search haystack), and `tests/planner.test.ts` (10: planner query params, browse-target routing, date-range label formatting).
-- **E2E (Playwright, 45 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (planner submit → category params, sticky planner pill, redesigned cards, detail booking-request round-trip, favourites round-trip, map 9 demo places, profile tabs), `home.spec.ts` (white planner card, desktop floating-pill navbar, violet mobile VIEW ALL, pinned route card-swap, blue restaurants carousel + mobile card deck, square stay/sight cards, footer, home-place detail resolution, browse purity), `browse.spec.ts` footer-on-every-page checks, `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
+- **E2E (Playwright, 52 checks)**: boots the PRODUCTION standalone server on :3100 against its own `db/e2e.db` (schema-pushed + seeded by the global setup). Suites: `auth.spec.ts` (logged-out surface + login flow), `browse.spec.ts` (unified browse planner + auto-forward params, browse cards, detail booking-request round-trip + rating pill/photo overlays, favourites round-trip, map pills/stats, profile chrome), `home.spec.ts` (white planner card, desktop floating-pill navbar, violet mobile VIEW ALL, text route cards + early pin swap, blue restaurants carousel + six-card mobile deck, letter-reveal spans, 24px mobile titles, dark More-Things pill, square stay/sight cards, footer, home-place detail resolution, browse purity), `browse.spec.ts` footer-on-every-page checks, `mobile-navigation.spec.ts` (the five v4 failure classes + tap navigation at 390 / 640 / 1280).
 - **Smoke (bash, 27 checks)**: `./scripts/smoke-test.sh` against a fresh production server — health, auth, rate limiting, places, favourites, bookings, 404s.
 
 ### Test Commands
 
 ```bash
 bun run test        # 42 unit checks
-bun run build && bun run test:e2e   # 45 E2E checks
+bun run build && bun run test:e2e   # 52 E2E checks
 bun run build && ./scripts/smoke-test.sh   # 27 smoke checks
 ```
 
@@ -161,7 +161,7 @@ bun run lint && bun run typecheck
 ### Architecture
 
 - **Auth gate at the layout**: `src/app/(app)/layout.tsx` resolves the session server-side and redirects to `/login`; `/login` and `/api` are the only public surfaces. Every route handler re-checks `getSessionUser()`.
-- **Category pages are server components** that query Prisma (`src/lib/places.ts`) and hydrate `CategoryExplorer` (client) with DTOs; the explorer owns search + chip state in the URL-free local state. The shared `TripPlanner` renders as the Hero's glass pill (home) and the browse sticky white pill (pre-filled from `searchParams`: `people`/`start_date`/`end_date`); its submit routes to the category pages with those params and the grids date-filter accordingly.
+- **Category pages are server components** that query Prisma (`src/lib/places.ts`) and hydrate `CategoryExplorer` (client) with DTOs; the explorer owns search + chip state in the URL-free local state. The browse planner is the unified `BrowsePlanner` (session-8): ONE white card below md / one sticky white pill from md carrying the inline search, the labelled date/people fields that AUTO-FORWARD the params back to the same browse, and two circular icon actions; the home `TripPlanner` renders as the Hero's glass pill and submits to the category pages with those params, and the grids date-filter accordingly.
 - **MapExplorer** (client) receives the 9 `status: "map"` demo places (the live app's map is a hardcoded array, not entity-fed), owns the category pills + search, and mounts `LeafletCanvas` via `next/dynamic({ ssr: false })`.
 
 ### API Design

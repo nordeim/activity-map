@@ -1,21 +1,24 @@
 "use client";
 
-// The Recommended Route — re-measured from the live app (sessions 3 + 6) as
-// a scroll-driven section:
+// The Recommended Route — re-measured from the live app (sessions 3 + 6 + 8):
+// a scroll-driven section.
 //
 //   1. a 140vh "heading trap" (-mb-[110vh]) whose centered
 //      "Recommended Route" heading (clamp 38px→72px, ls −0.045em) stays
 //      pinned while the tall section scrolls past;
-//   2. the route body — below lg: a vertical column of PHOTO stop cards
-//      (rounded-28 white cards: cover photo with the time pill + serif stop
-//      title on a gradient, then the place name, the INLINE meta line
-//      "Altstadt · 4.8 rating · €€ · Coffee", the description, and the
-//      full-width BLACK Learn More pill) threaded on a dashed timeline;
-//      from lg: a 340vh scroll trap — the route VISUAL (solid winding path
-//      with five numbered waypoints + the progress pill "N% of your day
-//      planned") pinned left while ONE stop card at a time fills the right
-//      half, swapping as the scroll progress passes each fifth (the live
-//      app's sticky card swap).
+//   2. the route body — below lg: a vertical column of TEXT stop cards
+//      (session-8 re-measure: the live removed the card photos entirely)
+//      threaded on a dashed timeline — each card = the white time pill
+//      (9:00 AM + clock, radius 999) above the dark serif stop title
+//      (44px, #141413) above a white info card with the place name
+//      (20px/600), the INLINE meta line "Altstadt · 4.8 rating · €€ ·
+//      Coffee" (16px), the description (14px) and the full-width BLACK
+//      Learn More pill (h-11, radius 999);
+//      from lg: a 420vh scroll trap — the route VISUAL (solid winding
+//      path with five numbered waypoints + the progress pill "N% of your
+//      day planned") pinned left while ONE stop card (max-w 576) at a time
+//      fills the right half, pinning EARLY (top of the trap, live parity)
+//      and swapping as the scroll progress passes each fifth.
 //
 // The progress pill fills 20% per passed stop (0% at rest — the live app's
 // initial state; 100% once Dinner passes). Below lg the visual collapses
@@ -100,12 +103,12 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
         </div>
       </section>
 
-      {/* 2 — the route body: mobile = vertical photo-card column threaded
-          on a dashed timeline; lg+ = a 340vh trap with the pinned visual
-          and ONE swapping card. */}
+      {/* 2 — the route body: mobile = vertical text-card column threaded
+          on a dashed timeline; lg+ = a 420vh trap with the pinned visual
+          and ONE swapping card pinned EARLY (top of the trap). */}
       <section id="recommended-route" className="relative bg-cream">
-        <div ref={trapRef} className="relative lg:h-[340vh]">
-          <div className="lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-center">
+        <div ref={trapRef} className="relative lg:h-[420vh]">
+          <div className="lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-start">
             {/* The route visual — pinned (lg+) with the progress pill. */}
             <div className="sticky top-0 hidden h-screen w-[46%] shrink-0 overflow-hidden lg:block">
               <svg
@@ -178,9 +181,9 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
               </div>
             </div>
 
-            {/* The stops column — mobile: flowing photo cards; lg+: the
-                swapping stack (one absolute card visible at a time). */}
-            <div className="relative flex-1 px-4 pb-24 sm:px-6 lg:flex lg:items-center lg:justify-center lg:px-12 lg:pb-0">
+            {/* The stops column — mobile: flowing text cards; lg+: the
+                swapping stack pinned EARLY (top of the trap, live parity). */}
+            <div className="relative flex-1 px-4 pb-24 pt-6 sm:px-6 lg:flex lg:items-start lg:justify-center lg:px-12 lg:pb-0 lg:pt-24">
               {/* Mobile progress chip rides under the (fixed) navbar. */}
               <div className="sticky top-[60px] z-10 -mt-2 mb-4 flex justify-center lg:hidden">
                 <span className="rounded-full bg-white px-4 py-2 text-xs font-medium text-secondary shadow-float">
@@ -194,7 +197,7 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                 className="pointer-events-none absolute bottom-10 left-1/2 top-16 hidden -translate-x-1/2 border-l-2 border-dashed border-black/15 lg:hidden sm:block"
               />
 
-              <div className="relative w-full lg:min-h-[560px] lg:max-w-md">
+              <div className="relative w-full lg:min-h-[560px] lg:max-w-[576px]">
                 {stops.map((place, i) => {
                   const stop = STOPS[i] ?? { time: "", title: place.name };
                   const active = i === activeIndex;
@@ -204,65 +207,51 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                       data-stop-index={i}
                       data-active={active}
                       className={cn(
-                        "mx-auto mt-7 block overflow-hidden rounded-[28px] bg-white shadow-[0_18px_44px_rgba(14,14,14,0.1)] first:mt-0",
-                        // lg+: the swapping stack — one absolute card fills
-                        // the panel; the rest fade out below.
+                        "mx-auto mt-10 block first:mt-0",
+                        // lg+: the swapping stack — one card fills the panel;
+                        // the rest fade out below.
                         "lg:absolute lg:inset-x-0 lg:top-0 lg:mt-0 lg:transition-all lg:duration-500",
                         "lg:data-[active=false]:pointer-events-none lg:data-[active=false]:translate-y-10 lg:data-[active=false]:opacity-0",
                       )}
                     >
-                      {/* The cover photo with the time pill + serif stop title. */}
-                      <div className="relative">
-                        {place.coverImageUrl ? (
-                          <img
-                            src={place.coverImageUrl}
-                            alt=""
-                            loading="lazy"
-                            className="h-44 w-full object-cover sm:h-52"
-                          />
-                        ) : (
-                          <div className="h-44 w-full bg-[#181818] sm:h-52" />
-                        )}
-                        <div
-                          aria-hidden
-                          className="absolute inset-0 bg-gradient-to-t from-black/[0.62] via-black/10 to-black/[0.18]"
-                        />
-                        <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-black/45 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
-                          <Clock className="h-3 w-3" strokeWidth={2} aria-hidden />
-                          {stop.time}
-                        </span>
-                        <div className="absolute bottom-4 left-5 right-5">
-                          <h3 className="font-serif text-[32px] leading-[1.05] tracking-[-0.02em] text-white sm:text-[36px] lg:text-[48px]">
-                            {stop.title}
-                          </h3>
-                        </div>
-                      </div>
+                      {/* The time pill — white, radius 999 (session-8
+                          re-measure: the live's text-only card header). */}
+                      <span
+                        data-stop-time={stop.time}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-[#141413] shadow-[0_6px_16px_rgba(14,14,14,0.08)]"
+                      >
+                        <Clock className="h-3 w-3" strokeWidth={2} aria-hidden />
+                        {stop.time}
+                      </span>
 
-                      {/* The white detail panel. */}
-                      <div className="p-5">
-                        <Link
-                          href={`/place/${place.slug}`}
-                          className="block text-base font-semibold text-ink transition hover:text-roam"
-                        >
+                      {/* The serif stop title — dark on cream (no photo). */}
+                      <h3 className="mt-3 font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
+                        {stop.title}
+                      </h3>
+
+                      {/* The white info card (the live's link card). */}
+                      <Link
+                        href={`/place/${place.slug}`}
+                        className="mt-4 block rounded-[24px] bg-white p-5 shadow-[0_18px_44px_rgba(14,14,14,0.1)] sm:p-6"
+                      >
+                        <span className="block text-[20px] font-semibold leading-tight text-[#141413]">
                           {place.name}
-                        </Link>
-                        <p className="mt-1 text-sm font-medium text-muted">
+                        </span>
+                        <span className="mt-1 block text-[16px] font-normal text-[#0e0e0e]">
                           {stopMetaInline(place)}
-                        </p>
+                        </span>
                         {place.shortDescription && (
-                          <p className="mt-3 text-sm leading-relaxed text-secondary">
+                          <span className="mt-3 block text-sm leading-relaxed text-[#3a3a3a]">
                             {place.shortDescription}
-                          </p>
+                          </span>
                         )}
-                        <div className="mt-4">
-                          <Link
-                            href={`/place/${place.slug}`}
-                            className="flex h-11 w-full items-center justify-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
-                          >
-                            Learn More
-                          </Link>
-                        </div>
-                      </div>
+                        <span
+                          data-learn-more
+                          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
+                        >
+                          Learn More
+                        </span>
+                      </Link>
                     </article>
                   );
                 })}

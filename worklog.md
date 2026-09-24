@@ -144,3 +144,23 @@ Work Log:
 
 Stage Summary:
 - main fully in sync with origin at c176d84; working tree clean; no branches created; no key material on disk.
+
+---
+Task ID: 8
+Agent: Super Z (main agent)
+Task: Session 8 — re-measure the evolved live app, remediate the clone to parity, pass the full gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Workspace refreshed to fa8666e (fast-forward; added the owner's docs/session_7.md narration of the session-6 process). All 6 root docs + session_6/remediation-plan-session-6/worklog/session_7 reviewed; scandihaven patterns confirmed same stack.
+- Baseline validation: lint ✓ typecheck ✓ 42 unit ✓; dev probes healthy; db/ at repo root (42+27+9 places + demo user); .env/.env.example already correct (DATABASE_URL="file:../db/custom.db"); vitest + playwright configs functional (45 checks).
+- Live re-measure (logged in; DOM audits at 1280/768/390 + scroll sweeps + VLM): 13 findings — the route stop cards became TEXT-ONLY (zero img in the section; white time pill + dark serif 44/48px title + white info card + black Learn More; 576px cards pinning early across a ~3750px trap), the mobile restaurant deck reduced 16→6 (desktop carousel still 16 in a 4140px trap), the Choose Your Vibe heading gained a per-letter cream→ink scroll reveal, stay/sight mobile titles 24px, More Things to Do inverted to a dark pill, the browses adopted ONE unified planner container (card below md, sticky pill from md, inline search + labelled fields + icon actions, no type field), the detail rating pill moved onto the hero photo (no Map button; About 34px; photo 260px mob), eat/do photos 300px mob, profile chrome (back control, email-only line, dark Saved-places button, icon chips), and the map chrome (cream search pill + violet icon cell, 44px violet-tinted pills with icons, circular zoom, bottom stats). Wrote docs/remediation-plan-session-8.md and validated it before executing.
+- TDD execution (specs updated first, then implementations): RecommendedRoute text cards + early pin + 420vh trap; HighlightedRestaurants 6-card mobile deck + 460vh desktop trap; new LetterReveal client component (64 spans, scroll-mapped fill, SSR/reduced-motion solid ink); StayCard/HighlightedSights 24px mobile titles; dark More-Things pill; new BrowsePlanner (unified browse planner with auto-forward params, replacing the search row + TripPlanner on browses); place-detail rating pill + 34px About + 260px photo; PlaceCard 300px mobile photos; ProfileView back/email/saved/icons; MapExplorer chrome + circular Leaflet zoom via globals.css; showcase containers tightened to ~1144px.
+- En-route fixes: the Learn More pill spec initially asserted the card LINK (white) — re-pinned to the pill element ([data-learn-more]); LetterReveal's setState moved into the rAF callback (react-hooks/set-state-in-effect).
+- Full gate on the exact push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 52/52 E2E ✓ (45 prior + 7 new session-8 checks). The Turbopack db-path tracing warning is the known pre-existing one.
+- 14 screenshots refreshed (capture-screens-v3 + crop-sections-v3, default browser session logged in + favourite saved for 07; the first pass used the unauthenticated session and was re-run); variance-validated; VLM spot-checks clean.
+- Docs aligned: README (features/design/status), AGENTS (gate counts 42/52/27 + session-8 facts + 18 client components), CLAUDE (same), PAD (v1.4 revision), activity-map_SKILL (project_state), docs/session_8.md, this worklog. .env.example verified matching the codebase.
+
+Stage Summary:
+- Deliverables: session-8 evolution parity remediation (text route cards, 6-card deck, letter reveal, unified browse planner, detail/profile/map chrome), 52-check E2E suite, remediation plan, 14 screenshots, 7 aligned docs.
+- Key decisions: the date/people browse fields AUTO-FORWARD (no explicit submit, matching the natural live behavior); the desktop carousel keeps the DOM-transform deviation; numbered route waypoints kept (minor enhancement over the live's plain circles).
+- Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
