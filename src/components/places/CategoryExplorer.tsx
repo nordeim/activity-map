@@ -42,13 +42,15 @@ export function CategoryExplorer({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12 md:pt-16">
-      {/* Headline */}
-      <section className="mx-auto mb-8 max-w-3xl text-center">
-        <h1 className="mb-4 font-serif text-[clamp(42px,13vw,55px)] leading-[0.95] tracking-[-0.06em] text-ink">
+    <main className="mx-auto max-w-7xl px-5 pb-20 pt-16 md:px-8 md:pt-24">
+      {/* Headline — session-14 re-measure: the live's section runs
+          px-5/pt-16 → md:px-8/md:pt-24 (h1 y≈168) and the heading block
+          spans the full max-w-7xl width; the subtitle is 14px #3A3A3A. */}
+      <section className="mx-auto mb-8 max-w-7xl text-center">
+        <h1 className="mb-5 font-serif text-[clamp(42px,13vw,55px)] leading-[0.95] tracking-[-0.06em] text-ink">
           {meta.title}
         </h1>
-        <p className="text-sm font-light text-black/60 sm:text-base">{meta.subtitle}</p>
+        <p className="text-sm text-[#3A3A3A]">{meta.subtitle}</p>
       </section>
 
       {/* The unified browse planner (session 8): search + labelled date /

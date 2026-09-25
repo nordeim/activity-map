@@ -11,8 +11,11 @@ import type { PlaceDTO } from "@/types";
 // (the shared StayCard design: aspect 1/1, rounded 24, dark bg, white Inter
 // 18px dsk / 24px mob title overlaid at the photo bottom, address +
 // "€€€ · ★ rating" meta, ghost Learn More + white Book Now pills, heart
-// overlay) in a full-bleed 3-column grid from md (the live's 1178px inner
-// grid, wrapper pt-112/pb-144) — one column on phones.
+// overlay). Session-14: the grid fills COLUMN-MAJOR from md (grid-rows-4 +
+// grid-flow-col — the live's 3 columns × 4 stacked cards; visual row 1 reads
+// Courtyard | Maison | Velvet) over the BARE 1178px grid (no container side
+// padding) at an 18px gap → 381px cards; one column on phones (row flow —
+// DOM order == visual order below md).
 
 export function StayShowcase({ stays }: { stays: PlaceDTO[] }) {
   if (stays.length === 0) return null;
@@ -30,8 +33,11 @@ export function StayShowcase({ stays }: { stays: PlaceDTO[] }) {
         </p>
       </div>
 
-      <div className="mx-auto w-full max-w-[1178px] px-4 pb-[144px] sm:px-6">
-        <ul className="grid grid-cols-1 gap-5 md:grid-cols-3">
+      {/* Session-14: the 1178px grid carries NO horizontal padding (the
+          live's grid box IS 1178 — 381px cards at an 18px gap) and fills
+          column-major from md (grid-rows-4 + grid-flow-col). */}
+      <div className="mx-auto w-full max-w-[1178px] pb-[144px]">
+        <ul className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:grid-rows-4 md:[grid-auto-flow:column]">
           {stays.map((stay) => (
             <li key={stay.slug}>
               <StayCard place={stay} home />

@@ -7,9 +7,9 @@ description: >
   debugging procedure, and lesson learned from three build/remediation
   sessions so a future agent can extend, debug, or replicate the app without
   re-discovering them.
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-09-25
-project_state: "42 unit + 27 smoke + 54 E2E green; 42 published + 27 home-only + 9 map-demo places; session-12 evolution parity (the live's shuffled home stay-showcase order, the two-glass-card profile with the 72px NAME h1, the full-width 1138px map search + 41px pills + 620px canvas, the full-width left-aligned vibe heading with the 1178px grid, the favourites 18px grid texture restored, the white login body via inline style, 38px/12px browse chips, compacted 248px category cards, seed user 'Explorer' + email-derived avatar initial)"
+project_state: "42 unit + 27 smoke + 54 E2E green; 42 published + 27 home-only + 9 map-demo places; session-14 deployed-mirror parity on top of session-12 (the deployed mirror audited via browser E2E and diffed against the live: the profile identity renders the USERNAME h1 + EMAIL line with seed user 'sepnetflix2023'; the vibe stay grid fills COLUMN-major over the bare 1178px grid at 381px/18px; the map list cards are TEXT-ONLY radius-24; the browse/map headings run px-5/pt-16 to md:px-8/md:pt-24 with the max-w-7xl block + 14px #3A3A3A subtitle; the booking form leads with the 18px Book Now h2 + single-column 44px fields in a hairline rounded-28 card with the 56/44 detail split; the favourites overlay is scoped to the heading section with the h1 at y~244; the hero content px-6; the sights grid 1120px; observed live-site bug: the hosted app's SavedPlace POST 403s)"
 ---
 
 # activity-map — ROAM (Augsburg City Guide) Engineering SKILL

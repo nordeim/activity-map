@@ -3,14 +3,15 @@
 // The Profile canvas — session-12 re-measure: the live redesigned the page
 // into TWO glass cards (896px container): the identity card (rounded-36,
 // bg-white/78, border-white/70) with the Profile eyebrow (12px/600 #72706C),
-// the account NAME as the h1 (72px serif — the live account shows
-// "Explorer"), "Your Roam account" (16px #555550), the cream outlined chips
-// (Augsburg / 0 day streak / Explorer), and the dark heart Saved-places
-// button; then the bookings card (rounded-32, mt-8) with the Trips eyebrow,
-// the "My bookings" h2 at 36px, FULL-WIDTH Upcoming/Past tabs (44px/12px),
-// the All/Eat/Stay/Do filters (38px/12px), and the white rounded-26 empty
-// state (48px icon circle + 14px #72706C line). The page background is
-// plain cream — no grid.
+// the account identity as the h1 (72px serif — session-14 re-measure: the
+// live now shows the USERNAME "sepnetflix2023"), the EMAIL as the 16px
+// #555550 line below it ("Your Roam account" was removed upstream), the
+// cream outlined chips (Augsburg / 0 day streak / Explorer), and the dark
+// heart Saved-places button; then the bookings card (rounded-32, mt-8) with
+// the Trips eyebrow, the "My bookings" h2 at 36px, FULL-WIDTH Upcoming/Past
+// tabs (44px/12px), the All/Eat/Stay/Do filters (38px/12px), and the white
+// rounded-26 empty state (48px icon circle + 14px #72706C line). The page
+// background is plain cream — no grid.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -93,12 +94,14 @@ export function ProfileView({
             bg-white/78, border-white/70). */}
         <section className="overflow-hidden rounded-[36px] border border-white/70 bg-white/78 p-5 shadow-[0_8px_24px_rgba(14,14,14,0.08)] sm:p-8">
           <p className={cn(EYEBROW, "mb-3")}>Profile</p>
-          {/* Session-12: the h1 is the account NAME (72px), not the
-              username — the email is no longer rendered on the page. */}
+          {/* Session-14: the h1 carries the account identity (the seeded
+              username), with the EMAIL rendered below it. */}
           <h1 className="font-serif text-[clamp(42px,9vw,72px)] leading-[0.98] tracking-[-0.06em] text-ink">
             {user.name}
           </h1>
-          <p className="mt-2 text-base text-[#555550]">Your Roam account</p>
+          {/* Session-14: the live shows the account EMAIL on this line
+              ("Your Roam account" is gone from the reference). */}
+          <p className="mt-2 text-base text-[#555550]">{user.email}</p>
 
           {/* The live's stat chips — cream outlined 34px pills (session-12:
               the Explorer badge lost its dark fill; all three match). */}

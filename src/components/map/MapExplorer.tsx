@@ -91,13 +91,15 @@ export function MapExplorer({
   const activePlace = active && activeVisible ? places.find((p) => p.slug === active) ?? null : null;
 
   return (
-    <main className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 sm:pt-12 md:pt-16">
-      {/* Headline */}
-      <section className="mx-auto mb-8 max-w-2xl text-center">
-        <h1 className="mb-4 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
+    <main className="mx-auto max-w-7xl px-5 pb-16 pt-16 md:px-8 md:pt-24">
+      {/* Headline — session-14 re-measure: the live's map heading matches
+          the browse pattern (full-width max-w-7xl block, h1 y≈168 via
+          md:pt-24, subtitle 14px #3A3A3A). */}
+      <section className="mx-auto mb-8 max-w-7xl text-center">
+        <h1 className="mb-5 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
           Map
         </h1>
-        <p className="text-sm font-light text-black/60 sm:text-base">
+        <p className="text-sm text-[#3A3A3A]">
           Augsburg restaurants, hotels and experiences plotted across the old town.
         </p>
       </section>
@@ -227,8 +229,12 @@ export function MapExplorer({
         <p className="mt-6 text-center text-sm text-black/40">Tap a dot to preview a place.</p>
       )}
 
-      {/* Places on the map — the live app's bottom section. */}
-      <section className="mt-10">
+      {/* Places on the map — the live app's bottom section. Session-14
+          re-measure: the list cards are TEXT-ONLY (no photos) — 24px-radius
+          white cards with the black/8 hairline, the category eyebrow
+          (12px/600 #555550), the 15px/600 ink title, and the 13px #72706C
+          price line. */}
+      <section id="places-list" className="mt-10">
         <div className="mb-3 flex items-end justify-between">
           <div>
             <h2 className="font-serif text-4xl tracking-[-0.05em] text-ink">Places on the map</h2>
@@ -240,26 +246,15 @@ export function MapExplorer({
             <Link
               key={place.id}
               href={`/place/${place.slug}`}
-              className="group flex items-center gap-4 rounded-[20px] border border-black/5 bg-white p-4 shadow-[0_8px_22px_rgba(0,0,0,0.06)] transition-transform duration-300 hover:-translate-y-0.5"
+              className="group rounded-[24px] border border-[rgba(14,14,14,0.08)] bg-white p-4 transition-colors duration-300 hover:border-black/20"
             >
-              {place.coverImageUrl ? (
-                <img
-                  src={place.coverImageUrl}
-                  alt={place.name}
-                  loading="lazy"
-                  className="h-14 w-14 shrink-0 rounded-2xl object-cover"
-                />
-              ) : null}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink">{place.name}</p>
-                <p className="mt-0.5 truncate text-xs text-muted">
-                  {place.subCategory ?? place.category} · {place.neighborhood ?? "Augsburg"}
-                </p>
-              </div>
-              <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-ink">
-                <Star className="h-3 w-3 fill-ink text-ink" aria-hidden />
-                {place.avgRating.toFixed(1)}
-              </span>
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#555550]">
+                {place.category === "eat" ? "Restaurant" : place.category === "stay" ? "Hotel" : "Sight"}
+              </p>
+              <p className="mt-1 text-[15px] font-semibold leading-snug text-ink">{place.name}</p>
+              <p className="mt-1 text-[13px] text-[#72706C]">
+                {priceRangeSymbols(place.priceRange ?? 2)}
+              </p>
             </Link>
           ))}
         </div>

@@ -33,8 +33,10 @@ export function Hero() {
 
         {/* Wordmark + the planner card. The text container spans the full
             bleed (the live h1 measures ~1232px at 1280 — a max-w-3xl box
-            would clip the nowrap wordmark). */}
-        <div className="relative z-10 flex h-full flex-col px-4 pb-16 pt-[203px] md:pt-[290px] md:pb-24">
+            would clip the nowrap wordmark). Session-14 re-measure: the
+            live's content container carries px-6 (24px) at every
+            breakpoint — the h1 starts at x=24 on phones AND desktop. */}
+        <div className="relative z-10 flex h-full flex-col px-6 pb-16 pt-[203px] md:pt-[290px] md:pb-24">
           <div className="mx-auto w-full text-center">
             <h1
               className="font-serif whitespace-nowrap text-white"

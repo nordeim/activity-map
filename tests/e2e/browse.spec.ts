@@ -61,6 +61,19 @@ test.describe("browse views", () => {
       const chipBtn = page.getByRole("button", { name: chip, exact: true });
       await expect(chipBtn).toHaveCSS("height", "38px");
       await expect(chipBtn).toHaveCSS("font-size", "12px");
+
+      // Session-14 re-measure: the heading block matches the live — the h1
+      // sits at viewport y≈168 (section pt-24 at md, was y=137 with pt-16)
+      // inside the full-width max-w-7xl block, and the subtitle renders
+      // 14px #3A3A3A (was 16px black/60).
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto(path);
+      const h1Box = await page.getByRole("heading", { name: title }).boundingBox();
+      expect(h1Box!.y).toBeGreaterThanOrEqual(160);
+      expect(h1Box!.y).toBeLessThanOrEqual(176);
+      const sub = page.locator("main > section").first().locator("p").first();
+      await expect(sub).toHaveCSS("font-size", "14px");
+      await expect(sub).toHaveCSS("color", "rgb(58, 58, 58)");
     });
   }
 
@@ -157,11 +170,31 @@ test.describe("place detail", () => {
     await expect(page.getByRole("heading", { name: "About this place" })).toBeVisible();
     // Session-8 re-measure: About this place is a FIXED 34px heading.
     await expect(page.getByRole("heading", { name: "About this place" })).toHaveCSS("font-size", "34px");
-    await expect(page.getByText(/Send your booking request for Courtyard Stay/)).toBeVisible();
+    // Session-14 re-measure: the form card leads with the 18px "Book Now"
+    // heading, the request line is its 14px #888580 subtitle (the live
+    // demoted the old 18px request-heading), the card is a plain white
+    // rounded-28 with the black/8 hairline and NO shadow, and the fields
+    // render SINGLE-COLUMN full-width (was a 2-column 158px grid).
+    const formCard = page.locator("#book-now");
+    const bookHeading = formCard.getByRole("heading", { name: "Book Now" });
+    await expect(bookHeading).toBeVisible();
+    await expect(bookHeading).toHaveCSS("font-size", "18px");
+    const requestLine = page.getByText(/Send your booking request for Courtyard Stay/);
+    await expect(requestLine).toBeVisible();
+    await expect(requestLine).toHaveCSS("font-size", "14px");
+    await expect(requestLine).toHaveCSS("color", "rgb(136, 133, 128)");
     for (const field of ["Name", "Surname", "Dates", "Time", "Phone", "Email", "Message"]) {
       await expect(page.getByLabel(field, { exact: false }).first()).toBeVisible();
     }
     await expect(page.getByRole("button", { name: "Book Now" })).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(formCard).toHaveCSS("border-radius", "28px");
+    await expect(formCard).toHaveCSS("border-top-color", "rgba(14, 14, 14, 0.08)");
+    const formShadow = await formCard.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(formShadow).toBe("none");
+    const nameX = await page.getByLabel("Name", { exact: true }).boundingBox();
+    const surnameX = await page.getByLabel("Surname", { exact: true }).boundingBox();
+    expect(Math.abs(nameX!.x - surnameX!.x)).toBeLessThanOrEqual(2);
   });
 
   test("photo overlays: the white rating pill on the photo, no Map button (session 8)", async ({ page }) => {
@@ -201,6 +234,12 @@ test.describe("place detail", () => {
     expect(cardBox).not.toBeNull();
     expect(cardBox!.width).toBeGreaterThan(1100);
     expect(cardBox!.width).toBeLessThan(1180);
+    // Session-14 re-measure: the live's h1 tops at y≈225 (section pt-6 at
+    // md + the card's p-10 inner padding — the clone ran 36px lower with
+    // pt-10/pt-14).
+    const detailH1Box = await page.getByRole("heading", { name: "Courtyard Stay", exact: true }).boundingBox();
+    expect(detailH1Box!.y).toBeGreaterThanOrEqual(215);
+    expect(detailH1Box!.y).toBeLessThanOrEqual(235);
     // The desktop hero photo is 460px at lg (and 420px at md).
     const photo = page.locator("main img").first();
     const photoH = await photo.evaluate((el) => Math.round(el.getBoundingClientRect().height));
@@ -274,6 +313,15 @@ test.describe("favourites round-trip", () => {
       return bg !== "none" && bg.includes("linear-gradient");
     });
     expect(hasGrid, "the favourites page should carry the 18px grid overlay").toBe(true);
+    // Session-14 re-measure: the overlay is scoped INSIDE the heading
+    // section (h≈299 on the live — the texture covers the heading block
+    // only, not the whole page), and the h1 sits at viewport y≈244 (the
+    // live's pt-24 + the 56px heart icon above it).
+    const overlayBox = await page.locator("main div[class*=opacity-40]").first().boundingBox();
+    expect(overlayBox!.height).toBeLessThan(400);
+    const favH1Box = await favH1.boundingBox();
+    expect(favH1Box!.y).toBeGreaterThanOrEqual(230);
+    expect(favH1Box!.y).toBeLessThanOrEqual(258);
     // Session-12: the subtitle renders 14px #3A3A3A (was 16px black/60).
     const sub = page.getByText("All saved restaurants, hotels, and places in one calm collection.");
     await expect(sub).toHaveCSS("font-size", "14px");
@@ -330,6 +378,16 @@ test.describe("map view", () => {
     await expect(page.getByText("9 places")).toBeVisible();
     await expect(page.getByText("Places on the map")).toBeVisible();
 
+    // Session-14 re-measure: the live's list cards are TEXT-ONLY — no
+    // photos — 24px-radius white cards with the category eyebrow, 15px/600
+    // titles, and the €-price meta (the clone rendered 90px image rows).
+    const listSection = page.locator("#places-list");
+    await expect(listSection).toBeVisible();
+    await expect(listSection.locator("img")).toHaveCount(0);
+    const listCard = listSection.locator("a").first();
+    await expect(listCard).toHaveCSS("border-radius", "24px");
+    await expect(listCard).toContainText("Ember Garden");
+
     // The Hotels pill narrows the canvas.
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
     await expect(page.locator(".roam-marker")).toHaveCount(3);
@@ -340,15 +398,15 @@ test.describe("map view", () => {
 test.describe("profile", () => {
   test("renders the profile identity, booking tabs and the empty state", async ({ page }) => {
     await page.goto("/profile");
-    // Session-12 re-measure: the live redesigned the profile into TWO glass
-    // cards (896px). The H1 is the account NAME ("Explorer", 72px) — not
-    // the username — with "Your Roam account" 16px #555550 below it (the
-    // email is no longer shown).
+    // Session-14 re-measure: the live identity now renders the USERNAME
+    // ("sepnetflix2023") as the 72px h1 with the EMAIL as the 16px #555550
+    // line below it — "Your Roam account" is gone (the two-glass-card
+    // layout itself is unchanged from session 12).
     await expect(page.getByText("Profile", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Explorer" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Explorer" })).toHaveCSS("font-size", "72px");
-    await expect(page.getByText("Your Roam account")).toBeVisible();
-    await expect(page.getByText("sepnetflix2023@outlook.com")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toHaveCSS("font-size", "72px");
+    await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
+    await expect(page.getByText("Your Roam account")).toHaveCount(0);
 
     // The identity card: rounded-[36px] white/78 glass with the stat chips
     // (Augsburg, 0 day streak, Explorer badge) and the dark Saved-places

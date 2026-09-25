@@ -28,7 +28,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       : place.tags;
 
   return (
-    <main className="w-full px-5 pb-20 pt-6 md:px-8 md:pt-10">
+    <main className="w-full px-5 pb-20 pt-4 md:px-8 md:pt-6">
       <div className="relative mx-auto max-w-6xl">
         {/* Back — the live's white shadow pill (no border). */}
         <div className="mb-6">
@@ -42,8 +42,10 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
         </div>
 
         <article className="overflow-hidden rounded-[36px] bg-white shadow-[0_24px_70px_rgba(14,14,14,0.12)]">
-        {/* Header — the live app's measured stack: eyebrow, 82px h1, meta row. */}
-        <header className="px-6 pb-8 pt-10 sm:px-12 sm:pb-10 sm:pt-14">
+        {/* Header — the live app's measured stack: eyebrow, 82px h1, meta
+            row. Session-14 re-measure: the card's inner padding is p-6 →
+            md:p-10 (the live's h1 tops at y≈225, x≈105 at 1280). */}
+        <header className="px-6 pb-8 pt-6 md:px-10 md:pb-10 md:pt-10">
           <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
             {meta.eyebrow}
           </p>
@@ -94,9 +96,11 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           ) : null}
         </section>
 
-        {/* Body — About this place + tags, then the booking request form. */}
-        <div className="grid grid-cols-1 gap-10 p-6 sm:p-12 lg:grid-cols-5">
-          <div className="space-y-6 lg:col-span-3">
+        {/* Body — About this place + tags, then the booking request form.
+            Session-14 re-measure: p-6 → md:p-10 and the live's ≈56/44
+            column split (content ≈577px / form card ≈451px at 1280). */}
+        <div className="grid grid-cols-1 gap-10 p-6 md:p-10 lg:grid-cols-[7fr_5.5fr]">
+          <div className="space-y-6">
             <h2 className="font-serif text-[34px] leading-[1.08] tracking-[-0.03em] text-ink">About this place</h2>
             {place.description ? (
               <p className="text-base leading-relaxed text-secondary">{place.description}</p>
@@ -117,7 +121,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </div>
 
           {/* The booking request form (the live app's Book Now card). */}
-          <aside className="lg:col-span-2">
+          <aside className="lg:col-span-1">
             <BookingForm
               place={{
                 id: place.id,

@@ -13,7 +13,7 @@ test.use({ storageState: { cookies: [], origins: [] } });
 test.describe("login route", () => {
   test("renders the live-parity auth card (session-10 shadcn chrome)", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto("/login");
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Welcome to Activity Map" })).toBeVisible();
     await expect(page.getByText("Sign in to continue")).toBeVisible();
 
@@ -69,7 +69,7 @@ test.describe("login route", () => {
   });
 
   test("wrong password is rejected without a session", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
     await page.getByLabel("Email").fill(DEMO_EMAIL);
     await page.getByLabel("Password").fill("definitely-wrong");
     await page.getByRole("button", { name: "Sign in" }).click();
@@ -81,7 +81,7 @@ test.describe("login route", () => {
   });
 
   test("valid credentials sign in and land on the guide", async ({ page }) => {
-    await page.goto("/login");
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
     await page.getByLabel("Email").fill(DEMO_EMAIL);
     await page.getByLabel("Password").fill(DEMO_PASSWORD);
     await page.getByRole("button", { name: "Sign in" }).click();
@@ -97,7 +97,7 @@ test.describe("login route", () => {
       data: { email: DEMO_EMAIL, password: DEMO_PASSWORD },
     });
     expect(res.ok()).toBeTruthy();
-    await page.goto("/login");
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/$/);
   });
 });

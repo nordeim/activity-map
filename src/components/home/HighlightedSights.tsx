@@ -25,7 +25,10 @@ export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
         </p>
       </div>
 
-      <div className="mx-auto w-full max-w-[1144px] px-4 sm:px-6">
+      {/* Session-14 re-measure: the live's sights grid is the BARE 1120px
+          box (x≈80 at 1280, 360px cards at a 20px gap — no container side
+          padding). */}
+      <div className="mx-auto w-full max-w-[1120px]">
         <ul className="relative mx-auto mt-16 grid grid-cols-1 gap-5 md:grid-cols-3">
         {sights.map((sight) => (
           <li key={sight.slug}>

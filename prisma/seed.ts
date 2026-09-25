@@ -102,12 +102,16 @@ async function main() {
   await db.user.deleteMany();
 
   // Demo user — mirrors the reference app's login. Session-12 re-measure:
-  // the live account's display NAME is "Explorer" (rendered as the profile
-  // h1); the avatar initial still derives from the EMAIL ("S").
+  // the live account's identity renders the USERNAME ("sepnetflix2023") as
+  // the profile h1 with the EMAIL as the subtitle line; the avatar initial
+  // still derives from the EMAIL ("S").
   const demo = await db.user.create({
     data: {
       email: "sepnetflix2023@outlook.com",
-      name: "Explorer",
+      // Session-14: the live account's identity now renders the USERNAME
+      // as the profile h1 — seeded to match ("Explorer" was the session-12
+      // live value; the account has since changed).
+      name: "sepnetflix2023",
       passwordHash: hashPassword("$Abcd1234"),
       avatarColor: "#111111",
     },

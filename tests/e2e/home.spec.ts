@@ -52,12 +52,18 @@ test.describe("home content parity (session 2)", () => {
       return {
         imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
         h1Y: Math.round(h1?.getBoundingClientRect().y ?? 0),
+        h1X: Math.round(h1?.getBoundingClientRect().x ?? 0),
       };
     });
     expect(mobileGeom.imgH).toBeGreaterThanOrEqual(570);
     expect(mobileGeom.imgH).toBeLessThanOrEqual(610);
     expect(mobileGeom.h1Y).toBeGreaterThanOrEqual(180);
     expect(mobileGeom.h1Y).toBeLessThanOrEqual(225);
+    // Session-14 re-measure: the live hero content container carries px-6
+    // (24px) at every breakpoint — the h1 starts at x=24 (was 16 with
+    // px-4).
+    expect(mobileGeom.h1X).toBeGreaterThanOrEqual(20);
+    expect(mobileGeom.h1X).toBeLessThanOrEqual(28);
 
     // Desktop (1280×800): the photo is ~938px (the live's hero section) with
     // the h1 at viewport y≈290 (the content rides higher over the taller
@@ -321,6 +327,26 @@ test.describe("home content parity (session 2)", () => {
     const titles = await showcase.locator("a h3").allTextContents();
     const order = ["Courtyard Stay", "Terra Boutique", "Brass & Marble", "Canal Hideaway", "Maison Altstadt", "Garden Suite", "River House", "Rooftop Atelier", "Velvet Residence", "Cloud Nine Hotel", "The Linen House", "Arcade Rooms"];
     expect(titles.map((t) => t.trim())).toEqual(order);
+
+    // Session-14 re-measure: the live grid fills COLUMN-MAJOR (3 columns ×
+    // 4 stacked cards) — the VISUAL first row reads Courtyard | Maison |
+    // Velvet across (the DOM order is unchanged; only the flow changes) —
+    // with 381px cards at an 18px gap over the bare 1178px grid (no
+    // container side padding).
+    const visual = await showcase.locator("a").evaluateAll((els) => {
+      const cards = els
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          const h = el.querySelector("h3");
+          return h ? { t: h.textContent.trim(), x: r.x, y: r.y, w: r.width } : null;
+        })
+        .filter((c): c is { t: string; x: number; y: number; w: number } => c !== null)
+        .sort((a, b) => a.y - b.y || a.x - b.x);
+      return { row1: cards.slice(0, 3).map((c) => c.t), cardW: Math.round(cards[0].w) };
+    });
+    expect(visual.row1).toEqual(["Courtyard Stay", "Maison Altstadt", "Velvet Residence"]);
+    expect(visual.cardW).toBeGreaterThanOrEqual(375);
+    expect(visual.cardW).toBeLessThanOrEqual(385);
   });
 
   test("highlighted sights: six cards linking to home-sight place pages", async ({ page }) => {
@@ -336,6 +362,18 @@ test.describe("home content parity (session 2)", () => {
       "href",
       /\/place\/home-sight-/,
     );
+
+    // Session-14 re-measure: the live sights grid is 1120px wide (x≈80)
+    // with 360px cards (the clone ran a 1144+px-6 container → 352px).
+    const sightsGeom = await section.locator("ul").first().evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const card = el.querySelector("li");
+      return { x: Math.round(r.x), cardW: card ? Math.round(card.getBoundingClientRect().width) : 0 };
+    });
+    expect(sightsGeom.x).toBeGreaterThanOrEqual(76);
+    expect(sightsGeom.x).toBeLessThanOrEqual(84);
+    expect(sightsGeom.cardW).toBeGreaterThanOrEqual(355);
+    expect(sightsGeom.cardW).toBeLessThanOrEqual(365);
   });
 
   test("route/sight home places resolve on their detail pages", async ({ page }) => {
