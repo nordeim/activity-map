@@ -312,3 +312,20 @@ Stage Summary:
 - Deliverables: the session-16 parity remediation (the chrome-less profile page in the (bare) group with the full-page grid overlay + live geometry + identity/icons, the four-row map list cards with sub-category eyebrows in the live's interleaved order, the 358px mobile planner, the re-measured category cards with the hanging View All), the E2E suite extended in place (56 total), the remediation plan + session log, 14 refreshed screenshots, 8 aligned docs.
 - Key decisions: the profile's chrome-less contract is implemented as a second auth-gated route group (never weakening the (app) gate); the hanging View All stays a DOM child of the glass card (absolute positioning) so the specs' ancestor locators keep working; the mobile category internals stay at the session-10 measurements (the live only grew the desktop rows); the smoke test's dev-DB booking is documented rather than "fixed" (pre-existing, isolated).
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 16 (push verification)
+Agent: Super Z (main agent)
+Task: Session 16 finalization — commit + push status.
+
+Work Log:
+- Commit 7907027 on main (25 files, +685/−175): the session-16 parity remediation (the chrome-less profile in the (bare) route group with the full-page fixed grid overlay + live geometry + centered-mobile identity + sun/heart chip icons + the Go back/Sign out white/80 pills + the bookings total count; the four-row map list cards with the neighborhood line + sub-category eyebrows + the live's interleaved map.json order; the 358px mobile planner at x=16 with the 4px gap; the re-measured category cards — desktop 46px rows + 34×35 cells + the hanging 229×54 View All, mobile radius 24), the E2E contracts extended in place (56 total: +2 profile-chrome checks, +1 profile identity/alignment check, −1 footer-on-profile check), the remediation plan + session log, 6 refreshed screenshots (01/05/08/09/11/14 — the other 8 surfaces render byte-identical), and the 8 aligned docs (README/AGENTS/CLAUDE/PAD v1.8/SKILL v1.6.0/session_16/worklog/.env.example+DEBUG_DBPATH).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 56/56 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed (venv at /home/z/my-project/.venv-push), the Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10/12/14 records).
+- Dry-run: fast-forward e2742df..7907027 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp/op.key --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 7907027 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 7907027; working tree clean; no branches created; no key material on disk.
+- Open item for the owner: the deployed mirror runs the session-14 code — a redeploy from main @ 7907027 will pick up the session-16 surfaces (the chrome-less profile, the four-row map list, the widened mobile planner, the re-measured category cards).
