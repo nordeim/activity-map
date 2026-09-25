@@ -277,3 +277,20 @@ Stage Summary:
 - Deliverables: session-14 deployed-mirror parity remediation (profile identity, column-major stay grid, text-only map list, browse/map heading geometry, booking-form rebuild, scoped favourites overlay, hero/sights/detail polish), 54-check E2E suite extended in place, remediation plan, 14 screenshots, 7 aligned docs, plus the first deployed-site E2E audit record and the hosted-app SavedPlace-403 bug report.
 - Key decisions: the profile h1 follows the live's current rendering (username + email line) via a seed-name change — the internal field-vs-username ambiguity is documented; the live's browse/map heading paddings apply at the page level (px-5/pt-16 → md:px-8/md:pt-24) with the section carrying the favourites variant; the form keeps native labelled inputs (E2E fillable) styled as the live's picker rows.
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 14 (final)
+Agent: Super Z (main agent)
+Task: Session 14 finalization — commit + push.
+
+Work Log:
+- Commit 9d42848 on main (32 files, +498/−117): the session-14 deployed-mirror parity remediation (the sepnetflix2023 identity + email line, the column-major stay grid at 381px/18px over the bare 1178 grid, the text-only map list cards, the live-geometry browse/map heading blocks, the rebuilt booking form + 56/44 detail split, the scoped favourites overlay, the px-6 hero content, the 1120px sights grid, the detail paddings), the E2E contracts extended in place (54 total), the auth-spec domcontentloaded hardening, the remediation plan + session log, the 14 refreshed screenshots (01/11/12 byte-identical — those surfaces render identically at the capture viewport), and the 7 aligned docs. Working tree clean; secret scan clean (no key material in tracked files; the .next hits are gitignored build output).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 54/54 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed (venv), the Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo — fixed en route: the shim needed the runbook's user@host split; git passes "git@github.com" as the host and the missing split surfaced as a DNS gaierror), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10/12 records).
+- Dry-run: fast-forward c3bba68..9d42848 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp/op.key --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 9d42848 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 9d42848; working tree clean; no branches created; no key material on disk.
+- Open items for the owner: (1) the hosted source app's favourites save is BROKEN — its SavedPlace POST returns HTTP 403 (heart toggles visually, nothing persists; the clone's save is E2E-proven) — likely an entity-permission regression on the base44 platform side; (2) the deployed mirror is now running the session-12 code — a redeploy from main @ 9d42848 will pick up the session-14 parity surfaces.
