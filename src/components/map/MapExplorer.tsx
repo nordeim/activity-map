@@ -33,6 +33,16 @@ const FILTERS: { label: string; value: PlaceCategory | "all"; icon: React.Elemen
   { label: "Sights", value: "do", icon: Star },
 ];
 
+// Session-16 re-measure: the live's list-card eyebrow — eats read
+// "RESTAURANT", stays "HOTEL", and the do-places carry their SUB-CATEGORY
+// uppercased (LANTERN WALK / ROOFTOP MUSIC / ART WORKSHOP — the live's
+// hardcoded array labels its event entries that way, not "SIGHT").
+function mapListEyebrow(place: PlaceDTO): string {
+  if (place.category === "eat") return "Restaurant";
+  if (place.category === "stay") return "Hotel";
+  return (place.subCategory ?? "Sight").toUpperCase();
+}
+
 export function MapExplorer({
   places,
   focusSlug,
@@ -231,9 +241,11 @@ export function MapExplorer({
 
       {/* Places on the map — the live app's bottom section. Session-14
           re-measure: the list cards are TEXT-ONLY (no photos) — 24px-radius
-          white cards with the black/8 hairline, the category eyebrow
-          (12px/600 #555550), the 15px/600 ink title, and the 13px #72706C
-          price line. */}
+          white cards with the black/8 hairline. Session-16 re-measure: the
+          live's card is a FOUR-row layout — the eyebrow and the €-price
+          share ONE justified row (price right), the 15px/600 ink title
+          below, and the 12px #888580 NEIGHBORHOOD line at the bottom
+          (card h≈119, pad 16). */}
       <section id="places-list" className="mt-10">
         <div className="mb-3 flex items-end justify-between">
           <div>
@@ -248,13 +260,16 @@ export function MapExplorer({
               href={`/place/${place.slug}`}
               className="group rounded-[24px] border border-[rgba(14,14,14,0.08)] bg-white p-4 transition-colors duration-300 hover:border-black/20"
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#555550]">
-                {place.category === "eat" ? "Restaurant" : place.category === "stay" ? "Hotel" : "Sight"}
-              </p>
-              <p className="mt-1 text-[15px] font-semibold leading-snug text-ink">{place.name}</p>
-              <p className="mt-1 text-[13px] text-[#72706C]">
-                {priceRangeSymbols(place.priceRange ?? 2)}
-              </p>
+              <div className="flex h-[26px] items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase leading-[18px] tracking-[0.08em] text-[#555550]">
+                  {mapListEyebrow(place)}
+                </p>
+                <p className="shrink-0 text-[13px] text-[#72706C]">
+                  {priceRangeSymbols(place.priceRange ?? 2)}
+                </p>
+              </div>
+              <p className="mt-3 text-[15px] font-semibold leading-snug text-ink">{place.name}</p>
+              <p className="mt-2 text-xs text-[#888580]">{place.neighborhood ?? "Augsburg"}</p>
             </Link>
           ))}
         </div>

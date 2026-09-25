@@ -172,3 +172,22 @@ test.describe("desktop (1280) navigation", () => {
     await expect(avatar).toHaveCSS("background-color", "rgb(14, 14, 14)");
   });
 });
+
+test.describe("profile page chrome (session 16)", () => {
+  // The live's /profile renders WITHOUT the app chrome — no navbar at any
+  // breakpoint, no footer (the only controls are the floating Back + Sign
+  // out buttons). This pins the chrome-less contract at both geometries so
+  // the (bare) route group can never silently regain the navbar.
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 1280, height: 800 },
+  ]) {
+    test(`no navbar and no footer on /profile at ${viewport.width}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto("/profile", { waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("navigation", { name: "Primary" })).toHaveCount(0);
+      await expect(page.locator("header")).toHaveCount(0);
+      await expect(page.getByRole("contentinfo")).toHaveCount(0);
+    });
+  }
+});

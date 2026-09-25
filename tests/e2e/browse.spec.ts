@@ -263,7 +263,10 @@ test.describe("place detail", () => {
 });
 
 test.describe("footer on every app page (session 6)", () => {
-  const PAGES = ["/eat", "/stay", "/do", "/map", "/favourites", "/profile", "/place/moss-marble"];
+  // Session-16: /profile left this list — the live's profile page renders
+  // WITHOUT the app chrome (no navbar, no footer; pinned by the profile
+  // tests above).
+  const PAGES = ["/eat", "/stay", "/do", "/map", "/favourites", "/place/moss-marble"];
   for (const path of PAGES) {
     test(`footer renders on ${path}`, async ({ page }) => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
@@ -381,12 +384,39 @@ test.describe("map view", () => {
     // Session-14 re-measure: the live's list cards are TEXT-ONLY — no
     // photos — 24px-radius white cards with the category eyebrow, 15px/600
     // titles, and the €-price meta (the clone rendered 90px image rows).
+    // Session-16 re-measure: the live's card is a FOUR-row layout — the
+    // eyebrow + price sit on ONE justified row (price right), the title
+    // below, and the 12px #888580 NEIGHBORHOOD line at the bottom
+    // (card h≈119) — and the do-places render their SUB-CATEGORY as the
+    // eyebrow (LANTERN WALK / ROOFTOP MUSIC / ART WORKSHOP), not "SIGHT".
     const listSection = page.locator("#places-list");
     await expect(listSection).toBeVisible();
     await expect(listSection.locator("img")).toHaveCount(0);
     const listCard = listSection.locator("a").first();
     await expect(listCard).toHaveCSS("border-radius", "24px");
-    await expect(listCard).toContainText("Ember Garden");
+    // Session-16 order: the live's hardcoded array is interleaved — Brass &
+    // Marble first, then Ember Garden, then Cloud Nine Hotel.
+    await expect(listCard).toContainText("Brass & Marble");
+    await expect(listCard).toContainText("Innenstadt");
+    const cardBox = await listCard.boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(cardBox!.height).toBeGreaterThanOrEqual(105);
+    expect(cardBox!.height).toBeLessThanOrEqual(128);
+    // The price rides the eyebrow row (right-aligned): its y matches the
+    // eyebrow's y within 6px.
+    const priceOnEyebrowRow = await listCard.evaluate((el) => {
+      const spans = [...el.querySelectorAll("p, span")] as HTMLElement[];
+      const eyebrow = spans.find((s) => /HOTEL|RESTAURANT|WALK|MUSIC|WORKSHOP/.test(s.innerText));
+      const price = spans.find((s) => /^€+$/.test(s.innerText));
+      if (!eyebrow || !price) return false;
+      return Math.abs(eyebrow.getBoundingClientRect().y - price.getBoundingClientRect().y) < 6;
+    });
+    expect(priceOnEyebrowRow).toBe(true);
+    // The do-places carry their sub-category as the eyebrow (no "SIGHT").
+    await expect(listSection).toContainText("LANTERN WALK");
+    await expect(listSection).toContainText("ROOFTOP MUSIC");
+    await expect(listSection).toContainText("ART WORKSHOP");
+    await expect(listSection.getByText("Sight", { exact: true })).toHaveCount(0);
 
     // The Hotels pill narrows the canvas.
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
@@ -407,6 +437,21 @@ test.describe("profile", () => {
     await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toHaveCSS("font-size", "72px");
     await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
     await expect(page.getByText("Your Roam account")).toHaveCount(0);
+
+    // Session-16 re-measure: the live's profile is a CHROME-LESS page — no
+    // navbar at any breakpoint, no footer — carrying a FULL-PAGE fixed
+    // 18px graph-paper grid overlay (opacity 40, pointer-events none),
+    // with the outer block running px-5/pt-10 → md:px-8/md:pt-16 and the
+    // main at max-w-4xl so the h1 tops at y≈203 on desktop.
+    await expect(page.locator("nav[aria-label=Primary]")).toHaveCount(0);
+    await expect(page.locator("footer")).toHaveCount(0);
+    const gridOverlay = page.locator("div.pointer-events-none.fixed.inset-0.opacity-40");
+    await expect(gridOverlay).toHaveCount(1);
+    await expect(gridOverlay).toHaveCSS("background-size", "18px 18px, 18px 18px");
+    const h1Box = await page.getByRole("heading", { name: "sepnetflix2023" }).boundingBox();
+    expect(h1Box).not.toBeNull();
+    expect(h1Box!.y).toBeGreaterThanOrEqual(192);
+    expect(h1Box!.y).toBeLessThanOrEqual(214);
 
     // The identity card: rounded-[36px] white/78 glass with the stat chips
     // (Augsburg, 0 day streak, Explorer badge) and the dark Saved-places
@@ -434,13 +479,44 @@ test.describe("profile", () => {
     await expect(page.getByRole("button", { name: "Sign out" })).toBeVisible();
   });
 
+  test("profile identity centers on mobile; the back control is a Go back button (session 16)", async ({ page }) => {
+    // Session-16 re-measure: the live's identity block runs text-center →
+    // md:text-left (the h1/email/chips/Saved button center on phones),
+    // the chip icons are map-pin / SUN / HEART (not flame/compass), and
+    // the back control is a 44px white/80 "Go back" BUTTON at the very
+    // top of the main (y≈64 on desktop).
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/profile", { waitUntil: "domcontentloaded" });
+    const identity = page.locator("section").first();
+    await expect(identity).toHaveCSS("text-align", "center");
+    const h1Box = await page.getByRole("heading", { name: "sepnetflix2023" }).boundingBox();
+    expect(h1Box).not.toBeNull();
+    expect(h1Box!.y).toBeGreaterThanOrEqual(155);
+    expect(h1Box!.y).toBeLessThanOrEqual(180);
+    const streakChip = page.getByText("0 day streak");
+    await expect(streakChip.locator("svg.lucide-sun")).toHaveCount(1);
+    await expect(page.getByText("Explorer", { exact: true }).locator("svg.lucide-heart")).toHaveCount(1);
+    const back = page.getByRole("button", { name: "Go back" });
+    await expect(back).toBeVisible();
+    const backBox = await back.boundingBox();
+    expect(backBox).not.toBeNull();
+    expect(Math.round(backBox!.width)).toBe(44);
+    expect(Math.round(backBox!.height)).toBe(44);
+
+    // Desktop: the identity block goes left-aligned.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/profile", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("section").first()).toHaveCSS("text-align", "left");
+  });
+
   test("profile category filters carry icons; a Back control exists (session 8)", async ({ page }) => {
     await page.goto("/profile");
     // The All/Eat/Stay/Do booking filter chips carry icons on the live app.
     const eatChip = page.getByRole("button", { name: "eat", exact: true });
     await expect(eatChip.locator("svg").first()).toBeVisible();
-    // A Back control returns to the home page.
-    const back = page.getByRole("link", { name: "Back to home" });
+    // A Back control returns to the home page (session-16: the live's
+    // control is a "Go back" button).
+    const back = page.getByRole("button", { name: "Go back" });
     await expect(back).toBeVisible();
   });
 });

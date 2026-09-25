@@ -77,12 +77,15 @@ export function TripPlanner({
 
   return (
     <div
+      // Session-16: the live's mobile card escapes the hero's px-6
+      // content — 358px wide at x=16 (16px viewport margins) via -mx-2;
+      // from md the frosted pill re-centers (mx-auto, max-w 548).
       className={cn(
-        "trip-planner-card relative mx-auto mt-4 rounded-[30px] p-2",
+        "trip-planner-card relative -mx-2 mt-4 rounded-[30px] p-2 md:mx-auto",
         variant === "glass"
           ? // Session-5: below md a near-opaque white CARD (radius 30, p-2,
             // big soft shadow); from md the frosted GLASS PILL returns.
-            "z-50 w-full border border-transparent bg-white/95 shadow-[0_16px_34px_rgba(14,14,14,0.16)] md:max-w-[548px] md:rounded-full md:border-white/35 md:bg-[#F8F7F4]/35 md:p-1 md:shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)] md:backdrop-blur-[28px] md:backdrop-saturate-150"
+            "z-50 w-[calc(100%+16px)] border border-transparent bg-white/95 shadow-[0_16px_34px_rgba(14,14,14,0.16)] md:w-full md:max-w-[548px] md:rounded-full md:border-white/35 md:bg-[#F8F7F4]/35 md:p-1 md:shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)] md:backdrop-blur-[28px] md:backdrop-saturate-150"
           : "w-full border border-black/5 bg-white/95 p-1.5 shadow-[0_8px_22px_rgba(0,0,0,0.08)]",
         open && "z-[30000]",
         className,
@@ -90,7 +93,7 @@ export function TripPlanner({
     >
       <div
         className={cn(
-          "grid items-stretch gap-1.5 overflow-hidden rounded-[24px] md:gap-1 md:rounded-full",
+          "grid items-stretch gap-1 overflow-hidden rounded-[24px] md:rounded-full", // session-16: the live's 4px mobile gap
           "grid-cols-[minmax(0,1fr)_76px] md:grid-cols-[minmax(42px,220px)_minmax(42px,90px)_minmax(42px,170px)_46px]",
         )}
       >

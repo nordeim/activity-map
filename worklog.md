@@ -294,3 +294,21 @@ Work Log:
 Stage Summary:
 - main fully in sync with origin at 9d42848; working tree clean; no branches created; no key material on disk.
 - Open items for the owner: (1) the hosted source app's favourites save is BROKEN — its SavedPlace POST returns HTTP 403 (heart toggles visually, nothing persists; the clone's save is E2E-proven) — likely an entity-permission regression on the base44 platform side; (2) the deployed mirror is now running the session-12 code — a redeploy from main @ 9d42848 will pick up the session-14 parity surfaces.
+
+---
+Task ID: 16 (final)
+Agent: Super Z (main agent)
+Task: Session 16 — dual-site audit → the chrome-less profile + map-list/planner/category parity remediation, full gate, screenshots, docs, commit + push.
+
+Work Log:
+- TDD execution (specs first — RED verified with targeted runs: 4 failures as expected, then GREEN): R1 the (bare) route group (auth-gated, NO Navbar/SiteFooter — git mv of the profile page, URL unchanged); R2 the ProfileView restructure (max-w-4xl main with px-5/pb-24/pt-10 → md:px-8/md:pt-16, the full-page fixed 18px grid overlay); R3 the centered-mobile identity + white/80 Go back/Sign out pills + Sun/Heart chip icons; R4 the bookings total count; R5 the FOUR-row map list cards (eyebrow+price justified row, title, neighborhood — h≈117); R6 the mapListEyebrow sub-category uppercase for do-places; R7 map.json reordered to the live's interleaved array; R8 the mobile planner -mx-2 + w-[calc(100%+16px)] + gap-1 (en-route lesson: w-full caps at the parent width — negative margins alone move x without widening); R9 the desktop category rows 46px/9px gaps + 34×35 cells + the hanging 229×54 View All (absolute, DOM child of the article for the ancestor locator) + the mobile radius 24.
+- En-route fixes: the map card spacing tuned to the live's gaps (h-26 eyebrow row, mt-3 title, mt-2 neighborhood) after the first GREEN run measured 100px; the category h2 leading-5→md:leading-8 after the card measured 211px; the mobile category rows made responsive (the live's mobile keeps the 36px/28×28 internals — only desktop grew) after the mobile card measured 271 vs the live's 227.
+- Full gate on the exact push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 56/56 E2E ✓.
+- Side-by-side verification of every fixed surface against the live's measured values (profile h1 y=201/165 vs live 203/167, no nav/footer at both geometries, the fixed 18px grid, the map first card 395×117 "HOTEL | €€€€ | Brass & Marble | Innenstadt", the eyebrows in the live's exact sequence, the planner 358@x=16, the hanging VA, rows 46, cells 34×35, the mobile card 306×230 r24) + VLM spot-checks (profile layout matches; the mobile planner fits well).
+- 14 screenshots refreshed (reseed → re-login → favourite saved for 07 → capture-screens-v3 + crop-sections-v3); variance-validated. Discovered en route: the smoke test's booking round-trip writes into the dev db/custom.db (pre-existing) — cleared by the reseed before the captures.
+- Docs aligned: README (features/status/testing 56), AGENTS (the (bare) group + the profile/map facts + gate 56), CLAUDE (testing map + the bare-group architecture bullet), PAD (v1.8 revision), activity-map_SKILL (v1.6.0), docs/session_16.md, docs/remediation-plan-session-16.md, this worklog. .env.example verified + DEBUG_DBPATH documented.
+
+Stage Summary:
+- Deliverables: the session-16 parity remediation (the chrome-less profile page in the (bare) group with the full-page grid overlay + live geometry + identity/icons, the four-row map list cards with sub-category eyebrows in the live's interleaved order, the 358px mobile planner, the re-measured category cards with the hanging View All), the E2E suite extended in place (56 total), the remediation plan + session log, 14 refreshed screenshots, 8 aligned docs.
+- Key decisions: the profile's chrome-less contract is implemented as a second auth-gated route group (never weakening the (app) gate); the hanging View All stays a DOM child of the glass card (absolute positioning) so the specs' ancestor locators keep working; the mobile category internals stay at the session-10 measurements (the live only grew the desktop rows); the smoke test's dev-DB booking is documented rather than "fixed" (pre-existing, isolated).
+- Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.

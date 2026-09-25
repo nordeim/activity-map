@@ -73,23 +73,29 @@ function CategoryCard({
       data-category-card
       className={[
         // Session-12: the live's compact shell — 14px top / 14px sides /
-        // 12px bottom padding (was uniform p-4).
-        "flex flex-col rounded-[20px] border border-white/40 pt-[14px] px-[14px] pb-[12px]",
+        // 12px bottom padding (was uniform p-4). Session-16: the mobile
+        // glass card carries radius 24 (the desktop card keeps 20); the
+        // card is relative so the desktop View All can hang past its
+        // bottom edge.
+        "relative flex flex-col rounded-[24px] border border-white/40 pt-[14px] px-[14px] pb-[12px] md:rounded-[20px]",
         "shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)]",
         "backdrop-blur-[28px] backdrop-saturate-150",
         width === "mobile" ? "w-[306px] shrink-0 snap-center bg-white/60" : "w-[263px] bg-white/35",
       ].join(" ")}
     >
-      <h2 className="text-sm font-semibold text-ink">
+      <h2 className="text-sm font-semibold leading-5 text-ink md:leading-8">
         {counts[spec.category]} {spec.countLabel}
       </h2>
 
-      {/* The three curated rows — 36px tall, the 124px track shows all
-          three (36px rows + 8px gaps, exactly the live's track). */}
-      <ul className="mt-2.5 flex h-[124px] flex-col gap-2 overflow-hidden">
+      {/* The three curated rows — session-16 re-measure: the live grew the
+          DESKTOP rows to ≈46px at 9px gaps (156px track) with 34×35 icon
+          cells; the MOBILE carousel keeps the session-10 internals (36px
+          rows, 8px gaps, 124px track, 28×28 cells — the live's mobile card
+          measures 227px). */}
+      <ul className="mt-2.5 flex h-[124px] flex-col gap-2 overflow-hidden md:mt-[7px] md:h-[156px] md:gap-[9px]">
         {spec.rows.map(({ icon: Icon, title, subtitle }) => (
-          <li key={title} className="flex h-9 shrink-0 items-center gap-2">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-white/[0.52] bg-white/[0.48] text-[#111111]">
+          <li key={title} className="flex h-9 shrink-0 items-center gap-2 md:h-[46px]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] border border-white/[0.52] bg-white/[0.48] text-[#111111] md:h-[35px] md:w-[34px]">
               <Icon className="h-[13px] w-[13px]" strokeWidth={2} aria-hidden />
             </span>
             <span className="min-w-0">
@@ -100,9 +106,14 @@ function CategoryCard({
         ))}
       </ul>
 
+      {/* Session-16 re-measure: the desktop View All HANGS BELOW the glass
+          card's bottom edge (a 229×54 near-black pill half-overlapping the
+          card onto the hero photo — absolute so it leaves the card's flow,
+          shrinking the glass to ≈231px); the MOBILE pill stays the in-flow
+          violet h-9 (the live matches there). */}
       <Link
         href={spec.href}
-        className="mt-3 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:h-[54px] md:bg-[#141413] md:hover:bg-black"
+        className="mt-3 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:absolute md:bottom-[-27px] md:left-1/2 md:mt-0 md:w-[229px] md:-translate-x-1/2 md:h-[54px] md:bg-[#141413] md:hover:bg-black"
       >
         View All
       </Link>
@@ -130,8 +141,11 @@ export function CategoryCards({
       </div>
 
       {/* Desktop: the centered three-card row, flush with the photo's
-          bottom edge (the -mt overlap above). */}
-      <div className="hidden justify-center gap-5 md:flex">
+          bottom edge (the -mt overlap above). Session-16: the row gains
+          ~40px bottom clearance — the desktop View All pills now hang
+          BELOW the glass cards (absolute, half-overlapping the photo) and
+          must not collide with the route section's content. */}
+      <div className="hidden justify-center gap-5 pb-10 md:flex">
         {CARDS.map((spec) => (
           <CategoryCard key={spec.category} counts={counts} spec={spec} width="desktop" />
         ))}

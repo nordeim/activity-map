@@ -10,8 +10,15 @@
 // heart Saved-places button; then the bookings card (rounded-32, mt-8) with
 // the Trips eyebrow, the "My bookings" h2 at 36px, FULL-WIDTH Upcoming/Past
 // tabs (44px/12px), the All/Eat/Stay/Do filters (38px/12px), and the white
-// rounded-26 empty state (48px icon circle + 14px #72706C line). The page
-// background is plain cream — no grid.
+// rounded-26 empty state (48px icon circle + 14px #72706C line).
+//
+// Session-16 re-measure: the live's profile is a CHROME-LESS page (the
+// (bare) route group renders it without the Navbar/footer) carrying a
+// FULL-PAGE fixed 18px graph-paper grid overlay at 40% opacity, the outer
+// block running px-5/pt-10 → md:px-8/md:pt-16 with the main at max-w-4xl,
+// the identity block CENTERED on phones (text-center → md:text-left), the
+// Go back / Sign out controls as translucent white/80 pills at the top, and
+// the chip icons map-pin / sun / heart.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -22,10 +29,9 @@ import {
   LogOut,
   MapPin,
   Sparkles,
-  Flame,
-  Compass,
-  Heart,
   Sun,
+  Heart,
+  Ticket,
   UtensilsCrossed,
   BedDouble,
 } from "lucide-react";
@@ -70,30 +76,43 @@ export function ProfileView({
   }
 
   return (
-    <main className="min-h-[calc(100dvh-84px)] px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <div className="mx-auto max-w-[896px]">
-        {/* The top row: the icon-only Back control + the Sign-out action. */}
-        <div className="mb-8 flex items-center justify-between">
-          <Link
-            href="/"
-            aria-label="Back to home"
-            className="flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream"
-          >
-            <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
-          </Link>
-          <button
-            type="button"
-            onClick={signOut}
-            className="flex items-center gap-2 rounded-full border border-black/10 bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-black/30"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.8} aria-hidden /> Sign out
-          </button>
-        </div>
+    <main className="relative mx-auto max-w-4xl px-5 pb-24 pt-10 md:px-8 md:pt-16">
+      {/* Session-16 re-measure: the live's profile carries a FULL-PAGE
+          graph-paper grid texture — a fixed, pointer-events-none, 40%-
+          opacity 18px crossing (rgba(20,20,19,0.055) lines) spanning the
+          whole viewport behind both cards (unlike the favourites page,
+          where the texture stops after the heading block). */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
+      />
 
-        {/* Identity card — the live's session-12 glass panel (rounded-36,
-            bg-white/78, border-white/70). */}
-        <section className="overflow-hidden rounded-[36px] border border-white/70 bg-white/78 p-5 shadow-[0_8px_24px_rgba(14,14,14,0.08)] sm:p-8">
-          <p className={cn(EYEBROW, "mb-3")}>Profile</p>
+      {/* The top row — session-16: the live's controls are translucent
+          white/80 pills (the Go back disc 44×44 + the Sign out pill),
+          sitting at the very top of the padded main (y≈64 on desktop). */}
+      <div className="relative mb-8 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-white/80 text-ink transition hover:bg-white"
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} aria-hidden />
+          <span className="sr-only">Go back</span>
+        </button>
+        <button
+          type="button"
+          onClick={signOut}
+          className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-3 text-sm font-semibold text-ink transition hover:bg-white"
+        >
+          <LogOut className="h-4 w-4" strokeWidth={1.8} aria-hidden /> Sign out
+        </button>
+      </div>
+
+      {/* Identity card — the live's session-12 glass panel (rounded-36,
+          bg-white/78, border-white/70). Session-16: the identity block is
+          CENTERED on phones (text-center) and goes left from md. */}
+      <section className="relative overflow-hidden rounded-[36px] border border-white/70 bg-white/78 p-5 text-center shadow-[0_8px_24px_rgba(14,14,14,0.08)] sm:p-8 md:text-left">
+        <p className={cn(EYEBROW, "mb-3")}>Profile</p>
           {/* Session-14: the h1 carries the account identity (the seeded
               username), with the EMAIL rendered below it. */}
           <h1 className="font-serif text-[clamp(42px,9vw,72px)] leading-[0.98] tracking-[-0.06em] text-ink">
@@ -104,16 +123,18 @@ export function ProfileView({
           <p className="mt-2 text-base text-[#555550]">{user.email}</p>
 
           {/* The live's stat chips — cream outlined 34px pills (session-12:
-              the Explorer badge lost its dark fill; all three match). */}
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+              the Explorer badge lost its dark fill; all three match).
+              Session-16: the icons are map-pin / SUN / HEART on the live
+              (was flame / compass). */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 md:justify-start">
             <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
               <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden /> Augsburg
             </span>
             <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
-              <Flame className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> 0 day streak
+              <Sun className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> 0 day streak
             </span>
             <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
-              <Compass className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Explorer
+              <Heart className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Explorer
             </span>
           </div>
 
@@ -137,7 +158,7 @@ export function ProfileView({
             <h2 className="font-serif text-4xl leading-[1.05] tracking-[-0.04em] text-ink">
               My bookings
             </h2>
-            <span className="text-xs font-semibold text-[#555550]">{shown.length}</span>
+            <span className="text-xs font-semibold text-[#555550]">{bookings.length}</span>
           </div>
 
           {/* Session-12: the Upcoming/Past pair is FULL-WIDTH — one 44px
@@ -175,7 +196,7 @@ export function ProfileView({
                 ["all", "All", Sun],
                 ["eat", "eat", UtensilsCrossed],
                 ["stay", "stay", BedDouble],
-                ["do", "do", Compass],
+                ["do", "do", Ticket],
               ] as const
             ).map(([value, label, Icon]) => (
               <button
@@ -214,7 +235,6 @@ export function ProfileView({
             </ul>
           )}
         </section>
-      </div>
     </main>
   );
 }

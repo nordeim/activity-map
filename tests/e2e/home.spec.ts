@@ -65,6 +65,16 @@ test.describe("home content parity (session 2)", () => {
     expect(mobileGeom.h1X).toBeGreaterThanOrEqual(20);
     expect(mobileGeom.h1X).toBeLessThanOrEqual(28);
 
+    // Session-16 re-measure: the live's mobile PLANNER CARD is WIDER than
+    // the px-6 content — 358px wide starting at x=16 (16px viewport
+    // margins) with a 4px grid gap (the card escapes the content padding).
+    const plannerBox = await page.locator(".trip-planner-card").first().boundingBox();
+    expect(plannerBox).not.toBeNull();
+    expect(Math.round(plannerBox!.x)).toBeGreaterThanOrEqual(13);
+    expect(Math.round(plannerBox!.x)).toBeLessThanOrEqual(19);
+    expect(Math.round(plannerBox!.width)).toBeGreaterThanOrEqual(352);
+    expect(Math.round(plannerBox!.width)).toBeLessThanOrEqual(364);
+
     // Desktop (1280×800): the photo is ~938px (the live's hero section) with
     // the h1 at viewport y≈290 (the content rides higher over the taller
     // photo; the photo shows behind the transparent header strip).
@@ -127,9 +137,15 @@ test.describe("home content parity (session 2)", () => {
     await expect(mobileViewAll).toHaveCSS("background-color", "rgb(87, 26, 255)");
     const viewAllRadius = await mobileViewAll.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
     expect(viewAllRadius).toBeGreaterThan(1000);
+    // Session-16: the live's mobile glass card carries radius 24 (the
+    // desktop card keeps radius 20).
+    const mobileCard = page.locator("[data-category-card]").first();
+    await expect(mobileCard).toHaveCSS("border-radius", "24px");
 
-    // Desktop (1280): the VIEW ALL pills stay near-black #141413 and are
-    // 54px full-card-width pills (session-10 re-measure).
+    // Desktop (1280): the VIEW ALL pills stay near-black #141413 — session-16
+    // re-measure: the pill now HANGS BELOW the glass card's bottom edge
+    // (w≈229, h=54, half-overlapping the card onto the hero photo below)
+    // instead of sitting inside the card.
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const desktopViewAll = page.getByRole("link", { name: /View All/ }).first();
@@ -140,18 +156,23 @@ test.describe("home content parity (session 2)", () => {
     const cardBox = await card.boundingBox();
     expect(vaBox).not.toBeNull();
     expect(cardBox).not.toBeNull();
-    // Full INNER width: the card carries 16px side padding (263 → 231
-    // inner; the live: 263 → 229 with 17px padding).
+    // The pill hangs PAST the glass card's bottom edge (the live's
+    // half-in/half-out overlap).
+    expect(vaBox!.y + vaBox!.height).toBeGreaterThan(cardBox!.y + cardBox!.height);
     expect(vaBox!.width).toBeGreaterThan(cardBox!.width - 40);
 
-    // Session-10 re-measure: each row is a 12px/500 title + 12px 30%-black
-    // subtitle beside a 28×28 rounded-8 GLASS icon cell (white/0.48 +
-    // white/0.52 border) — three curated rows per card.
+    // Session-16 re-measure: each row is a two-line title + subtitle beside
+    // a 34×35 rounded-8 GLASS icon cell (white/0.48) — three ≈46px rows per
+    // card (the live grew them from the session-10 36px/28×28 build).
     const firstTagRow = card.locator("ul li").first();
     const iconCell = firstTagRow.locator("span").first();
-    await expect(iconCell).toHaveCSS("width", "28px");
-    await expect(iconCell).toHaveCSS("height", "28px");
+    await expect(iconCell).toHaveCSS("width", "34px");
+    await expect(iconCell).toHaveCSS("height", "35px");
     await expect(iconCell).toHaveCSS("border-radius", "8px");
+    const rowBox = await firstTagRow.boundingBox();
+    expect(rowBox).not.toBeNull();
+    expect(rowBox!.height).toBeGreaterThanOrEqual(42);
+    expect(rowBox!.height).toBeLessThanOrEqual(50);
     const title = firstTagRow.locator("span").nth(1).locator("span").first();
     await expect(title).toHaveCSS("font-size", "12px");
     await expect(title).toHaveCSS("font-weight", "500");
@@ -159,15 +180,14 @@ test.describe("home content parity (session 2)", () => {
     await expect(card.locator("ul li")).toHaveCount(3);
     await expect(card.getByText("City center", { exact: true })).toBeVisible();
 
-    // Session-12 re-measure: the live's glass card is compact — padding
-    // 14px top / 12px bottom and a 12px gap above View All put the card at
-    // ≈231px (the live's View All hangs past the glass onto the photo, a
-    // quirk this clone intentionally renders inside — so the pinned band
-    // is 231–252px rather than the old 262px).
+    // Session-16 re-measure: the live's glass card is ≈231px now (the
+    // taller 46px rows + the View All hanging outside the card).
     const cardH = await card.boundingBox();
     expect(cardH).not.toBeNull();
-    expect(cardH!.height).toBeGreaterThanOrEqual(225);
-    expect(cardH!.height).toBeLessThanOrEqual(252);
+    expect(cardH!.height).toBeGreaterThanOrEqual(220);
+    expect(cardH!.height).toBeLessThanOrEqual(243);
+    // The desktop glass card keeps radius 20.
+    await expect(card).toHaveCSS("border-radius", "20px");
 
     // The live's icon set (FerrisWheel on the do card, Wine on eat) —
     // :visible scopes to the desktop row (the hidden mobile carousel also
