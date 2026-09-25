@@ -216,3 +216,25 @@ Work Log:
 
 Stage Summary:
 - main fully in sync with origin at 2ee6e0b; working tree clean; no branches created; no key material on disk.
+
+---
+Task ID: 12
+Agent: Super Z (main agent)
+Task: Session 12 — re-measure the evolved live app, remediate the clone to parity, pass the full gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Workspace re-cloned (reset environment) to ebef0ce (main; the owner's start-server-log commit). All 6 root docs + session_10/remediation-plan-session-10/worklog/session_11/start_server_log reviewed; scandihaven patterns confirmed same stack.
+- Baseline validation: bun install → prisma generate → db:push/db:seed → lint ✓ typecheck ✓ 42 unit ✓ build ✓ 54/54 E2E ✓; dev probes healthy; db/ at repo root (42+27+9 places + demo user); .env/.env.example already correct (DATABASE_URL="file:../db/custom.db", scripts pin it inline); vitest + playwright configs functional.
+- Deployment check: https://activity-map.jesspete.shop/ returns HTTP 404 via Cloudflare (origin down) — reported; parity work measured the source app directly.
+- Live re-measure (logged in; DOM audits at 1280/768/390 + VLM): all session-8/10 surfaces re-verified UNCHANGED (mobile navbar within 3px, hero geometry, route stops, 6-card deck, sights, category rows, eat grid, login card, favourites h1 — no Tailwind v4 mobile-nav regressions). Found 9 findings: the home stay showcase re-shuffled (F1), the profile redesigned into two glass cards with the NAME h1 "Explorer" 72px (F5), the map chrome widened (full-width 1138 search, 41/12 pills, 620 canvas) (F4), the vibe heading full-width left-aligned with 1178 grid (F2), the favourites 18px grid restored (F6), the white login body (F7), 38/12 browse chips (F8), compacted category cards (F9), deliberate deviations kept (F10). Wrote docs/remediation-plan-session-12.md and validated it against the components before executing.
+- TDD execution (specs first, then implementations): HOME_STAY_ORDER in the home page (R1); ProfileView two-glass-card rewrite + seed user "Explorer" + Navbar userEmail prop (R2); MapExplorer full-width search + 41/12 pills + 620 canvas (R3); StayShowcase full-width left heading + 14px #8A8780 subtitle + 1178 grid + 112/144 padding (R4); FavouritesView 18px grid overlay + 14px #3A3A3A subtitle (R5); LoginForm white body via INLINE STYLE — the unlayered globals body rule beats every @layer utility (the session-10 h1 gotcha, second sighting) (R6); 38px/12px chips (R7); compacted 248px category cards (R8).
+- En-route fixes: one strict-mode spec locator ("Augsburg" collides with the footer line); a transient HMR desync crashed initials(undefined) mid-development (dev-server restart; code correct); the vibe subtitle live value is #8A8780, not the #888580 token.
+- Full gate on the exact push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 54/54 E2E ✓.
+- Side-by-side verification: vibe h2 x=24/w=1232 (live 38/1203) + grid 1178 + first card "Courtyard Stay"; map 41/12 pills + 618 canvas; favourites grid present; login body white; VLM verdict on the profile: "visually equivalent".
+- 14 screenshots refreshed (capture-screens-v3 + crop-sections-v3, favourite saved for 07); variance-validated.
+- Docs aligned: README, AGENTS, CLAUDE, PAD (v1.6), activity-map_SKILL (v1.4.0), docs/session_12.md, this worklog. .env.example verified.
+
+Stage Summary:
+- Deliverables: session-12 evolution parity remediation (stay order, two-card profile, widened map chrome, left-aligned vibe heading, restored favourites grid, white login body, compact chips/cards), 54-check E2E suite extended in place, remediation plan, 14 screenshots, 7 aligned docs.
+- Key decisions: the live's View All hanging outside the glass card and its clipped eat-card variant are quirks — the clone keeps the VA inside the glass at a compacted height; the avatar initial derives from the EMAIL (live shows "S") while the profile h1 shows the account NAME; the browse planner search-width variance (648-765 across scroll states on both apps) is environment noise, verified equivalent.
+- Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.

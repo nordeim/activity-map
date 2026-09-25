@@ -9,7 +9,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-dvh bg-cream">
-      <Navbar userName={user.name} />
+      {/* Session-12: the avatar disc initial derives from the EMAIL (the
+          live shows "S" for sepnetflix… while the profile h1 shows the
+          account NAME "Explorer") — so the navbar receives the email. */}
+      <Navbar userEmail={user.email} />
       {children}
       <SiteFooter />
     </div>

@@ -37,7 +37,7 @@ const LINKS = [
   { href: "/do", label: "Do", icon: Compass },
 ] as const;
 
-export function Navbar({ userName }: { userName: string }) {
+export function Navbar({ userEmail }: { userEmail: string }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const [hidden, setHidden] = useState(false);
@@ -209,7 +209,7 @@ export function Navbar({ userName }: { userName: string }) {
               )}
             >
               <User className="h-[18px] w-[18px] md:hidden" strokeWidth={1.5} aria-hidden />
-              <span className="hidden text-sm font-bold text-white md:inline">{initials(userName)}</span>
+              <span className="hidden text-sm font-bold text-white md:inline">{initials(userEmail)}</span>
             </Link>
           </div>
         </nav>

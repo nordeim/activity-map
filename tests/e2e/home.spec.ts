@@ -152,6 +152,17 @@ test.describe("home content parity (session 2)", () => {
     // Three two-line rows per card (the live's curated set).
     await expect(card.locator("ul li")).toHaveCount(3);
     await expect(card.getByText("City center", { exact: true })).toBeVisible();
+
+    // Session-12 re-measure: the live's glass card is compact — padding
+    // 14px top / 12px bottom and a 12px gap above View All put the card at
+    // ≈231px (the live's View All hangs past the glass onto the photo, a
+    // quirk this clone intentionally renders inside — so the pinned band
+    // is 231–252px rather than the old 262px).
+    const cardH = await card.boundingBox();
+    expect(cardH).not.toBeNull();
+    expect(cardH!.height).toBeGreaterThanOrEqual(225);
+    expect(cardH!.height).toBeLessThanOrEqual(252);
+
     // The live's icon set (FerrisWheel on the do card, Wine on eat) —
     // :visible scopes to the desktop row (the hidden mobile carousel also
     // carries one of each).
@@ -260,6 +271,18 @@ test.describe("home content parity (session 2)", () => {
     const letters = h2.locator("span[data-letter]");
     const count = await letters.count();
     expect(count).toBeGreaterThanOrEqual(50);
+
+    // Session-12 re-measure: the live's heading block is FULL-WIDTH and
+    // LEFT-ALIGNED (h2 x≈38, w≈1203 at 1280 — no max-w-3xl centering), the
+    // subtitle is 14px #888580 (not 16px black/60), and the grid wrapper
+    // carries pt-112/pb-144 padding.
+    const h2Box = await h2.boundingBox();
+    expect(h2Box).not.toBeNull();
+    expect(h2Box!.x).toBeLessThan(60);
+    expect(h2Box!.width).toBeGreaterThan(1100);
+    const sub = page.getByText("Pick a stay that matches your mood, from quiet design hotels to rooftop city escapes.");
+    await expect(sub).toHaveCSS("font-size", "14px");
+    await expect(sub).toHaveCSS("color", "rgb(138, 135, 128)");
   });
 
   test("stay + sight card titles render 24px on mobile, 18px on desktop (session 8)", async ({ page }) => {
@@ -290,6 +313,14 @@ test.describe("home content parity (session 2)", () => {
     await expect(showcase.getByRole("link", { name: /Book Now/ })).toHaveCount(12);
     await expect(showcase.getByText("Garden Suite")).toBeVisible();
     await expect(showcase.getByText("Maximilianstraße 44")).toBeVisible();
+
+    // Session-12 re-measure: the live re-shuffled the home showcase order
+    // (independent of the /stay browse order, which is unchanged). The
+    // first card is now Courtyard Stay and the full 12-title order is
+    // pinned against the live's current sequence.
+    const titles = await showcase.locator("a h3").allTextContents();
+    const order = ["Courtyard Stay", "Terra Boutique", "Brass & Marble", "Canal Hideaway", "Maison Altstadt", "Garden Suite", "River House", "Rooftop Atelier", "Velvet Residence", "Cloud Nine Hotel", "The Linen House", "Arcade Rooms"];
+    expect(titles.map((t) => t.trim())).toEqual(order);
   });
 
   test("highlighted sights: six cards linking to home-sight place pages", async ({ page }) => {

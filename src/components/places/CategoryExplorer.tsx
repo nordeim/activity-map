@@ -65,7 +65,8 @@ export function CategoryExplorer({
           initialEnd={planner?.end ?? null}
         />
 
-        {/* Filter chips */}
+        {/* Filter chips — session-12 live chrome: compact 38px pills with
+            12px text (the live shrank them from 40px/14px). */}
         <div className="relative mt-4">
           <div className="no-scrollbar flex gap-2 overflow-x-auto px-1 pb-2">
             {chipsAvailable.map(({ label, kind }) => {
@@ -77,7 +78,7 @@ export function CategoryExplorer({
                   onClick={() => toggleChip(label)}
                   aria-pressed={active}
                   className={cn(
-                    "whitespace-nowrap rounded-full px-4 py-2.5 text-sm font-medium transition-all",
+                    "flex h-[38px] items-center whitespace-nowrap rounded-full px-4 text-xs font-medium transition-all",
                     active
                       ? "bg-ink text-white"
                       : "bg-white text-secondary hover:shadow-[0_8px_18px_rgba(14,14,14,0.1)]",

@@ -1,12 +1,12 @@
 "use client";
 
-// The Favourites canvas (session-10 re-measure): the plain cream page
-// (the graph-paper grid is gone — the live has no grid here), the serif
-// title at the live's rendered scale (text-[50px] → 50.7px in Chromium,
-// leading 0.92, tracking −0.06em) + calm subtitle, and either the
-// saved-place grid (cards reuse the browse PlaceCard) or the measured
-// empty state (48px cream icon circle + 28px heart + Inter 20px/600
-// "No favourites yet").
+// The Favourites canvas (session-12 re-measure): the cream page WITH the
+// graph-paper grid texture back (the live regained it — an 18px crossing
+// overlay, rgba(20,20,19,0.055) lines at 40% opacity), the serif title at
+// the live's declared scale (text-[55px], leading 0.92, tracking −0.06em)
+// + the 14px #3A3A3A subtitle, and either the saved-place grid (cards
+// reuse the browse PlaceCard) or the measured empty state (48px cream icon
+// circle + 28px heart + Inter 20px/600 "No favourites yet").
 
 import { Heart } from "lucide-react";
 import type { PlaceDTO } from "@/types";
@@ -14,8 +14,14 @@ import { PlaceCard } from "@/components/places/PlaceCard";
 
 export function FavouritesView({ places }: { places: PlaceDTO[] }) {
   return (
-    <main className="min-h-[calc(100dvh-84px)] bg-cream px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
-      <div className="mx-auto max-w-[1100px]">
+    <main className="relative min-h-[calc(100dvh-84px)] bg-cream px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
+      {/* Session-12: the live's grid overlay — 18px crossings at 40%
+          opacity (rgba(20,20,19,0.055) hairlines), inert and pointer-free. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
+      />
+      <div className="relative mx-auto max-w-[1100px]">
         <section className="mx-auto mb-10 flex max-w-2xl flex-col items-center text-center">
           <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-float">
             <Heart className="h-6 w-6 fill-ink text-ink" strokeWidth={1.5} aria-hidden />
@@ -23,7 +29,7 @@ export function FavouritesView({ places }: { places: PlaceDTO[] }) {
           <h1 className="mb-3 font-serif text-[55px] leading-[0.92] tracking-[-0.06em] text-ink">
             Favourites
           </h1>
-          <p className="text-sm font-light text-black/60 sm:text-base">
+          <p className="text-sm text-[#3A3A3A]">
             All saved restaurants, hotels, and places in one calm collection.
           </p>
         </section>

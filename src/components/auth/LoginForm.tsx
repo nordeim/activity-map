@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Mail, Lock } from "lucide-react";
 
@@ -13,6 +13,10 @@ import { Loader2, Mail, Lock } from "lucide-react";
 // the Forgot password / Sign-up bottom row. The Google and account-recovery
 // flows are hosted-platform features — in this self-hosted clone they
 // render for parity but answer with an inline notice instead of navigating.
+//
+// Session-12: the live's document body is WHITE on this route (the app-wide
+// cream body would otherwise show through on overscroll) — pinned while the
+// form is mounted and restored on unmount.
 
 export function LoginForm() {
   const router = useRouter();
@@ -21,6 +25,18 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Tailwind v4 gotcha (the session-10 h1 lesson, again): globals.css sets
+  // the body background in an UNLAYERED rule, and unlayered styles beat
+  // every @layer utility — so a `bg-white` class on <body> would lose.
+  // An inline style wins the cascade regardless of layering.
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = "white";
+    return () => {
+      document.body.style.backgroundColor = prev;
+    };
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

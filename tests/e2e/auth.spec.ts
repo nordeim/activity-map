@@ -62,6 +62,10 @@ test.describe("login route", () => {
     const main = page.locator("main").first();
     const mainBgImage = await main.evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(mainBgImage).toBe("none");
+    // Session-12 re-measure: the live's document BODY is white too (the
+    // app-wide cream body shows through on overscroll today).
+    const bodyColor = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(bodyColor).toBe("rgb(255, 255, 255)");
   });
 
   test("wrong password is rejected without a session", async ({ page }) => {

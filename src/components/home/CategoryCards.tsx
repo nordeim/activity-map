@@ -72,7 +72,9 @@ function CategoryCard({
     <article
       data-category-card
       className={[
-        "flex flex-col rounded-[20px] border border-white/40 p-4",
+        // Session-12: the live's compact shell — 14px top / 14px sides /
+        // 12px bottom padding (was uniform p-4).
+        "flex flex-col rounded-[20px] border border-white/40 pt-[14px] px-[14px] pb-[12px]",
         "shadow-[0_8px_22px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.42)]",
         "backdrop-blur-[28px] backdrop-saturate-150",
         width === "mobile" ? "w-[306px] shrink-0 snap-center bg-white/60" : "w-[263px] bg-white/35",
@@ -100,7 +102,7 @@ function CategoryCard({
 
       <Link
         href={spec.href}
-        className="mt-5 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:h-[54px] md:bg-[#141413] md:hover:bg-black"
+        className="mt-3 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:h-[54px] md:bg-[#141413] md:hover:bg-black"
       >
         View All
       </Link>

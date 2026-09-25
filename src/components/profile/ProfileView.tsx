@@ -1,11 +1,16 @@
 "use client";
 
-// The Profile canvas — re-measured from the live app (session 3): the
-// Sign-out action on top, the PROFILE eyebrow with the "Explorer" title,
-// "Your Roam account" + Augsburg, the stat chips ("N day streak", the
-// Explorer badge, "Saved places"), the TRIPS / My bookings section with
-// Upcoming (n) / Past (n) / All tabs and the Eat / Stay / Do category
-// filters, and the empty state "No upcoming reservations. Time to explore."
+// The Profile canvas — session-12 re-measure: the live redesigned the page
+// into TWO glass cards (896px container): the identity card (rounded-36,
+// bg-white/78, border-white/70) with the Profile eyebrow (12px/600 #72706C),
+// the account NAME as the h1 (72px serif — the live account shows
+// "Explorer"), "Your Roam account" (16px #555550), the cream outlined chips
+// (Augsburg / 0 day streak / Explorer), and the dark heart Saved-places
+// button; then the bookings card (rounded-32, mt-8) with the Trips eyebrow,
+// the "My bookings" h2 at 36px, FULL-WIDTH Upcoming/Past tabs (44px/12px),
+// the All/Eat/Stay/Do filters (38px/12px), and the white rounded-26 empty
+// state (48px icon circle + 14px #72706C line). The page background is
+// plain cream — no grid.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -28,6 +33,8 @@ import { cn } from "@/lib/utils";
 
 type BookingTab = "upcoming" | "past" | "all";
 type CategoryFilter = PlaceCategory | "all";
+
+const EYEBROW = "text-xs font-semibold uppercase tracking-[0.25em] text-[#72706C]";
 
 export function ProfileView({
   user,
@@ -62,10 +69,9 @@ export function ProfileView({
   }
 
   return (
-    <main className="bg-grid min-h-[calc(100dvh-84px)] px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
-      <div className="mx-auto max-w-[960px]">
-        {/* The top row: the icon-only Back control + the Sign-out action
-            (session-8 live parity). */}
+    <main className="min-h-[calc(100dvh-84px)] px-4 pb-20 pt-8 sm:px-6 sm:pt-12">
+      <div className="mx-auto max-w-[896px]">
+        {/* The top row: the icon-only Back control + the Sign-out action. */}
         <div className="mb-8 flex items-center justify-between">
           <Link
             href="/"
@@ -83,30 +89,33 @@ export function ProfileView({
           </button>
         </div>
 
-        {/* Identity — the live app's PROFILE block. */}
-        <section className="mb-10 flex flex-col items-center text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">Profile</p>
-          <h1 className="font-serif text-[clamp(42px,13vw,55px)] leading-[0.98] tracking-[-0.06em] text-ink">
+        {/* Identity card — the live's session-12 glass panel (rounded-36,
+            bg-white/78, border-white/70). */}
+        <section className="overflow-hidden rounded-[36px] border border-white/70 bg-white/78 p-5 shadow-[0_8px_24px_rgba(14,14,14,0.08)] sm:p-8">
+          <p className={cn(EYEBROW, "mb-3")}>Profile</p>
+          {/* Session-12: the h1 is the account NAME (72px), not the
+              username — the email is no longer rendered on the page. */}
+          <h1 className="font-serif text-[clamp(42px,9vw,72px)] leading-[0.98] tracking-[-0.06em] text-ink">
             {user.name}
           </h1>
-          <p className="mt-3 text-sm text-black/50">{user.email}</p>
-          <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-black/55">
-            <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden /> Augsburg
-          </p>
+          <p className="mt-2 text-base text-[#555550]">Your Roam account</p>
 
-          {/* Stat chips (session-8: the streak + Explorer badge; Saved
-              places became the dark hand-off button below). */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-            <span className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 font-medium text-black/55 shadow-float">
+          {/* The live's stat chips — cream outlined 34px pills (session-12:
+              the Explorer badge lost its dark fill; all three match). */}
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
+              <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden /> Augsburg
+            </span>
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
               <Flame className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> 0 day streak
             </span>
-            <span className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 font-semibold text-white">
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
               <Compass className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Explorer
             </span>
           </div>
 
           {/* Saved places — the live's dark button into /favourites
-              (session-10: heart icon + the bare label, no count). */}
+              (heart icon + the bare label, no count). */}
           <Link
             href="/favourites"
             className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 text-sm font-semibold text-white transition hover:bg-black"
@@ -116,25 +125,25 @@ export function ProfileView({
           </Link>
         </section>
 
-        {/* Bookings — TRIPS / My bookings with tabs + category filters. */}
-        <section className="rounded-3xl bg-white p-6 shadow-card sm:p-8">
-          <div className="mb-5 flex items-end justify-between border-b border-black/5 pb-4">
-            <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-black/35">Trips</h2>
-            <span className="text-sm font-semibold text-ink">
-              My bookings {shown.length}
-            </span>
+        {/* Bookings card — the live's session-12 glass panel (rounded-32,
+            mt-8): Trips eyebrow, the 36px "My bookings" h2 + count,
+            FULL-WIDTH tab pair, the category filter chips, empty state. */}
+        <section className="mt-8 rounded-[32px] border border-white/70 bg-white/78 p-5 shadow-[0_14px_34px_rgba(14,14,14,0.1)] sm:p-8">
+          <p className={EYEBROW}>Trips</p>
+          <div className="mt-3 flex items-baseline justify-between">
+            <h2 className="font-serif text-4xl leading-[1.05] tracking-[-0.04em] text-ink">
+              My bookings
+            </h2>
+            <span className="text-xs font-semibold text-[#555550]">{shown.length}</span>
           </div>
 
-          <div
-            className="mb-4 flex flex-wrap items-center gap-2"
-            role="tablist"
-            aria-label="Booking filters"
-          >
+          {/* Session-12: the Upcoming/Past pair is FULL-WIDTH — one 44px
+              12px pill per half (the live's 411×44 tabs). */}
+          <div className="mt-6 grid grid-cols-2 gap-2" role="tablist" aria-label="Booking filters">
             {(
               [
                 ["upcoming", `Upcoming (${upcoming.length})`],
                 ["past", `Past (${past.length})`],
-                ["all", "All"],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -144,14 +153,20 @@ export function ProfileView({
                 aria-selected={tab === value}
                 onClick={() => setTab(value)}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-semibold transition",
-                  tab === value ? "bg-ink text-white" : "text-black/60 hover:text-ink",
+                  "flex h-11 items-center justify-center rounded-full text-xs font-semibold transition",
+                  tab === value
+                    ? "bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.1)]"
+                    : "text-[#555550] hover:text-ink",
                 )}
               >
                 {label}
               </button>
             ))}
-            <span className="mx-1 hidden h-5 w-px bg-black/10 sm:block" />
+          </div>
+
+          {/* The All/Eat/Stay/Do category chips (38px/12px, live's compact
+              set). */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {(
               [
                 ["all", "All", Sun],
@@ -166,10 +181,10 @@ export function ProfileView({
                 onClick={() => setCat(value)}
                 aria-pressed={cat === value}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium capitalize transition",
+                  "flex h-[38px] items-center gap-1.5 rounded-full px-4 text-xs font-semibold capitalize transition",
                   cat === value
-                    ? "border-ink bg-ink text-white"
-                    : "border-black/10 text-black/60 hover:border-black/30",
+                    ? "bg-ink text-white"
+                    : "bg-white text-[#555550] hover:text-ink",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
@@ -179,20 +194,17 @@ export function ProfileView({
           </div>
 
           {shown.length === 0 ? (
-            <div className="flex flex-col items-center rounded-2xl bg-cream px-6 py-12 text-center">
-              <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-float">
+            /* Session-12: the live's empty state — a white rounded-26
+                bordered panel with the 48px icon circle + the 14px #72706C
+                line (no CTA button). */
+            <div className="mt-6 flex flex-col items-center rounded-[26px] border border-black/[0.06] bg-white px-5 py-8 text-center">
+              <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-cream">
                 <Sparkles className="h-5 w-5 text-black/40" strokeWidth={1.5} aria-hidden />
               </span>
-              <p className="text-sm text-black/55">No upcoming reservations. Time to explore.</p>
-              <Link
-                href="/stay"
-                className="mt-5 rounded-full bg-ink px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-black"
-              >
-                Find a stay
-              </Link>
+              <p className="text-sm text-[#72706C]">No upcoming reservations. Time to explore.</p>
             </div>
           ) : (
-            <ul className="space-y-3">
+            <ul className="mt-6 space-y-3">
               {shown.map((b) => (
                 <BookingRow key={b.id} booking={b} />
               ))}

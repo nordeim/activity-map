@@ -7,9 +7,9 @@ description: >
   debugging procedure, and lesson learned from three build/remediation
   sessions so a future agent can extend, debug, or replicate the app without
   re-discovering them.
-version: 1.3.0
-last_updated: 2026-09-24
-project_state: "42 unit + 27 smoke + 54 E2E green; 42 published + 27 home-only + 9 map-demo places; session-10 residual-gap parity (live category-card internals + mobile snap carousel, measured hero geometry with the photo under the header, shadcn login chrome, de-gridded favourites, max-w-6xl detail card)"
+version: 1.4.0
+last_updated: 2026-09-25
+project_state: "42 unit + 27 smoke + 54 E2E green; 42 published + 27 home-only + 9 map-demo places; session-12 evolution parity (the live's shuffled home stay-showcase order, the two-glass-card profile with the 72px NAME h1, the full-width 1138px map search + 41px pills + 620px canvas, the full-width left-aligned vibe heading with the 1178px grid, the favourites 18px grid texture restored, the white login body via inline style, 38px/12px browse chips, compacted 248px category cards, seed user 'Explorer' + email-derived avatar initial)"
 ---
 
 # activity-map — ROAM (Augsburg City Guide) Engineering SKILL

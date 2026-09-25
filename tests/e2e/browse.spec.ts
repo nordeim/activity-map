@@ -56,6 +56,11 @@ test.describe("browse views", () => {
       await expect(page.locator("article")).toHaveCount(cards);
       // The measured filter chips are present (one per view).
       await expect(page.getByRole("button", { name: chip, exact: true })).toBeVisible();
+      // Session-12 re-measure: the live's filter chips are compact —
+      // 38px tall with 12px text (the clone had 40px/14px).
+      const chipBtn = page.getByRole("button", { name: chip, exact: true });
+      await expect(chipBtn).toHaveCSS("height", "38px");
+      await expect(chipBtn).toHaveCSS("font-size", "12px");
     });
   }
 
@@ -257,10 +262,22 @@ test.describe("favourites round-trip", () => {
     const favH1 = page.getByRole("heading", { name: "Favourites" });
     await expect(favH1).toHaveCSS("font-size", "55px");
     await expect(favH1).toHaveCSS("letter-spacing", "-3.3px");
-    // The page is plain cream — the graph-paper bg-grid is gone (live has
-    // no grid on the favourites page).
+    // Session-12 re-measure: the live REGAINED the graph-paper grid — an
+    // 18px-crossing overlay (rgba(20,20,19,0.055) lines at opacity 40%).
+    // The main itself stays plain cream; the grid rides an absolute child.
     const mainBg = await page.locator("main").first().evaluate((el) => getComputedStyle(el).backgroundImage);
     expect(mainBg).toBe("none");
+    const hasGrid = await page.locator("main").first().evaluate((el) => {
+      const overlay = el.querySelector("div[class*=opacity-40], div[style*=opacity]");
+      if (!overlay) return false;
+      const bg = getComputedStyle(overlay).backgroundImage;
+      return bg !== "none" && bg.includes("linear-gradient");
+    });
+    expect(hasGrid, "the favourites page should carry the 18px grid overlay").toBe(true);
+    // Session-12: the subtitle renders 14px #3A3A3A (was 16px black/60).
+    const sub = page.getByText("All saved restaurants, hotels, and places in one calm collection.");
+    await expect(sub).toHaveCSS("font-size", "14px");
+    await expect(sub).toHaveCSS("color", "rgb(58, 58, 58)");
 
     await page.locator("article").first().getByRole("button", { name: "Remove from favourites" }).click();
     await expect(page.getByText("No favourites yet")).toBeVisible();
@@ -286,15 +303,26 @@ test.describe("map view", () => {
       await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
     }
 
-    // Session-8 re-measure: the pills are 44px tall WITH icons — the ACTIVE
-    // pill is violet-tinted (bg rgb(240,234,255), text rgb(87,26,255));
+    // Session-12 re-measure: the pills are 41px tall with 12px text (the
+    // live compacted them from 44/14) — the ACTIVE pill stays
+    // violet-tinted (bg rgb(240,234,255), text rgb(87,26,255));
     // inactive = white + rgba(14,14,14,0.08) border.
     const activePill = page.getByRole("button", { name: "All Places", exact: true });
     await expect(activePill).toHaveCSS("background-color", "rgb(240, 234, 255)");
     await expect(activePill).toHaveCSS("color", "rgb(87, 26, 255)");
+    await expect(activePill).toHaveCSS("font-size", "12px");
+    await expect(activePill).toHaveCSS("height", "41px");
     await expect(activePill.locator("svg").first()).toBeVisible();
     const inactivePill = page.getByRole("button", { name: "Sights", exact: true });
     await expect(inactivePill).toHaveCSS("background-color", "rgb(255, 255, 255)");
+
+    // Session-12 re-measure: the search bar is FULL-WIDTH (≈1138px at
+    // 1280, with a black/5 border) — not the old centered 516px pill.
+    const search = page.getByLabel("Search the map");
+    const searchBar = search.locator("xpath=ancestor::div[contains(@class,'rounded-full')][1]");
+    const searchBarBox = await searchBar.boundingBox();
+    expect(searchBarBox).not.toBeNull();
+    expect(searchBarBox!.width).toBeGreaterThan(1000);
 
     // The nine demo pins plot as dot markers (session 3 parity — the
     // browse entities never appear on the live map).
@@ -312,22 +340,32 @@ test.describe("map view", () => {
 test.describe("profile", () => {
   test("renders the profile identity, booking tabs and the empty state", async ({ page }) => {
     await page.goto("/profile");
-    // The live app's session-6 profile: PROFILE eyebrow + the USERNAME as
-    // the h1 ("Explorer" is now the badge chip below), email, Augsburg.
+    // Session-12 re-measure: the live redesigned the profile into TWO glass
+    // cards (896px). The H1 is the account NAME ("Explorer", 72px) — not
+    // the username — with "Your Roam account" 16px #555550 below it (the
+    // email is no longer shown).
     await expect(page.getByText("Profile", { exact: true })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "sepnetflix2023" })).toBeVisible();
-    // Session-8 re-measure: the email sits directly under the username (the
-    // "Your Roam account" prefix is gone).
-    await expect(page.getByText("sepnetflix2023@outlook.com")).toBeVisible();
-    await expect(page.getByText("Your Roam account")).toHaveCount(0);
-    // Saved places is a DARK button linking to /favourites. Session-10
-    // re-measure: a heart icon + the bare label (no count) — 154×44.
+    await expect(page.getByRole("heading", { name: "Explorer" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Explorer" })).toHaveCSS("font-size", "72px");
+    await expect(page.getByText("Your Roam account")).toBeVisible();
+    await expect(page.getByText("sepnetflix2023@outlook.com")).toHaveCount(0);
+
+    // The identity card: rounded-[36px] white/78 glass with the stat chips
+    // (Augsburg, 0 day streak, Explorer badge) and the dark Saved-places
+    // button (heart icon + bare label — 154×44 on the live).
+    await expect(page.getByText("Augsburg", { exact: true })).toBeVisible();
+    await expect(page.getByText("0 day streak")).toBeVisible();
     const savedBtn = page.getByRole("link", { name: "Saved places", exact: true });
     await expect(savedBtn).toHaveAttribute("href", "/favourites");
     await expect(savedBtn).toHaveCSS("background-color", "rgb(14, 14, 14)");
     await expect(savedBtn.locator("svg").first()).toBeVisible();
     await expect(page.getByText(/Saved places ·/)).toHaveCount(0);
-    await expect(page.getByText("My bookings")).toBeVisible();
+
+    // Session-12: "My bookings" is an H2 at 36px (was a 14px span).
+    const bookingsH2 = page.getByRole("heading", { name: "My bookings" });
+    await expect(bookingsH2).toBeVisible();
+    await expect(bookingsH2).toHaveCSS("font-size", "36px");
+
     // Either the empty-upcoming state or an earlier test's reservation —
     // both prove the section renders. .first(): with zero bookings BOTH the
     // "Upcoming (0)" tab and the empty-state paragraph exist at once, and an
