@@ -238,3 +238,20 @@ Stage Summary:
 - Deliverables: session-12 evolution parity remediation (stay order, two-card profile, widened map chrome, left-aligned vibe heading, restored favourites grid, white login body, compact chips/cards), 54-check E2E suite extended in place, remediation plan, 14 screenshots, 7 aligned docs.
 - Key decisions: the live's View All hanging outside the glass card and its clipped eat-card variant are quirks — the clone keeps the VA inside the glass at a compacted height; the avatar initial derives from the EMAIL (live shows "S") while the profile h1 shows the account NAME; the browse planner search-width variance (648-765 across scroll states on both apps) is environment noise, verified equivalent.
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 12 (final)
+Agent: Super Z (main agent)
+Task: Session 12 finalization — commit + push.
+
+Work Log:
+- Commit e1660a8 on main (48 files, +560/−137): the session-12 evolution parity remediation (HOME_STAY_ORDER stay showcase, two-glass-card ProfileView, seed user "Explorer" + email-derived avatar initial, widened MapExplorer chrome, left-aligned StayShowcase heading, restored FavouritesView grid, white login body via inline style, 38px chips, compacted category cards), E2E contracts extended in place (54 total), remediation plan + session log, 14 refreshed screenshots, 7 aligned docs, the 15-file live-capture reference set. Working tree clean; secret scan clean (the hits are the pre-existing demo credentials + runbook docs).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 54/54 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed (venv), Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10 records).
+- Dry-run: fast-forward ebef0ce..e1660a8 confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp/op.key --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ e1660a8 == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at e1660a8; working tree clean; no branches created; no key material on disk.
+- Open item for the owner: the deployed mirror https://activity-map.jesspete.shop/ returns HTTP 404 via Cloudflare (origin unreachable) — the standalone server behind it needs a restart/redeploy on the owner's side.
