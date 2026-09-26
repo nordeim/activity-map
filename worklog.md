@@ -390,3 +390,20 @@ Stage Summary:
 - Deliverables: the session-20 route-choreography parity (the re-typed stop cards with the max-w-md link cards and the shadow-less pills, the 50/50 desktop split with the 237px card slot, the continuous scroll-linked swap choreography, the mobile panel re-padding), the E2E contract extended in place (56 total), the remediation plan + session log, 14 refreshed screenshots, 8 aligned docs.
 - Key decisions: the choreography is implemented as scroll-linked inline transform/opacity (the live's own mechanism — 120ms linear transitions, ±380px tent crossfades) gated by an isDesktop matchMedia state so the mobile flow never sees the inline styles; data-active stays on the nearest-slot card (round()) so the pointer-events + deep-scroll contracts survive; the E2E choreography probes are deterministic window.scrollTo calls with a re-align pass (the scrollIntoViewIfNeeded + late-image traps documented).
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 20 (push verification)
+Agent: Super Z (main agent)
+Task: Session 20 finalization — commit + push status.
+
+Work Log:
+- Commit 9f32dfe on main (12 files, +446/−62): the session-20 route-choreography parity (the 20px/600 h3 place names with the 13px/400 #72706A meta lines and the 13px/600 Learn More text; the max-w-md 448px desktop link cards with the lighter 0 8px 28px/0.08 shadow and the re-chromed shadow-less time pills; the 50/50 desktop split — the visual panel w-1/2 at 640px with the stops column lg:px-8 and the card slot at lg:pt-[237px] — carrying the live's CONTINUOUS scroll-linked swap choreography with the isDesktop-gated inline transform/opacity; the mobile route panel re-padded 28px/18px/48px with mt-7 gaps), the E2E contract extended in place (56 total: the route typography/link-card/pill assertions, the 50/50 split + the designed 237px slot, the intermediate-opacity crossfade + the upward-exit choreography probes with deterministic window.scrollTo, the mobile link-card x=18 geometry), the remediation plan + session log, 2 refreshed screenshots (11-home-route + 12-home-restaurants re-rendered with the new choreography; the other 12 byte-stable), and the 8 aligned docs (README/AGENTS/CLAUDE/PAD v2.0/SKILL v1.8.0/session_20/remediation-plan-session-20/worklog).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 56/56 E2E ✓ (two consecutive clean full-suite runs; one earlier run had a single favourites CDN-timing flake that passed on every re-run — the documented pre-existing flake class).
+- Push infrastructure: the persisted venv at /home/z/my-project/.venv-push (paramiko 5.0.0) + the Appendix-A shim at /home/z/my-project/bin/ssh (shebang pinned to the venv python); operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10/12/14/16/18 records).
+- Dry-run: fast-forward a2de5ab..9f32dfe confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp/op.key --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ 9f32dfe == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at 9f32dfe; working tree clean; no branches created; no key material on disk.
+- Open item for the owner: the deployed mirror runs the session-18 code — a redeploy from main @ 9f32dfe will pick up the session-20 route surfaces (the re-typed stop cards, the 50/50 split, the continuous choreography). The mirror also carries one "Audit Session20" booking (the round-trip proof — the owner's rm -rf db + reseed flow wipes it per the start-server log).
