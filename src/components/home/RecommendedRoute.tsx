@@ -1,29 +1,32 @@
 "use client";
 
-// The Recommended Route — re-measured from the live app (sessions 3 + 6 + 8 + 18):
+// The Recommended Route — re-measured from the live app (sessions 3 + 6 + 8 + 18 + 20):
 // a scroll-driven section.
 //
 //   1. a 140vh "heading trap" (-mb-[110vh]) whose centered
 //      "Recommended Route" heading (clamp 38px→72px, ls −0.045em) stays
 //      pinned while the tall section scrolls past;
-//   2. the route body — below lg (session-18 re-measure): a FULL-VIEWPORT
-//      route visual (the winding-path svg with five numbered waypoints)
-//      pinned sticky for ~208vh BEFORE the text stop cards flow (no
-//      mobile progress chip, no dashed timeline — the live dropped both);
-//      each card = the white time pill (9:00 AM + clock, radius 999) above
-//      the dark serif stop title (44px, #141413) above a white rounded-28
-//      info card with the 30px/600 place name, the INLINE meta line
-//      "Altstadt · 4.8 rating · €€ · Coffee" (16px), the description
-//      (14px) and the full-width BLACK Learn More pill (h-11, radius 999);
-//      from lg: a 420vh scroll trap — the route VISUAL (solid winding
-//      path with five numbered waypoints + the progress pill "N% of your
-//      day planned") pinned left while ONE stop card (max-w 576) at a time
-//      fills the right half, pinning EARLY (top of the trap, live parity)
-//      and swapping as the scroll progress passes each fifth.
-//
-// The desktop progress pill fills 20% per passed stop (0% at rest — the
-// live app's initial state; 100% once Dinner passes). Below lg the visual
-// now fills by the same card-passing rule (the mobile svg's violet path).
+//   2. the route body — below lg (session-18): a FULL-VIEWPORT route
+//      visual (the winding-path svg with five numbered waypoints) pinned
+//      sticky for ~208vh BEFORE the text stop cards flow (no mobile
+//      progress chip, no dashed timeline); the panel pads px-[18px]
+//      pt-[28px] pb-12 with ~28px card gaps (session-20); each card = the
+//      white time pill (9:00 AM + clock, px-3 py-1, 12px/400, NO shadow —
+//      session-20) above the dark serif stop title (44px, #141413) above a
+//      white rounded-28 info card (session-20: max-w-md, p-5, mt-7, the
+//      lighter 0 8px 28px/0.08 shadow) with the 20px/600 h3 place name
+//      (line-height 30px), the INLINE meta line "Altstadt · 4.8 rating ·
+//      €€ · Coffee" (13px/400 #72706C), the description (14px, mt-4) and
+//      the full-width BLACK Learn More pill (h-11, radius 999, 13px/600);
+//   3. from lg (session-20): a 50/50 split — the route VISUAL (solid
+//      winding path + the progress pill "N% of your day planned") pinned
+//      left at half the viewport while the stop cards ride the right half
+//      (cards 576 wide inside px-8, the card SLOT at y≈237). The cards
+//      translate upward CONTINUOUSLY with scroll (the live's scroll-linked
+//      choreography): card i crosses the slot at progress i/(N−1), every
+//      card moves at 0.665px per scroll px, tent-fading ±380px around the
+//      slot with 120ms linear transitions — exiting cards rise OUT (never
+//      sink), and the crossfade window shows two adjacent cards at once.
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -54,6 +57,20 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
   const trapRef = useRef<HTMLDivElement>(null);
   const mobileTrapRef = useRef<HTMLDivElement>(null);
   const [progress, setProgress] = useState(0);
+  // Session-20: the desktop choreography state — isDesktop gates the inline
+  // transform/opacity (the mobile flow MUST stay static), trapScrollPx is
+  // the trap's scrollable height (420vh − 100vh, defaulting to the 800px
+  // reference viewport's 2560 until the first scroll measures it).
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [trapScrollPx, setTrapScrollPx] = useState(2560);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setIsDesktop(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     let raf: number | null = null;
@@ -68,6 +85,7 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
           const total = Math.max(r.height - window.innerHeight, 1);
           const clamped = Math.min(Math.max(-r.top / total, 0), 1);
           setProgress(clamped * 100);
+          setTrapScrollPx(total);
         } else {
           // Mobile (session-18): progress across the pinned route VISUAL's
           // scroll region — the live's svg fills while the region scrolls
@@ -94,7 +112,9 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
   if (stops.length === 0) return null;
   const step = 100 / Math.max(stops.length, 1);
   const passedStops = Math.round(progress / step);
-  const activeIndex = Math.min(stops.length - 1, Math.floor(progress / step));
+  // Session-20: the active card is the one NEAREST the slot (the live's
+  // continuous choreography) — round(), not floor().
+  const activeIndex = Math.min(stops.length - 1, Math.round(progress / step));
 
   return (
     <>
@@ -182,8 +202,10 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
           </div>
 
           <div className="lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-start">
-            {/* The route visual — pinned (lg+) with the progress pill. */}
-            <div className="sticky top-0 hidden h-screen w-[46%] shrink-0 overflow-hidden lg:block">
+            {/* The route visual — pinned (lg+) with the progress pill.
+                Session-20: the live's split is 50/50 — the visual panel is
+                half the viewport (640px at 1280, svg 640×800). */}
+            <div className="sticky top-0 hidden h-screen w-1/2 shrink-0 overflow-hidden lg:block">
               <svg
                 aria-hidden
                 viewBox="0 0 400 800"
@@ -255,64 +277,90 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
             </div>
 
             {/* The stops column — mobile (session-18): the flowing text
-                cards BELOW the pinned route visual (no chip, no dashed
-                timeline — the live dropped both); lg+: the swapping stack
-                pinned EARLY (top of the trap, live parity). */}
-            <div className="relative flex-1 px-4 pb-24 pt-6 sm:px-6 lg:flex lg:items-start lg:justify-center lg:px-12 lg:pb-0 lg:pt-24">
+                cards BELOW the pinned route visual; session-20: the panel
+                pads px-[18px] pt-[28px] pb-12 (the live's measured
+                `28px 18px 48px`) with mt-7 card gaps. lg+ (session-20): the
+                50/50 right half — cards 576 wide inside px-8, the card SLOT
+                at y≈237 (lg:pt-[237px]) with the CONTINUOUS scroll-linked
+                choreography (the cards translate up through the slot). */}
+            <div className="relative flex-1 px-[18px] pb-12 pt-[28px] md:px-8 lg:flex lg:items-start lg:justify-center lg:px-8 lg:pb-0 lg:pt-[237px]">
               <div className="relative w-full lg:min-h-[560px] lg:max-w-[576px]">
                 {stops.map((place, i) => {
                   const stop = STOPS[i] ?? { time: "", title: place.name };
                   const active = i === activeIndex;
+                  // Session-20: the continuous choreography — card i crosses
+                  // the slot at progress i/(N−1); rel is the px offset from
+                  // the slot (positive = below/below-fold, negative = exited
+                  // above); opacity tents ±380px around the slot. The motion
+                  // runs at 0.665px per scroll px of trap travel with the
+                  // live's 120ms linear transitions. Mobile (isDesktop false)
+                  // stays a static flowing list — no inline styles.
+                  const crossing = stops.length > 1 ? i / (stops.length - 1) : 0;
+                  const rel = (crossing - progress / 100) * trapScrollPx * 0.665;
+                  const cardOpacity = Math.max(0, Math.min(1, 1 - Math.abs(rel) / 380));
+                  const desktopStyle = isDesktop
+                    ? {
+                        transform: `translateY(${Math.round(rel)}px)`,
+                        opacity: cardOpacity,
+                        transition: "opacity 120ms linear, transform 120ms linear",
+                      }
+                    : undefined;
                   return (
                     <article
                       key={place.slug}
                       data-stop-index={i}
                       data-active={active}
+                      style={desktopStyle}
                       className={cn(
-                        "mx-auto mt-10 block first:mt-0",
-                        // lg+: the swapping stack — one card fills the panel;
-                        // the rest fade out below.
-                        "lg:absolute lg:inset-x-0 lg:top-0 lg:mt-0 lg:transition-all lg:duration-500",
-                        "lg:data-[active=false]:pointer-events-none lg:data-[active=false]:translate-y-10 lg:data-[active=false]:opacity-0",
+                        "mx-auto mt-7 block first:mt-0",
+                        // lg+: the continuous swapping stack — every card is
+                        // absolute at the slot; the inline transform/opacity
+                        // drive the scroll-linked motion (session-20).
+                        "lg:absolute lg:inset-x-0 lg:top-0 lg:mt-0",
+                        "lg:data-[active=false]:pointer-events-none",
                       )}
                     >
-                      {/* The time pill — white, radius 999 (session-8
-                          re-measure: the live's text-only card header). */}
+                      {/* The time pill — white, radius 999 (session-20
+                          re-measure: px-3 py-1, 12px/400, the 14px clock,
+                          NO shadow, gap-2, and the pill's mb-4 spaces the
+                          serif title). */}
                       <span
                         data-stop-time={stop.time}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold text-[#141413] shadow-[0_6px_16px_rgba(14,14,14,0.08)]"
+                        className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-normal text-[#141413]"
                       >
-                        <Clock className="h-3 w-3" strokeWidth={2} aria-hidden />
+                        <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
                         {stop.time}
                       </span>
 
                       {/* The serif stop title — dark on cream (no photo).
                           Session-10: h2, matching the live's stop headings. */}
-                      <h2 className="mt-3 font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
+                      <h2 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
                         {stop.title}
                       </h2>
 
                       {/* The white info card (the live's link card) —
-                          session-18: rounded-28 with the 30px place title
-                          (the live's mobile waypoint cards). */}
+                          session-20: rounded-28 max-w-md (448px at desktop,
+                          full-width at mobile), p-5, mt-7, the lighter
+                          0 8px 28px/0.08 shadow, the 20px/600 h3 place
+                          name, the 13px #72706C meta line. */}
                       <Link
                         href={`/place/${place.slug}`}
-                        className="mt-4 block rounded-[28px] bg-white p-5 shadow-[0_18px_44px_rgba(14,14,14,0.1)] sm:p-6"
+                        className="mt-7 block max-w-md rounded-[28px] bg-white p-5 shadow-[0_8px_28px_rgba(14,14,14,0.08)]"
                       >
-                        <span className="block text-[30px] font-semibold leading-tight text-[#141413]">
+                        <h3 className="text-[20px] font-semibold leading-[30px] text-[#141413]">
                           {place.name}
-                        </span>
-                        <span className="mt-1 block text-[16px] font-normal text-[#0e0e0e]">
+                        </h3>
+                        <span className="mt-2 block text-[13px] font-normal text-[#72706A]">
                           {stopMetaInline(place)}
                         </span>
                         {place.shortDescription && (
-                          <span className="mt-3 block text-sm leading-relaxed text-[#3a3a3a]">
+                          <span className="mt-4 block text-sm leading-relaxed text-[#3a3a3a]">
                             {place.shortDescription}
                           </span>
                         )}
                         <span
                           data-learn-more
-                          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-ink text-sm font-semibold text-white transition hover:bg-black"
+                          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-ink text-[13px] font-semibold text-white transition hover:bg-black"
                         >
                           Learn More
                         </span>

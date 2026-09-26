@@ -217,11 +217,15 @@ test.describe("home content parity (session 2)", () => {
     const stopTitle = page.getByRole("heading", { name: "Morning Coffee", exact: true });
     await expect(stopTitle).toHaveCSS("color", "rgb(20, 20, 19)");
 
-    // The time pill is a WHITE pill (radius 999).
+    // The time pill is a WHITE pill (radius 999) — session-20 re-measure:
+    // px-3 py-1, 12px/400 text, NO shadow (the live dropped it).
     const timePill = page.locator("[data-stop-time='9:00 AM']");
     await expect(timePill).toHaveCSS("background-color", "rgb(255, 255, 255)");
     const timeRadius = await timePill.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
     expect(timeRadius).toBeGreaterThan(1000);
+    await expect(timePill).toHaveCSS("font-weight", "400");
+    const timeShadow = await timePill.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(timeShadow).toBe("none");
 
     // Route stop cards link to their place pages.
     await expect(page.getByRole("link", { name: /Learn More/ }).first()).toHaveAttribute(
@@ -231,19 +235,110 @@ test.describe("home content parity (session 2)", () => {
 
     // The Learn More pill is BLACK full-width (h-11) — the pill is a span
     // inside the white info-card link, so assert the pill element itself.
+    // Session-20: the text is 13px/600 (was 14).
     const learnMore = routeSection.locator("[data-learn-more]").first();
     await expect(learnMore).toHaveCSS("background-color", "rgb(14, 14, 14)");
     const learnMoreH = await learnMore.evaluate((el) => el.getBoundingClientRect().height);
     expect(Math.round(learnMoreH)).toBe(44);
+    await expect(learnMore).toHaveCSS("font-size", "13px");
 
-    // Session-8 swap: at desktop the right panel pins EARLY and swaps ONE
-    // card at a time across the long trap — scrolling deep moves the active
-    // card past Morning Coffee (its absolute siblings stay opacity-0 until
-    // their turn). Session-10: the stop titles are h2 (the live's semantics).
+    // Session-20 re-measure: the live's stop-card typography shrank — the
+    // place name is an h3 at 20px/600 (line-height 30px), the meta line is
+    // 13px/400 #72706C (rgb(114,112,106)), the description keeps 14px with
+    // mt-4, and the DESKTOP link card is max-w-md (448px, left-aligned)
+    // with the lighter 0 8px 28px rgba(14,14,14,0.08) shadow + mt-7.
+    const stopLinkCard = routeSection.locator("article a").first();
+    const placeName = stopLinkCard.locator("h3").first();
+    await expect(placeName).toHaveText("Specialty Coffee Bar");
+    await expect(placeName).toHaveCSS("font-size", "20px");
+    await expect(placeName).toHaveCSS("font-weight", "600");
+    const metaLine = stopLinkCard.locator("span").nth(0);
+    await expect(metaLine).toHaveCSS("font-size", "13px");
+    await expect(metaLine).toHaveCSS("color", "rgb(114, 112, 106)");
+    const linkShadow = await stopLinkCard.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(linkShadow).toContain("rgba(14, 14, 14, 0.08)");
+
+    // Session-8 swap (session-20 rework): at desktop the right panel pins
+    // EARLY and the stop cards translate upward CONTINUOUSLY with scroll
+    // (the live's scroll-linked choreography) — scrolling deep moves the
+    // active card past Morning Coffee. Session-10: the stop titles are h2
+    // (the live's semantics).
     await page.setViewportSize({ width: 1280, height: 800 });
     const trap = page.locator("#recommended-route > div");
-    await trap.scrollIntoViewIfNeeded();
-    await page.mouse.wheel(0, 2600);
+    // Deterministic (session-20): scroll so the trap's TOP sits at the
+    // viewport top (progress 0) — scrollIntoViewIfNeeded on a 420vh element
+    // is non-deterministic (it may center the tall trap mid-viewport).
+    await page.evaluate(() => {
+      const t = document.querySelector("#recommended-route > div");
+      window.scrollTo(0, t ? t.getBoundingClientRect().top + window.scrollY : 0);
+    });
+    await page.waitForTimeout(300);
+
+    // Session-20: the desktop split is 50/50 — the visual panel is half the
+    // viewport (≈640 at 1280) and the stops column the other half; the card
+    // slot sits ≈237px below the sticky top (the column's lg:pt-[237px]).
+    const visualPanel = page.locator("#recommended-route div[class*='w-1/2']").first();
+    const desktopVisualBox = await visualPanel.boundingBox();
+    expect(desktopVisualBox).not.toBeNull();
+    expect(Math.round(desktopVisualBox!.width)).toBeGreaterThanOrEqual(630);
+    expect(Math.round(desktopVisualBox!.width)).toBeLessThanOrEqual(650);
+    // Late-loading images above the route can shift the trap AFTER the
+    // deterministic scroll — re-align once more before the slot measurement.
+    await page.evaluate(() => {
+      const t = document.querySelector("#recommended-route > div");
+      if (!t) return;
+      window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY);
+    });
+    await page.waitForTimeout(150);
+    const slotState = await page.evaluate(() => {
+      const sticky = document.querySelector("#recommended-route div[class*='lg:sticky']");
+      const card = document.querySelector("#recommended-route article");
+      const col = document.querySelector("#recommended-route div[class*='lg:pt-']");
+      return {
+        designed: col ? parseFloat(getComputedStyle(col).paddingTop) : 0,
+        runtime: card && sticky ? card.getBoundingClientRect().y - sticky.getBoundingClientRect().y : 0,
+      };
+    });
+    expect(Math.round(slotState.designed)).toBe(237);
+    expect(Math.round(slotState.runtime)).toBeGreaterThanOrEqual(205);
+    expect(Math.round(slotState.runtime)).toBeLessThanOrEqual(265);
+    const firstCard = page.locator("#recommended-route article").first();
+    const slotY = slotState.runtime;
+    // The desktop link card is capped at max-w-md (448px).
+    const desktopLinkBox = await firstCard.locator("a").boundingBox();
+    expect(desktopLinkBox).not.toBeNull();
+    expect(Math.round(desktopLinkBox!.width)).toBeGreaterThanOrEqual(430);
+    expect(Math.round(desktopLinkBox!.width)).toBeLessThanOrEqual(465);
+
+    // The continuous choreography: at ~400px into the trap the 0→1 card
+    // crossfade is IN PROGRESS — two adjacent articles carry intermediate
+    // opacity (0 < o < 1), not a binary active/inactive swap. Deterministic
+    // scroll (mouse.wheel timing proved flaky mid-suite).
+    const scrollIntoTrap = (offset: number) =>
+      page.evaluate((o) => {
+        const t = document.querySelector("#recommended-route > div");
+        if (!t) return;
+        window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY + o);
+      }, offset);
+    await scrollIntoTrap(400);
+    await page.waitForTimeout(400);
+    const opacities = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("#recommended-route article")).map((el) =>
+        parseFloat(getComputedStyle(el).opacity),
+      ),
+    );
+    const intermediate = opacities.filter((o) => o > 0.05 && o < 0.95);
+    expect(intermediate.length).toBeGreaterThanOrEqual(1);
+    // Card 0 must be EXITING UPWARD (its y above the slot) at +400px.
+    const cardBoxes = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("#recommended-route article")).map((el) =>
+        Math.round(el.getBoundingClientRect().y),
+      ),
+    );
+    expect(cardBoxes[0]).toBeLessThan(Math.round(slotY));
+
+    // Deep scroll: the active stop moves past Morning Coffee.
+    await scrollIntoTrap(3000);
     await page.waitForTimeout(700);
     const visibleStop = page.locator('#recommended-route article[data-active="true"] h2');
     await expect(visibleStop).not.toHaveText("Morning Coffee", { timeout: 8000 });
@@ -269,9 +364,15 @@ test.describe("home content parity (session 2)", () => {
     for (let i = 0; i < plannedCount; i++) {
       await expect(plannedTexts.nth(i)).toBeHidden();
     }
-    // The mobile stop link-card is rounded-28 (was 24).
-    const stopLinkCard = routeSectionMobile.locator("article a").first();
-    await expect(stopLinkCard).toHaveCSS("border-radius", "28px");
+    // The mobile stop link-card is rounded-28 (was 24) — session-20: the
+    // panel pads px-[18px] so the cards sit at x=18 (354 wide at 390).
+    const stopLinkCardMobile = routeSectionMobile.locator("article a").first();
+    await expect(stopLinkCardMobile).toHaveCSS("border-radius", "28px");
+    const mobileCardBox = await stopLinkCardMobile.boundingBox();
+    expect(mobileCardBox).not.toBeNull();
+    expect(Math.round(mobileCardBox!.x)).toBe(18);
+    expect(Math.round(mobileCardBox!.width)).toBeGreaterThanOrEqual(348);
+    expect(Math.round(mobileCardBox!.width)).toBeLessThanOrEqual(360);
   });
 
   test("highlighted restaurants: blue section, glass detail card, View All (session-6 carousel)", async ({ page }) => {
