@@ -432,3 +432,17 @@ Stage Summary:
 - The desktop hero photo framing, the mobile-nav glass, and 3 letter-spacing deltas remediated to EXACT live parity (all measured values identical post-fix).
 - Gates: 42 unit + 27 smoke + 58 E2E (2 new + 3 extended contracts) — all green ×1 on the push tree.
 - 14 screenshots refreshed; 8 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 22-push
+Agent: Super Z (main agent)
+Task: Session 22 — push verification record.
+
+Work Log:
+- Push infrastructure: paramiko 5.0.0 installed (--break-system-packages), the Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10/12/14/16/18/20 records).
+- Secret scan of the full diff + new docs: 0 matches (the AGENTS.md demo login is the pre-existing seeded-account documentation).
+- Single conventional commit fb5f78b (25 files: 3 components + 2 specs + 14 screenshots + 8 docs) pushed via docs/ssh_git_wrapper_v3.py to git@github.com:nordeim/activity-map.git main; dry-run first (fast-forward 64e5148..fb5f78b confirmed), then the real push.
+- Remote verified: refs/heads/main @ fb5f78b == local HEAD; refs/remotes/origin/main synced; operator key + the wrapper's temp copy both shredded.
+
+Stage Summary:
+- Session 22 delivered and pushed to main (fb5f78b); remote ref verified; no key residue.
