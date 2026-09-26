@@ -322,11 +322,12 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                     >
                       {/* The time pill — white, radius 999 (session-20
                           re-measure: px-3 py-1, 12px/400, the 14px clock,
-                          NO shadow, gap-2, and the pill's mb-4 spaces the
-                          serif title). */}
+                          NO shadow, gap-2; session-22: the text carries
+                          the live's +0.05em tracking; and the pill's mb-4
+                          spaces the serif title). */}
                       <span
                         data-stop-time={stop.time}
-                        className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-normal text-[#141413]"
+                        className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-normal tracking-[0.05em] text-[#141413]"
                       >
                         <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
                         {stop.time}
@@ -347,7 +348,7 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                         href={`/place/${place.slug}`}
                         className="mt-7 block max-w-md rounded-[28px] bg-white p-5 shadow-[0_8px_28px_rgba(14,14,14,0.08)]"
                       >
-                        <h3 className="text-[20px] font-semibold leading-[30px] text-[#141413]">
+                        <h3 className="text-[20px] font-semibold leading-[30px] tracking-[-0.02em] text-[#141413]">
                           {place.name}
                         </h3>
                         <span className="mt-2 block text-[13px] font-normal text-[#72706A]">

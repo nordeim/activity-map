@@ -85,6 +85,40 @@ test.describe("mobile navigation", () => {
     await expect(eat).not.toHaveAttribute("aria-current", "page");
   });
 
+  test("the tab-bar glass matches the live (session-22: blur 24 + saturate 1.5)", async ({ page }) => {
+    // Session-22 re-measure: the live's .tab-bar renders
+    // rgba(248,247,244,0.62) + backdrop-filter blur(24px) saturate(1.5)
+    // (the clone had /60 + blur(20) — a visibly flatter glass).
+    const header = page.locator("header");
+    await expect(header).toHaveCSS("backdrop-filter", "blur(24px) saturate(1.5)");
+    const bg = await header.evaluate((el) => getComputedStyle(el).backgroundColor);
+    // The tint may serialize as oklab() or rgba() — assert the numeric
+    // channels instead of the exact string (the AGENTS.md computed-style
+    // gotcha: α-blends arrive as oklab()).
+    const m = /rgba?\(([^)]+)\)/.exec(bg);
+    if (m) {
+      const parts = m[1].split(",").map((s) => parseFloat(s));
+      expect(parts.length).toBe(4);
+      expect(parts[0]).toBeGreaterThan(245); // 248
+      expect(parts[1]).toBeGreaterThan(245); // 247
+      expect(parts[2]).toBeGreaterThan(238); // 244
+      expect(parts[3]).toBeGreaterThanOrEqual(0.6); // 0.62
+      expect(parts[3]).toBeLessThanOrEqual(0.64);
+    } else {
+      // oklab(0.976…/0.62) — assert the alpha suffix.
+      expect(bg).toMatch(/0\.6[12]/);
+    }
+  });
+
+  test("mobile nav link tracking is −0.01em (session-22)", async ({ page }) => {
+    // The live's 12px mobile link text carries −0.01em (−0.12px).
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const eat = nav.getByRole("link", { name: "Eat", exact: true });
+    const ls = await eat.evaluate((el) => parseFloat(getComputedStyle(el).letterSpacing));
+    expect(ls).toBeLessThanOrEqual(-0.08);
+    expect(ls).toBeGreaterThanOrEqual(-0.16);
+  });
+
   test("view-link taps switch routes and move the active state", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
 
@@ -166,6 +200,11 @@ test.describe("desktop (1280) navigation", () => {
     // The ACTIVE link sits on the rgba(14,14,14,0.08) pill.
     const highlights = nav.getByRole("link", { name: "Highlights", exact: true });
     await expect(highlights).toHaveCSS("background-color", "rgba(14, 14, 14, 0.08)");
+    // Session-22 re-measure: the live's desktop 13px link text carries
+    // +0.01em tracking (0.13px at 13px).
+    const desktopLs = await highlights.evaluate((el) => parseFloat(getComputedStyle(el).letterSpacing));
+    expect(desktopLs).toBeGreaterThanOrEqual(0.08);
+    expect(desktopLs).toBeLessThanOrEqual(0.18);
     // The avatar chip renders the user's initial on the black disc.
     const avatar = nav.getByRole("link", { name: "Profile", exact: true });
     await expect(avatar).toHaveText("S");

@@ -2,23 +2,25 @@
 
 // The primary navigation, re-measured from the live app (sessions 3 + 6).
 //
-// Mobile (<md): a FIXED top "tab bar" — cream glass (#F8F7F4/62, blur 20,
+// Mobile (<md): a FIXED top "tab bar" — cream glass (#F8F7F4/62 with
+// blur(24px) + saturate(1.5) — session-22 re-measure; was /60 blur(20)),
 // border-b rgba(14,14,14,0.08)), 52px tall, capped at 430px and centered:
 //   [✳ ROAM]  Highlights Eat Stay Do        [pin] [♥] [user]
-// Text-only links, 12px Inter (session-6 re-measure; was 16px) — ACTIVE =
-// weight 700 / #0E0E0E, inactive = weight 500 / #0E0E0E-40%. The three right
-// icons are 18px. On the home page the hero photo slides UNDER the glass;
-// every other page gets a 52px spacer.
+// Text-only links, 12px Inter at −0.01em tracking (session-22 re-measure;
+// session-6: was 16px) — ACTIVE = weight 700 / #0E0E0E, inactive = weight
+// 500 / #0E0E0E-40%. The three right icons are 18px. On the home page the
+// hero photo slides UNDER the glass; every other page gets a 52px spacer.
 //
 // Desktop (md+): a sticky TRANSPARENT header (pt 9px, px-6, pb-2) holding a
 // centered WHITE floating PILL (h-14, max-w 820, radius 999, 1px #E8E6DC
 // border all round, shadow 0 2px 12px rgba(14,14,14,0.08)):
 //   [✳ ROAM]  Highlights Eat Stay Do Map     [♥] (S)
-// Links are icon+text 13px Inter (session-6 re-measure) — the ACTIVE link
-// is weight 700 ink on the rgba(14,14,14,0.08) pill; inactive links are
-// weight 500 #555550. The right cluster is the heart (#0E0E0E/7 disc) plus
-// the black avatar disc. The whole header hides on scroll-down near the
-// bottom and returns on scroll-up (the live app's translateY choreography).
+// Links are icon+text 13px Inter at +0.01em tracking (session-22
+// re-measure; session-6: 13px) — the ACTIVE link is weight 700 ink on the
+// rgba(14,14,14,0.08) pill; inactive links are weight 500 #555550. The
+// right cluster is the heart (#0E0E0E/7 disc) plus the black avatar disc.
+// The whole header hides on scroll-down near the bottom and returns on
+// scroll-up (the live app's translateY choreography).
 //
 // The links row keeps a horizontal no-scrollbar overflow as a safety valve so
 // links can never slide under the logo or the right cluster (Tailwind v4
@@ -76,12 +78,16 @@ export function Navbar({ userEmail }: { userEmail: string }) {
     <>
       <header
         className={cn(
-          // Mobile tab-bar: fixed top, cream glass, 52px, centered, ≤430px.
+          // Mobile tab-bar: fixed top, cream glass (session-22: the live's
+          // measured rgba(248,247,244,0.62) + blur(24px) saturate(1.5)),
+          // 52px, centered, ≤430px. The explicit rgba() pins the computed
+          // color (α-modifiers compile to oklab color-mix). Both backdrop
+          // utilities compose into ONE backdrop-filter declaration.
           "fixed left-1/2 top-0 z-40 w-full max-w-[430px] -translate-x-1/2",
-          "border-b border-[#0e0e0e]/[0.08] bg-cream/60 backdrop-blur-[20px]",
+          "border-b border-[#0e0e0e]/[0.08] bg-[rgba(248,247,244,0.62)] backdrop-blur-[24px] backdrop-saturate-[1.5]",
           // md+: in-flow sticky transparent header CENTERING the white pill
           // (session-6: pt 9px / px-6 / pb-2, flex justify-center).
-          "md:sticky md:top-0 md:left-auto md:max-w-none md:translate-x-0 md:border-b-0 md:bg-transparent md:backdrop-blur-none",
+          "md:sticky md:top-0 md:left-auto md:max-w-none md:translate-x-0 md:border-b-0 md:bg-transparent md:backdrop-blur-none md:backdrop-saturate-none",
           "md:flex md:justify-center md:px-6 md:pb-2 md:pt-[9px]",
         )}
       >
@@ -143,7 +149,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-[12px] transition-colors md:text-[13px]",
+                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-[12px] tracking-[-0.01em] transition-colors md:text-[13px] md:tracking-[0.01em]",
                     "md:h-auto md:rounded-full md:px-4 md:py-2",
                     active
                       ? "font-bold text-ink md:bg-[rgba(14,14,14,0.08)]"
@@ -162,7 +168,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               href="/map"
               aria-current={isActive("/map") ? "page" : undefined}
               className={cn(
-                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-[13px] transition-colors md:flex",
+                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-[13px] tracking-[0.01em] transition-colors md:flex",
                 isActive("/map")
                   ? "bg-[rgba(14,14,14,0.08)] text-ink"
                   : "text-[#555550] hover:bg-black/[0.04] hover:text-ink",

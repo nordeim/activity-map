@@ -407,3 +407,28 @@ Work Log:
 Stage Summary:
 - main fully in sync with origin at 9f32dfe; working tree clean; no branches created; no key material on disk.
 - Open item for the owner: the deployed mirror runs the session-18 code — a redeploy from main @ 9f32dfe will pick up the session-20 route surfaces (the re-typed stop cards, the 50/50 split, the continuous choreography). The mirror also carries one "Audit Session20" booking (the round-trip proof — the owner's rm -rf db + reseed flow wipes it per the start-server log).
+
+---
+Task ID: 22
+Agent: Super Z (main agent)
+Task: Session 22 — audit the DEPLOYED mirror via browser E2E, re-measure the live source, remediate the parity gaps (hero framing + nav glass + letter-spacing), pass the full gate, refresh screenshots, align docs, commit + push.
+
+Work Log:
+- Workspace re-cloned (reset environment) to 64e5148 (main; the owner's commits added docs/session_21.md — the previous agent's narration — the session-20 audit docs, and the start-server-log update). All 5 root docs + session_20/remediation-plan-session-20/worklog/session_21/start_server_log reviewed; repo skills catalog consulted (agent-browser / tdd / tailwind-patterns / clone-app-pat-pro).
+- Baseline validation: bun install → prisma generate → db:push/db:seed (db/ at the repo root, 42+27+9 places + demo user) → lint ✓ (2 pre-existing warnings) typecheck ✓ 42 unit ✓ build ✓ 56/56 E2E ✓ 27/27 smoke ✓; .env/.env.example correct (DATABASE_URL="file:../db/custom.db", scripts pin it inline); vitest + playwright configs functional; no stray parent .env trap.
+- Deployment check: https://activity-map.jesspete.shop/ UP and running the SESSION-20 code (verified by signature: the h3 20px/600 stop cards, the 448px max-w-md link cards at x=672, the 640×800 visual panel, the absolute top-400 choreography with 0.12s linear transitions).
+- Deployed-mirror functional audit (agent-browser, logged in): all 10 pages load with ZERO console errors; mobile navbar verified end-to-end (fixed 52px cream-glass, icons 304/330/356 identical to the live, one-line 12px links, fixed survives scroll, tap navigation moves the active state, no overflow at 390 — no Tailwind v4 failure classes); desktop pill exact; favourites round-trip (POST 201 → visible → DELETE 200); booking round-trip (POST 201 → visible; owner's redeploy wipes it).
+- Live-source re-measure (logged in at 1280/768/390): every session-20 surface re-verified UNCHANGED (the full §1 list of the remediation plan) EXCEPT 5 deltas — F1 the desktop hero photo FRAMING (the live's .today-hero-bg absolute at inset −78px/6px over a −80mt section → the photo box spans page −86→924 @1280 (1010px) / −86→886 @768 (972px), cover-cropped ≈7.7% more zoomed); F2 the mobile-nav glass (rgba(248,247,244,0.62) + blur(24px) saturate(1.5) vs the clone's /60 + blur(20)); F3 the nav link tracking (+0.01em desktop / −0.01em mobile); F4 the route h3 tracking (−0.02em); F5 the time-pill tracking (+0.05em).
+- Remediation plan written (docs/remediation-plan-session-22.md) and validated against the codebase (the exact files/locators/spec sections identified) before execution.
+- TDD RED: the E2E contracts extended first (home.spec.ts hero geometry @1280/768 + the route h3/pill tracking; mobile-navigation.spec.ts the tab-bar glass + the mobile link tracking + the desktop pill tracking) — all five verified failing against the unmodified tree (imgH 938 vs 1000–1020; blur(20px); the tracking NaNs).
+- TDD GREEN: R1 the Hero restructured (the section md:-mt-[73px]; the backdrop absolute at every breakpoint with md:-top-[86px]/md:bottom-[14px]; the in-flow content layer carrying 591/900/938) — en-route trap caught by the mobile spec: an in-flow backdrop + a separate in-flow content layer STACKS the two 591px boxes (h1 at y=794) — fixed by making the backdrop absolute at mobile too; R2 the glass (bg-[rgba(248,247,244,0.62)] + backdrop-blur-[24px] + backdrop-saturate-[1.5] — composed into ONE declaration, verified); R3–R5 the tracking utilities.
+- Full gates on the push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 58/58 E2E ✓.
+- Side-by-side verification on the dev server: every remediated surface EXACT (img y=−86 h=1010 @1280; y=−86 h=972 @768; y=0 h=591 @390; h1 y=290/203 x=24; the glass rgba+blur+saturate EXACT; the four tracking values EXACT: 0.13px / −0.12px / −0.4px / 0.6px).
+- 14 screenshots refreshed (capture-screens-v3 + crop-sections-v3; the favourite saved for 07); .env.example verified against every code-referenced env var.
+- Docs aligned: README (the home feature row + the session-22 status row), AGENTS (the glass + tracking + hero facts, 58 E2E), CLAUDE (the mobile chrome + the testing map), PAD (v2.1), activity-map_SKILL (v1.9.0), the session-22 plan + this log + the worklog.
+
+Stage Summary:
+- The deployed mirror audited ALL GREEN on the session-20 code; the live source re-measured with 5 deltas found.
+- The desktop hero photo framing, the mobile-nav glass, and 3 letter-spacing deltas remediated to EXACT live parity (all measured values identical post-fix).
+- Gates: 42 unit + 27 smoke + 58 E2E (2 new + 3 extended contracts) — all green ×1 on the push tree.
+- 14 screenshots refreshed; 8 docs aligned; single conventional commit + SSH-wrapper push to main.

@@ -75,9 +75,11 @@ test.describe("home content parity (session 2)", () => {
     expect(Math.round(plannerBox!.width)).toBeGreaterThanOrEqual(352);
     expect(Math.round(plannerBox!.width)).toBeLessThanOrEqual(364);
 
-    // Desktop (1280×800): the photo is ~938px (the live's hero section) with
-    // the h1 at viewport y≈290 (the content rides higher over the taller
-    // photo; the photo shows behind the transparent header strip).
+    // Desktop (1280×800): session-22 re-measure — the live's hero photo
+    // box is an ABSOLUTE backdrop bleeding ABOVE the hero section (inset
+    // top −86px / bottom +14px relative to a section at page y=0): the
+    // 1280×1010 box lands at page y=−86→924, cover-cropped ≈7.7% more
+    // zoomed than the old full-container framing. The h1 stays at y≈290.
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const desktopGeom = await page.evaluate(() => {
@@ -89,11 +91,27 @@ test.describe("home content parity (session 2)", () => {
         h1Y: Math.round(h1?.getBoundingClientRect().y ?? 0),
       };
     });
-    expect(desktopGeom.imgH).toBeGreaterThanOrEqual(920);
-    expect(desktopGeom.imgH).toBeLessThanOrEqual(960);
-    expect(desktopGeom.imgY).toBeLessThanOrEqual(10); // behind/under the header
+    expect(desktopGeom.imgH).toBeGreaterThanOrEqual(1000);
+    expect(desktopGeom.imgH).toBeLessThanOrEqual(1020);
+    expect(desktopGeom.imgY).toBeLessThanOrEqual(-75); // bleeding above the page top (the live: −86)
+    expect(desktopGeom.imgY).toBeGreaterThanOrEqual(-95);
     expect(desktopGeom.h1Y).toBeGreaterThanOrEqual(265);
     expect(desktopGeom.h1Y).toBeLessThanOrEqual(315);
+
+    // md (768): the same bleed rule — the box is 972px (900 + 72).
+    await page.setViewportSize({ width: 768, height: 900 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const mdGeom = await page.evaluate(() => {
+      const img = [...document.querySelectorAll("img")].find((i) => i.getBoundingClientRect().height > 400);
+      return {
+        imgY: Math.round(img?.getBoundingClientRect().y ?? 0),
+        imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
+      };
+    });
+    expect(mdGeom.imgH).toBeGreaterThanOrEqual(965);
+    expect(mdGeom.imgH).toBeLessThanOrEqual(980);
+    expect(mdGeom.imgY).toBeLessThanOrEqual(-75);
+    expect(mdGeom.imgY).toBeGreaterThanOrEqual(-95);
   });
 
   test("desktop navbar is the floating pill (session-6 redesign)", async ({ page }) => {
@@ -226,6 +244,11 @@ test.describe("home content parity (session 2)", () => {
     await expect(timePill).toHaveCSS("font-weight", "400");
     const timeShadow = await timePill.evaluate((el) => getComputedStyle(el).boxShadow);
     expect(timeShadow).toBe("none");
+    // Session-22 re-measure: the live's pill text carries +0.05em tracking
+    // (0.6px at 12px) — the "9:00 AM" span is tracked out slightly.
+    const timeLs = await timePill.evaluate((el) => parseFloat(getComputedStyle(el).letterSpacing));
+    expect(timeLs).toBeGreaterThanOrEqual(0.5);
+    expect(timeLs).toBeLessThanOrEqual(0.7);
 
     // Route stop cards link to their place pages.
     await expect(page.getByRole("link", { name: /Learn More/ }).first()).toHaveAttribute(
@@ -252,6 +275,11 @@ test.describe("home content parity (session 2)", () => {
     await expect(placeName).toHaveText("Specialty Coffee Bar");
     await expect(placeName).toHaveCSS("font-size", "20px");
     await expect(placeName).toHaveCSS("font-weight", "600");
+    // Session-22 re-measure: the live's 20px place names carry −0.02em
+    // tracking (−0.4px at 20px).
+    const placeLs = await placeName.evaluate((el) => parseFloat(getComputedStyle(el).letterSpacing));
+    expect(placeLs).toBeLessThanOrEqual(-0.3);
+    expect(placeLs).toBeGreaterThanOrEqual(-0.5);
     const metaLine = stopLinkCard.locator("span").nth(0);
     await expect(metaLine).toHaveCSS("font-size", "13px");
     await expect(metaLine).toHaveCSS("color", "rgb(114, 112, 106)");
