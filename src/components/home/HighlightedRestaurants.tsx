@@ -1,13 +1,14 @@
 "use client";
 
 // The Highlighted Restaurants band — the live app's vivid blue section
-// (measured rgb(77,97,255)), redesigned in session 5:
+// (measured rgb(77,97,255)), redesigned in session 5 + re-measured session 18:
 //
-// - Mobile (<md): a STACKED CARD DECK — browse-style cards (cover photo
-//   with gradient, heart top-left, white rating pill top-right, the 28px
-//   white title on the photo, then the white body with neighborhood · €
-//   meta, description, tag pills, and the violet full-width Learn More)
-//   sliding over each other as the section scrolls (sticky stacking).
+// - Mobile (<md): a FLOWING LIST — session-18 re-measure: the live dropped
+//   the sticky-stacking deck; the FIRST SIX restaurants now flow as plain
+//   static cards (browse-style: cover photo with gradient, heart top-left,
+//   white rating pill top-right, the 28px white title on the photo, then the
+//   white body with neighborhood · € meta, description, tag pills, and the
+//   violet full-width Learn More) spaced ~130px apart (~620px advances).
 //
 // - Desktop (md+): a scroll-driven carousel inside a tall trap — the serif
 //   headline + white View All pill, the restaurant names as a large
@@ -15,6 +16,9 @@
 //   tilted photos, and one frosted-glass DETAIL CARD (address, € symbols,
 //   ★★★★★, rating, "Book a Table" white pill + "Learn More" glass
 //   outline) that swaps with the active restaurant as you scroll.
+//   Session-18 re-measure: the band now RISES over the route trap's tail
+//   (lg:-mt-[800px]) — its top starts at the route sticky's release point,
+//   exactly like the live (band top ≈ route release, ~800px overlap).
 //
 // Reduced motion / pre-hydration fallback: the desktop stage renders the
 // same content statically (the first restaurant active).
@@ -76,7 +80,10 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
   const active = restaurants[activeIndex];
 
   return (
-    <section id="highlighted-restaurants" className="bg-electric">
+    <section
+      id="highlighted-restaurants"
+      className="relative z-10 bg-electric lg:-mt-[800px]"
+    >
       {/* ---------- Desktop (md+): the scroll-driven carousel ---------- */}
       <div ref={trapRef} className="relative hidden md:block md:h-[460vh]">
         <div className="md:sticky md:top-0 md:h-screen md:overflow-hidden">
@@ -176,18 +183,21 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
         </div>
       </div>
 
-      {/* ---------- Mobile (<md): the stacked card deck ---------- */}
+      {/* ---------- Mobile (<md): the flowing card list (session 18) ---------- */}
       <div className="px-4 pb-16 pt-16 md:hidden">
         <h2 className="mb-8 text-center font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-white">
           Highlighted Restaurants
         </h2>
 
+        {/* Session-18 re-measure: the live dropped the sticky-stacking deck
+            — the six cards flow as plain static cards with ~130px gaps
+            (~620px advances). */}
         <div className="relative">
           {deck.map((r, i) => (
             <article
               key={r.slug}
-              className="relative sticky top-[64px] block overflow-hidden rounded-[28px] bg-white"
-              style={{ zIndex: 10 + i, marginBottom: i === deck.length - 1 ? 0 : -290 }}
+              className="block overflow-hidden rounded-[28px] bg-white"
+              style={{ marginBottom: i === deck.length - 1 ? 0 : 130 }}
             >
               <Link href={`/place/${r.slug}`} className="flex h-full flex-col">
                 {/* Photo with gradient, rating pill, overlaid title (the

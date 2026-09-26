@@ -1,14 +1,17 @@
 "use client";
 
 // The booking request form on the place detail page — re-measured from the
-// live app (session 3, re-measured session 14): the "Book Now" 18px/600
-// heading with the "Send your booking request for <place>." 14px #888580
-// subtitle, then Name*, Surname*, Dates* ("Choose dates"), Time* ("Choose
-// time"), Phone, Email*, Message — all SINGLE-COLUMN full-width 44px fields
-// — and the violet #571AFF 48px "Book Now" submit. The card is a plain
-// white rounded-28 with the black/8 hairline and NO shadow (session-14
-// re-measure). Submitting posts to /api/bookings (guests stay
-// server-clamped; the request fields are persisted on the Booking row).
+// live app (session 3, re-measured sessions 14 + 18): a SEPARATE white
+// card (aside, rounded-28, black/8 hairline, no shadow — session-18: the
+// card moved BELOW the hero photo into the detail grid's form column)
+// leading with the "Book Now" 18px/600 h3 + the "Send your booking request
+// for <place>." 14px #888580 subtitle, then Name*, Surname*, Dates*
+// ("Choose dates"), Time* ("Choose time"), Phone, Email*, Message — all
+// SINGLE-COLUMN full-width 44px fields with 16px corner radii (session-18:
+// the live moved off rounded-full) — and the violet #571AFF 48px "Book
+// Now" submit (a full pill, unchanged). Submitting posts to
+// /api/bookings (guests stay server-clamped; the request fields are
+// persisted on the Booking row).
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -82,37 +85,43 @@ export function BookingForm({ place }: { place: BookablePlace }) {
 
   if (!place.isBookable) {
     return (
-      <div className="rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white p-6 md:p-8">
+      <aside
+        id="book-now-card"
+        className="scroll-mt-24 rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white p-6 md:p-8"
+      >
         <p className="text-sm leading-relaxed text-secondary">
           This stop is browse-only — drop by any time, no reservation needed.
         </p>
-      </div>
+      </aside>
     );
   }
 
   // Session-14 re-measure: the live's fields are single-column 44px rows
   // (was a 2-column 48px grid); the Dates/Time pickers carry the 600-weight
   // #888580 "Choose …" placeholder text like the live's picker buttons.
+  // Session-18 re-measure: the field corners are 16px radii (the live moved
+  // off rounded-full); the textarea matches at 16px.
   const field =
-    "flex h-11 w-full items-center rounded-full border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50";
+    "flex h-11 w-full items-center rounded-[16px] border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50";
   const pickerField =
-    "flex h-11 w-full items-center rounded-full border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:font-semibold placeholder:text-[#888580] focus:border-roam/50";
+    "flex h-11 w-full items-center rounded-[16px] border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:font-semibold placeholder:text-[#888580] focus:border-roam/50";
   const label = "mb-1.5 block text-sm font-semibold text-ink";
 
   return (
-    <form
-      id="book-now"
-      onSubmit={submit}
-      className="rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white p-6 md:p-8"
+    <aside
+      id="book-now-card"
+      className="scroll-mt-24 rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white p-6 md:p-8"
     >
       {/* Session-14 re-measure: the live leads with the 18px "Book Now"
-          heading and demoted the request line to a 14px #888580 subtitle. */}
-      <h2 className="text-lg font-semibold text-ink">Book Now</h2>
+          heading and demoted the request line to a 14px #888580 subtitle.
+          Session-18: the live renders it as an h3 inside the aside card. */}
+      <h3 className="text-lg font-semibold text-ink">Book Now</h3>
       <p className="mt-1 text-sm text-[#888580]">
         Send your booking request for {place.name}.
       </p>
 
-      <div className="mt-6 grid grid-cols-1 gap-4">
+      <form id="book-now" onSubmit={submit} className="mt-6 space-y-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className={label} htmlFor="booking-name">
             Name<span className="text-roam" aria-hidden>*</span>
@@ -205,7 +214,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
           <textarea
             id="booking-message"
             aria-label="Message"
-            className="min-h-[106px] w-full rounded-[20px] border border-black/10 bg-white px-5 py-4 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50"
+            className="min-h-[106px] w-full rounded-[16px] border border-black/10 bg-white px-5 py-4 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Anything the host should know?"
@@ -234,6 +243,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
           {note}
         </p>
       ) : null}
-    </form>
+      </form>
+    </aside>
   );
 }

@@ -74,6 +74,20 @@ test.describe("browse views", () => {
       const sub = page.locator("main > section").first().locator("p").first();
       await expect(sub).toHaveCSS("font-size", "14px");
       await expect(sub).toHaveCSS("color", "rgb(58, 58, 58)");
+
+      // Session-18 re-measure: the live now carries the 18px graph-paper
+      // grid texture on EVERY browse heading section — a scoped overlay
+      // (absolute inset-0, opacity 40%, 18px crossings) inside the
+      // full-bleed relative heading section.
+      const overlay = page.locator("main > section").first().locator("div.absolute").first();
+      await expect(overlay).toBeVisible();
+      await expect(overlay).toHaveCSS("opacity", "0.4");
+      const bgImage = await overlay.evaluate((el) => getComputedStyle(el).backgroundImage);
+      expect(bgImage).toContain("linear-gradient");
+      const bgSize = await overlay.evaluate((el) => getComputedStyle(el).backgroundSize);
+      expect(bgSize).toContain("18px");
+      const overlayBox = await overlay.boundingBox();
+      expect(overlayBox!.width).toBeGreaterThanOrEqual(1270);
     });
   }
 
@@ -170,13 +184,15 @@ test.describe("place detail", () => {
     await expect(page.getByRole("heading", { name: "About this place" })).toBeVisible();
     // Session-8 re-measure: About this place is a FIXED 34px heading.
     await expect(page.getByRole("heading", { name: "About this place" })).toHaveCSS("font-size", "34px");
-    // Session-14 re-measure: the form card leads with the 18px "Book Now"
-    // heading, the request line is its 14px #888580 subtitle (the live
-    // demoted the old 18px request-heading), the card is a plain white
-    // rounded-28 with the black/8 hairline and NO shadow, and the fields
-    // render SINGLE-COLUMN full-width (was a 2-column 158px grid).
-    const formCard = page.locator("#book-now");
-    const bookHeading = formCard.getByRole("heading", { name: "Book Now" });
+    // Session-18 re-measure: the live restructured the detail page — the
+    // rounded-36 card ends after the hero photo, and the About + form grid
+    // moved BELOW it as a separate two-column section (gap 24px,
+    // lg:grid-cols-[1.2fr_0.8fr]). The Book Now card is a separate aside
+    // (rounded-28, hairline, no shadow) leading with the 18px "Book Now"
+    // heading + the 14px #888580 request line; the fields render
+    // SINGLE-COLUMN with radius-16 corners (was rounded-full).
+    const formAside = page.locator("aside#book-now-card");
+    const bookHeading = formAside.getByRole("heading", { name: "Book Now" });
     await expect(bookHeading).toBeVisible();
     await expect(bookHeading).toHaveCSS("font-size", "18px");
     const requestLine = page.getByText(/Send your booking request for Courtyard Stay/);
@@ -188,10 +204,19 @@ test.describe("place detail", () => {
     }
     await expect(page.getByRole("button", { name: "Book Now" })).toBeVisible();
     await page.setViewportSize({ width: 1280, height: 800 });
-    await expect(formCard).toHaveCSS("border-radius", "28px");
-    await expect(formCard).toHaveCSS("border-top-color", "rgba(14, 14, 14, 0.08)");
-    const formShadow = await formCard.evaluate((el) => getComputedStyle(el).boxShadow);
+    await expect(formAside).toHaveCSS("border-radius", "28px");
+    await expect(formAside).toHaveCSS("border-top-color", "rgba(14, 14, 14, 0.08)");
+    const formShadow = await formAside.evaluate((el) => getComputedStyle(el).boxShadow);
     expect(formShadow).toBe("none");
+    // Session-18: the fields are radius-16 pills (the live moved off
+    // rounded-full); the textarea matches; the submit stays a full pill.
+    const nameField = page.getByLabel("Name", { exact: true });
+    await expect(nameField).toHaveCSS("border-radius", "16px");
+    const messageField = page.getByLabel("Message", { exact: true });
+    await expect(messageField).toHaveCSS("border-radius", "16px");
+    const submitPill = page.getByRole("button", { name: "Book Now" });
+    const submitRadius = await submitPill.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
+    expect(submitRadius).toBeGreaterThan(1000);
     const nameX = await page.getByLabel("Name", { exact: true }).boundingBox();
     const surnameX = await page.getByLabel("Surname", { exact: true }).boundingBox();
     expect(Math.abs(nameX!.x - surnameX!.x)).toBeLessThanOrEqual(2);
@@ -244,6 +269,34 @@ test.describe("place detail", () => {
     const photo = page.locator("main img").first();
     const photoH = await photo.evaluate((el) => Math.round(el.getBoundingClientRect().height));
     expect(photoH).toBe(460);
+
+    // Session-18 re-measure: the live restructured the detail page — the
+    // rounded-36 card now ends after the hero photo; "About this place"
+    // and the booking form live BELOW the card in a separate two-column
+    // grid (gap 24px, lg:grid-cols-[1.2fr_0.8fr]) whose form column is a
+    // separate rounded-28 aside. The heading section also carries the
+    // 18px graph-paper grid texture (the live's new surface).
+    const aboutBox = await page.getByRole("heading", { name: "About this place" }).boundingBox();
+    expect(aboutBox!.y).toBeGreaterThanOrEqual(cardBox!.y + cardBox!.height - 8);
+    expect(await card.locator("aside").count()).toBe(0);
+    expect(await card.getByText("About this place").count()).toBe(0);
+    const grid = page.locator("[data-detail-grid]");
+    const gridBox = await grid.boundingBox();
+    expect(gridBox).not.toBeNull();
+    expect(Math.round(gridBox!.width)).toBeGreaterThanOrEqual(1140);
+    expect(Math.round(gridBox!.width)).toBeLessThanOrEqual(1165);
+    const gridGap = await grid.evaluate((el) => parseFloat(getComputedStyle(el).columnGap));
+    expect(Math.round(gridGap)).toBe(24);
+    const asideBox = await page.locator("aside#book-now-card").boundingBox();
+    expect(asideBox).not.toBeNull();
+    expect(Math.round(asideBox!.width)).toBeGreaterThanOrEqual(440);
+    expect(Math.round(asideBox!.width)).toBeLessThanOrEqual(465);
+    // The hero heading section carries the scoped grid texture (40%).
+    const heroOverlay = page.locator("main > section").first().locator("div.absolute").first();
+    await expect(heroOverlay).toBeVisible();
+    await expect(heroOverlay).toHaveCSS("opacity", "0.4");
+    const heroBgSize = await heroOverlay.evaluate((el) => getComputedStyle(el).backgroundSize);
+    expect(heroBgSize).toContain("18px");
   });
 
   test("booking records a request visible on the profile", async ({ page }) => {
@@ -350,6 +403,14 @@ test.describe("map view", () => {
     await page.goto("/map");
     await expect(page.getByRole("heading", { name: "Map", exact: true })).toBeVisible();
     await expect(page.getByText("Augsburg restaurants, hotels and experiences plotted across the old town.")).toBeVisible();
+    // Session-18 re-measure: the map heading section carries the scoped
+    // 18px graph-paper texture like the browse views (the live's new
+    // heading surface).
+    const mapOverlay = page.locator("main > section").first().locator("div.absolute").first();
+    await expect(mapOverlay).toBeVisible();
+    await expect(mapOverlay).toHaveCSS("opacity", "0.4");
+    const mapBgSize = await mapOverlay.evaluate((el) => getComputedStyle(el).backgroundSize);
+    expect(mapBgSize).toContain("18px");
     for (const label of ["All Places", "Restaurants", "Hotels", "Sights"]) {
       await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
     }

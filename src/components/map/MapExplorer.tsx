@@ -101,24 +101,35 @@ export function MapExplorer({
   const activePlace = active && activeVisible ? places.find((p) => p.slug === active) ?? null : null;
 
   return (
-    <main className="mx-auto max-w-7xl px-5 pb-16 pt-16 md:px-8 md:pt-24">
+    <main className="w-full">
       {/* Headline — session-14 re-measure: the live's map heading matches
           the browse pattern (full-width max-w-7xl block, h1 y≈168 via
-          md:pt-24, subtitle 14px #3A3A3A). */}
-      <section className="mx-auto mb-8 max-w-7xl text-center">
-        <h1 className="mb-5 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
-          Map
-        </h1>
-        <p className="text-sm text-[#3A3A3A]">
-          Augsburg restaurants, hotels and experiences plotted across the old town.
-        </p>
-      </section>
+          md:pt-24, subtitle 14px #3A3A3A). Session-18 re-measure: the
+          heading became a FULL-BLEED relative section carrying the 18px
+          graph-paper texture at 40% opacity — and the live's textured
+          block WRAPS the search bar + the filter pills too (section
+          h≈413 at 1280), like the browse views. */}
+      <section className="relative overflow-visible px-4 pb-8 pt-16 md:px-8 md:pt-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
+        />
+        <div className="relative mx-auto max-w-7xl">
+          <div className="mx-auto mb-8 max-w-7xl text-center">
+            <h1 className="mb-5 font-serif text-[36px] leading-[1.08] tracking-[-0.06em] text-ink sm:text-[clamp(36px,4.3vw,55px)]">
+              Map
+            </h1>
+            <p className="text-sm text-[#3A3A3A]">
+              Augsburg restaurants, hotels and experiences plotted across the old town.
+            </p>
+          </div>
 
-      {/* Search bar — session-12 live chrome: a FULL-WIDTH cream pill
-          (radius 999, h-48, border black/5) carrying the violet circular
-          icon cell, plus the round filters button beside it. */}
-      <section className="mb-5">
-        <div className="mx-auto flex max-w-[1138px] items-center gap-3">
+          {/* Search bar — session-12 live chrome: a FULL-WIDTH cream pill
+              (radius 999, h-48, border black/5) carrying the violet circular
+              icon cell, plus the round filters button beside it.
+              Session-18: inside the textured heading section (live parity). */}
+          <section className="mb-2">
+            <div className="mx-auto flex max-w-[1138px] items-center gap-3">
           <div className="flex h-12 flex-1 items-center gap-2 rounded-full border border-black/5 bg-[rgba(248,247,244,0.55)] px-2 shadow-none">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-roam text-white">
               <Sparkles className="h-4 w-4" strokeWidth={1.8} aria-hidden />
@@ -174,7 +185,11 @@ export function MapExplorer({
             </button>
           ))}
         </div>
+          </section>
+        </div>
       </section>
+
+      <div className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
 
       {/* Map canvas — session-12: the live's desktop height is 620px
           (measured at 1280); phones keep the responsive shorter canvas. */}
@@ -274,6 +289,7 @@ export function MapExplorer({
           ))}
         </div>
       </section>
+      </div>
     </main>
   );
 }

@@ -247,6 +247,31 @@ test.describe("home content parity (session 2)", () => {
     await page.waitForTimeout(700);
     const visibleStop = page.locator('#recommended-route article[data-active="true"] h2');
     await expect(visibleStop).not.toHaveText("Morning Coffee", { timeout: 8000 });
+
+    // Session-18 re-measure: the live's mobile route pins a FULL-VIEWPORT
+    // route visual (the winding-path svg with numbered nodes) BEFORE the
+    // stop cards flow — and the mobile progress chip is GONE (only the
+    // desktop pill remains, hidden below lg). The stop link-cards are
+    // rounded-28 now.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const routeSectionMobile = page.locator("#recommended-route");
+    const mobileVisual = routeSectionMobile.locator("svg").first();
+    await mobileVisual.waitFor({ state: "visible", timeout: 15_000 });
+    const visualBox = await mobileVisual.boundingBox();
+    expect(visualBox).not.toBeNull();
+    expect(Math.round(visualBox!.width)).toBeGreaterThanOrEqual(380);
+    expect(Math.round(visualBox!.height)).toBeGreaterThanOrEqual(700);
+    // No VISIBLE progress chip at 390 (the desktop pill's DOM node may
+    // exist inside the lg-only panel — it must be hidden).
+    const plannedTexts = routeSectionMobile.getByText(/of your day planned/);
+    const plannedCount = await plannedTexts.count();
+    for (let i = 0; i < plannedCount; i++) {
+      await expect(plannedTexts.nth(i)).toBeHidden();
+    }
+    // The mobile stop link-card is rounded-28 (was 24).
+    const stopLinkCard = routeSectionMobile.locator("article a").first();
+    await expect(stopLinkCard).toHaveCSS("border-radius", "28px");
   });
 
   test("highlighted restaurants: blue section, glass detail card, View All (session-6 carousel)", async ({ page }) => {
@@ -254,6 +279,18 @@ test.describe("home content parity (session 2)", () => {
     const section = page.locator("#highlighted-restaurants");
     await expect(section).toBeVisible();
     await expect(section.getByRole("heading", { name: "Highlighted Restaurants" })).toBeVisible();
+
+    // Session-18 re-measure: the live's blue band now rises over the route
+    // trap's TAIL — its top starts ~800px before the route box ends (at
+    // the sticky release point), not flush after it.
+    const routeTrap = page.locator("#recommended-route > div");
+    const bandBox = await section.boundingBox();
+    const trapBox = await routeTrap.boundingBox();
+    expect(bandBox).not.toBeNull();
+    expect(trapBox).not.toBeNull();
+    const overlap = trapBox!.y + trapBox!.height - bandBox!.y;
+    expect(overlap).toBeGreaterThanOrEqual(700);
+    expect(overlap).toBeLessThanOrEqual(900);
 
     // The frosted-glass detail card with the ACTIVE restaurant (Volta at
     // rest) + its actions, and the white View All pill.
@@ -270,12 +307,14 @@ test.describe("home content parity (session 2)", () => {
     await expect(watermark).toBeVisible();
   });
 
-  test("highlighted restaurants: the mobile card deck is SIX cards (session 8)", async ({ page }) => {
+  test("highlighted restaurants: the mobile list flows SIX static cards (session 18)", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const section = page.locator("#highlighted-restaurants");
-    // The deck: browse-style cards stacked sticky over each other — the live
-    // app reduced it from 16 to the first SIX restaurants (session 8).
+    // Session-18 re-measure: the live's mobile restaurant section FLOWS as
+    // a plain list — the FIRST SIX restaurants (Volta, Roux, Aura, Garbo,
+    // Kōan, Ember) as static cards at ~620px advances (~130px gaps), NOT
+    // the old sticky-stacking deck.
     const deck = section.locator("article");
     await expect(deck).toHaveCount(6, { timeout: 15_000 });
     const first = deck.first();
@@ -284,6 +323,22 @@ test.describe("home content parity (session 2)", () => {
     await expect(deck.nth(5).getByRole("heading", { name: "Ember", exact: true })).toBeVisible();
     // No desktop View All on the mobile deck (live parity).
     await expect(section.getByRole("link", { name: /View All/ })).toHaveCount(0);
+    // The cards are STATIC (no sticky stacking) with the live's spacing.
+    const firstPos = await first.evaluate((el) => getComputedStyle(el).position);
+    expect(firstPos).toBe("static");
+    const firstBox = await first.boundingBox();
+    const secondBox = await deck.nth(1).boundingBox();
+    expect(firstBox).not.toBeNull();
+    expect(secondBox).not.toBeNull();
+    const advance = secondBox!.y - firstBox!.y;
+    expect(advance).toBeGreaterThanOrEqual(580);
+    expect(advance).toBeLessThanOrEqual(660);
+    // No band overlap at mobile — the list starts after the route ends.
+    const routeEnd = await page
+      .locator("#recommended-route")
+      .evaluate((el) => el.getBoundingClientRect().bottom + window.scrollY);
+    const bandTop = await section.evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+    expect(Math.round(bandTop)).toBeGreaterThanOrEqual(Math.round(routeEnd) - 4);
   });
 
   test("choose your vibe heading splits into per-letter reveal spans (session 8)", async ({ page }) => {

@@ -28,78 +28,98 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       : place.tags;
 
   return (
-    <main className="w-full px-5 pb-20 pt-4 md:px-8 md:pt-6">
-      <div className="relative mx-auto max-w-6xl">
-        {/* Back — the live's white shadow pill (no border). */}
-        <div className="mb-6">
-          <Link
-            href={meta.href}
-            className="group inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-7 text-sm font-semibold text-ink shadow-float transition hover:bg-black/[0.03]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
-            Back
-          </Link>
-        </div>
-
-        <article className="overflow-hidden rounded-[36px] bg-white shadow-[0_24px_70px_rgba(14,14,14,0.12)]">
-        {/* Header — the live app's measured stack: eyebrow, 82px h1, meta
-            row. Session-14 re-measure: the card's inner padding is p-6 →
-            md:p-10 (the live's h1 tops at y≈225, x≈105 at 1280). */}
-        <header className="px-6 pb-8 pt-6 md:px-10 md:pb-10 md:pt-10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
-            {meta.eyebrow}
-          </p>
-          <h1 className="mb-5 font-serif text-[clamp(42px,13vw,82px)] leading-[1.02] tracking-[-0.06em] text-ink">
-            {place.name}
-          </h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-black/55">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
-              {place.address ?? place.neighborhood ?? "Augsburg"}
-            </span>
-            {place.priceRange ? (
-              <>
-                <span className="text-black/25">•</span>
-                <span className="tracking-widest">{priceRangeSymbols(place.priceRange)}</span>
-              </>
-            ) : null}
-          </div>
-        </header>
-
-        {/* Hero image — 260px on phones / 420px at md / 460px at lg
-            (session-10 re-measure). The overlays: heart top-left + the white
-            RATING pill top-right (the live's photo chrome — no Map
-            button). */}
-        <section className="relative h-[260px] w-full md:h-[420px] lg:h-[460px]">
-          {place.coverImageUrl ? (
-            <img
-              src={place.coverImageUrl}
-              alt={place.name}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-cream-deep font-serif text-6xl text-black/20">
-              {place.name.charAt(0)}
-            </div>
-          )}
-
-          <SaveButton placeId={place.id} initialSaved={place.saved ?? false} className="absolute left-5 top-5 sm:left-6 sm:top-6" />
-
-          {place.reviewCount > 0 ? (
-            <div
-              data-photo-rating
-              className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 sm:right-6 sm:top-6"
+    <main className="w-full pb-20">
+      {/* Session-18 re-measure: the live restructured the detail page — the
+          heading + hero photo card is now a FULL-BLEED section carrying the
+          18px graph-paper grid texture at 40% opacity (the live's new
+          heading surface), and the About + form content moved BELOW the
+          card into a separate two-column grid. */}
+      <section className="relative overflow-visible px-4 pt-4 md:px-8 md:pt-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
+        />
+        <div className="relative mx-auto max-w-6xl">
+          {/* Back — the live's white shadow pill (no border). */}
+          <div className="mb-6">
+            <Link
+              href={meta.href}
+              className="group inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-7 text-sm font-semibold text-ink shadow-float transition hover:bg-black/[0.03]"
             >
-              <Star className="h-[13px] w-[13px] fill-ink text-ink" aria-hidden />
-              <span className="text-xs font-bold text-ink">{place.avgRating.toFixed(1)}</span>
-            </div>
-          ) : null}
-        </section>
+              <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
+              Back
+            </Link>
+          </div>
 
-        {/* Body — About this place + tags, then the booking request form.
-            Session-14 re-measure: p-6 → md:p-10 and the live's ≈56/44
-            column split (content ≈577px / form card ≈451px at 1280). */}
-        <div className="grid grid-cols-1 gap-10 p-6 md:p-10 lg:grid-cols-[7fr_5.5fr]">
+          {/* Session-18: the rounded-36 card ends after the hero photo —
+              About this place + the booking form live BELOW it now. */}
+          <article className="overflow-hidden rounded-[36px] bg-white shadow-[0_24px_70px_rgba(14,14,14,0.12)]">
+            {/* Header — the live app's measured stack: eyebrow, 82px h1, meta
+                row. Session-14 re-measure: the card's inner padding is p-6 →
+                md:p-10 (the live's h1 tops at y≈225, x≈105 at 1280). */}
+            <header className="px-6 pb-8 pt-6 md:px-10 md:pb-10 md:pt-10">
+              <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-black/35">
+                {meta.eyebrow}
+              </p>
+              <h1 className="mb-5 font-serif text-[clamp(42px,13vw,82px)] leading-[1.02] tracking-[-0.06em] text-ink">
+                {place.name}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm font-medium text-black/55">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden />
+                  {place.address ?? place.neighborhood ?? "Augsburg"}
+                </span>
+                {place.priceRange ? (
+                  <>
+                    <span className="text-black/25">•</span>
+                    <span className="tracking-widest">{priceRangeSymbols(place.priceRange)}</span>
+                  </>
+                ) : null}
+              </div>
+            </header>
+
+            {/* Hero image — 260px on phones / 420px at md / 460px at lg
+                (session-10 re-measure). The overlays: heart top-left + the white
+                RATING pill top-right (the live's photo chrome — no Map
+                button). */}
+            <section className="relative h-[260px] w-full md:h-[420px] lg:h-[460px]">
+              {place.coverImageUrl ? (
+                <img
+                  src={place.coverImageUrl}
+                  alt={place.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-cream-deep font-serif text-6xl text-black/20">
+                  {place.name.charAt(0)}
+                </div>
+              )}
+
+              <SaveButton placeId={place.id} initialSaved={place.saved ?? false} className="absolute left-5 top-5 sm:left-6 sm:top-6" />
+
+              {place.reviewCount > 0 ? (
+                <div
+                  data-photo-rating
+                  className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 sm:right-6 sm:top-6"
+                >
+                  <Star className="h-[13px] w-[13px] fill-ink text-ink" aria-hidden />
+                  <span className="text-xs font-bold text-ink">{place.avgRating.toFixed(1)}</span>
+                </div>
+              ) : null}
+            </section>
+          </article>
+        </div>
+      </section>
+
+      {/* Body — session-18 re-measure: About this place + tags + the booking
+          request form moved BELOW the hero card into a separate two-column
+          grid (gap 24px, lg:grid-cols-[1.2fr_0.8fr] — the live's 60/40
+          split); the form renders as its own rounded-28 white card. */}
+      <section className="px-4 pt-8 md:px-8">
+        <div
+          data-detail-grid
+          className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]"
+        >
           <div className="space-y-6">
             <h2 className="font-serif text-[34px] leading-[1.08] tracking-[-0.03em] text-ink">About this place</h2>
             {place.description ? (
@@ -121,28 +141,25 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </div>
 
           {/* The booking request form (the live app's Book Now card). */}
-          <aside className="lg:col-span-1">
-            <BookingForm
-              place={{
-                id: place.id,
-                slug: place.slug,
-                name: place.name,
-                category: place.category,
-                isBookable: place.isBookable,
-                nightlyPrice: place.nightlyPrice,
-                price: place.price,
-                priceLabel: place.priceLabel,
-                currency: place.currency,
-                avgRating: place.avgRating,
-                reviewCount: place.reviewCount,
-                minParty: place.minParty,
-                maxParty: place.maxParty,
-              }}
-            />
-          </aside>
+          <BookingForm
+            place={{
+              id: place.id,
+              slug: place.slug,
+              name: place.name,
+              category: place.category,
+              isBookable: place.isBookable,
+              nightlyPrice: place.nightlyPrice,
+              price: place.price,
+              priceLabel: place.priceLabel,
+              currency: place.currency,
+              avgRating: place.avgRating,
+              reviewCount: place.reviewCount,
+              minParty: place.minParty,
+              maxParty: place.maxParty,
+            }}
+          />
         </div>
-        </article>
-      </div>
+      </section>
     </main>
   );
 }
