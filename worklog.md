@@ -351,3 +351,20 @@ Stage Summary:
 - Deliverables: the session-18 parity remediation (the heading-grid texture across browse/map/detail, the place-detail split layout with the 16px-radius form, the full-viewport mobile route visual, the flowing mobile restaurant list, the 800px blue-band overlap, the 16px mobile paddings), the E2E contracts extended in place (56 total), the remediation plan + session log, 14 refreshed screenshots, 8 aligned docs.
 - Key decisions: the heading texture is implemented as the favourites' proven scoped-overlay pattern (never a global body texture — the profile keeps its full-page fixed variant); the detail split keeps #book-now on the inner form so the booking round-trip spec survives unchanged; the band overlap is a pure negative-margin choreography (z-10 above the released route sticky) matching the live's release-point math exactly; the live's dormant eyebrow + the shadow-muted gutter texture are documented non-gaps.
 - Ready: local commit on main + SSH-wrapper push with the provided ed25519 key.
+
+---
+Task ID: 18 (push verification)
+Agent: Super Z (main agent)
+Task: Session 18 finalization — commit + push status.
+
+Work Log:
+- Commit ad9570c on main (25 files, +760/−248): the session-18 parity remediation (the 18px graph-paper texture on every browse/map/detail heading as full-bleed sections wrapping the filter UI with the 16px mobile paddings; the place-detail split layout — the rounded-36 card ends after the hero photo, About + the form below in the gap-6 lg:grid-cols-[1.2fr_0.8fr] grid, the BookingForm as its own rounded-28 aside with 16px-radius fields and the 18px Book Now h3; the full-viewport sticky mobile route visual with no chip/timeline and rounded-28 stop cards with 30px titles; the flowing mobile restaurant list; the 800px blue-band overlap at the route sticky release point), the E2E contracts extended in place (56 total: +browse/map/detail overlay assertions, the detail split geometry, the radius-16 fields, the mobile route visual contract, the flowing-list + band-overlap checks), the remediation plan + session log, 9 refreshed screenshots (01/05/08/11 byte-stable; 02/03/04/06/09/10/13/14 re-rendered with the new texture/split/visual), and the 8 aligned docs (README/AGENTS/CLAUDE/PAD v1.9/SKILL v1.7.0/session_18/remediation-plan-18/worklog).
+- Full gate re-run on the exact commit: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 56/56 E2E ✓.
+- Push infrastructure: paramiko 5.0.0 installed (venv at /home/z/my-project/.venv-push), the Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches the session-2/4/6/8/10/12/14/16 records).
+- Dry-run: fast-forward 9927947..ad9570c confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --key-file /home/z/.ssh-tmp/op.key --remote git@github.com:nordeim/activity-map.git: landed; remote verified refs/heads/main @ ad9570c == local HEAD; tracking ref synced.
+- Operator key shredded (random overwrite + delete); wrapper temp key shredded by the wrapper itself.
+
+Stage Summary:
+- main fully in sync with origin at ad9570c; working tree clean; no branches created; no key material on disk.
+- Open item for the owner: the deployed mirror runs the session-16 code — a redeploy from main @ ad9570c will pick up the session-18 surfaces (the heading textures, the detail split, the mobile route visual, the flowing restaurant list, the band overlap). The mirror also carries one "Audit Session18" booking (the round-trip proof — the owner's rm -rf db + reseed flow wipes it).
