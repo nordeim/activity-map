@@ -485,3 +485,25 @@ Work Log:
 Stage Summary:
 - Commit 97969ba (26 files: 8 source/spec + 7 docs + 11 screenshots/scripts) pushed to main and verified on the remote.
 - No secrets in the tree; key material destroyed post-push.
+
+---
+Task ID: 24
+Agent: Super Z (main agent, session 24)
+Task: Session 24 — deployed-mirror + live-source dual audit → the filter-shell design system parity (TDD).
+
+Work Log:
+- Workspace re-cloned (the sandbox had been reset); every root doc + the session-23/24 logs + the worklog + the start-server log re-read; the baseline gate run on the untouched tree: lint ✓ (2 pre-existing warnings) · typecheck ✓ · 42 unit ✓ · build ✓ · 27/27 smoke ✓ · 61/61 E2E ✓.
+- Deployed-mirror audit (activity-map.jesspete.shop, logged in): verified running the SESSION-23 code by DOM signature (the footer glass pill 506×96 with the 1px #E8E6DC border + blur(40px) saturate(1.5); the 52px border-box tab-bar; the mobile footer 350/104×78/32-24; every page-bottom chain on contract). All pages load with ZERO console errors; the mobile navbar end-to-end (tap navigation, icon actions, scroll persistence, no 390 overflow); the favourites round-trip (save → visible → unsave); the booking round-trip (submit → "Request sent" → visible under My bookings).
+- Live-source re-measure (activity-map.base44.app, logged in at 1280/390): every session-22/23 surface re-verified UNCHANGED (hero, pill, tab-bar glass, footer, route/stay h3s, sights grid, blue band, eat/detail/map/profile geometry) — then the FILTER surfaces swept for the first time: the live has evolved a "filter-shell" design system (a mobile-override stylesheet pinning `section.relative.overflow-*` paddings, sticky `.planner-filter-shell`/`.discover-filter-shell` wrappers, 600-weight hairline pills). Findings F1–F10: the chips (600/hairline/#555550/44px-touch/violet-active), the browse card shell (r-28/24 + hairline + 18/44 shadow — never measured since session 3), the map command-center redesign (sticky glass shell + pills-inside-the-flow), the mobile pt-112 section contract, the planner stickiness/chrome, the Back pill, the 36px heart disc, the map pill weight, the favourites empty state, the 18px mobile grid gap.
+- Remediation plan written (docs/remediation-plan-session-24.md) and validated against the codebase before execution.
+- TDD RED: five new contracts added (browse.spec.ts — the chips, the card shell, the mobile headings, the Back pill, the map command center) — all verified failing against the unmodified tree.
+- TDD GREEN: R1 the chips re-chromed (min-h-44 phones / content 38 md, 600, hairline, #555550, violet active); R2 the PlaceCard floating shell + the 36px heart (h-9 w-9, svg 16); R3 the MapExplorer command center (sticky top-10/96 shell, r-30/34 glass, white/70 hairline, 0 8 22 /0.10, the 56/48px cream button, pills 44/41 at 600); R4 the mobile section contract (pt-[60px] pb-[22px] + the favourites full-bleed texture + the detail pt); R5 the BrowsePlanner sticky at both breakpoints (pad 10/6, solid white + hairline at md, h 68; date+people grouped at 6px; 56/48px buttons); R6 the Back pill (36px, py-2 px-4, no shadow); R7 the favourites empty state (shadowless, px-0).
+- En-route corrections caught by dev-server side-by-side: the map filter button is 56px only on phones (48 at md); the planner's date+people ride a 6px gap; a `md:h-[41px]` utility loses to a base `min-h-[44px]` (use `md:min-h-[41px]`); the session-10 "44×44 heart" E2E pin had encoded the clone's own drift (the live measures 36 everywhere).
+- Full gates on the push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 66/66 E2E ✓ (5 new contracts; every prior pin green).
+- Side-by-side verification on the production server: every remediated surface EXACT (chips 44/38@600 + hairline + violet active; card r-24/28 + 0 18 44 shadow + 392 wide + heart 36 + gap 18; map shell sticky 10/96, r-30/34, h 138/66, pills 44/41@600, gap 14/52; h1 y 112/112/188; Back 36×89@112; planner 270/68 sticky; empty state 358@16 shadowless).
+- 20 screenshots (14 refreshed + 3 footer re-runs + 3 new filter-shell captures via capture-screens-v5-shell, VLM-verified); .env.example re-verified; docs aligned (README, AGENTS, CLAUDE, PAD v2.3, activity-map_SKILL v1.11.0, the plan, this log).
+
+Stage Summary:
+- The deployed mirror audited ALL GREEN on the session-23 code; the live re-measured with the filter surfaces swept for the first time — 10 findings, all remediated to EXACT parity.
+- Gates: 42 unit + 27 smoke + 66 E2E (5 new contracts) — all green on the push tree.
+- 20 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.

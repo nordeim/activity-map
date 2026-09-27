@@ -76,14 +76,14 @@ export function BrowsePlanner({
   const fieldPill =
     "flex items-center gap-3 rounded-[22px] bg-[rgba(248,247,244,0.55)] px-4 text-left";
   const iconBtn =
-    "flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream";
+    "flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream md:h-12 md:w-12";
 
   return (
-    <div className="relative md:sticky md:top-[76px] md:z-40">
+    <div className="sticky top-[10px] z-30 md:top-24">
       <div
         className={cn(
-          "browse-planner-card relative mx-auto w-full rounded-[30px] bg-white/[0.92] p-3 shadow-[0_12px_28px_rgba(14,14,14,0.1)]",
-          "md:flex md:items-center md:gap-2 md:rounded-full md:p-2.5 md:shadow-[0_2px_12px_rgba(14,14,14,0.08)]",
+          "browse-planner-card relative mx-auto w-full rounded-[30px] border border-white/70 bg-white/[0.92] p-2.5 shadow-[0_12px_28px_rgba(14,14,14,0.1)]",
+          "md:flex md:items-center md:gap-2 md:rounded-full md:bg-white md:p-1.5 md:shadow-[0_8px_22px_rgba(0,0,0,0.10)]",
           open && "z-[30000]",
         )}
       >
@@ -111,12 +111,12 @@ export function BrowsePlanner({
         </div>
 
         {/* Dates — the labelled field (opens the range popover). */}
-        <div className="mt-2 md:mt-0">
+        <div className="mt-3 md:mt-0">
           <button
             type="button"
             aria-label="Choose trip dates"
             onClick={() => setOpen((o) => !o)}
-            className={cn(fieldPill, "h-[52px] w-full md:h-[52px] md:w-auto md:gap-2")}
+            className={cn(fieldPill, "min-h-[54px] w-full md:w-auto md:gap-2")}
           >
             <CalendarDays className="h-4 w-4 shrink-0 text-[#141413]" strokeWidth={2} aria-hidden />
             <span className="min-w-0">
@@ -130,9 +130,10 @@ export function BrowsePlanner({
           </button>
         </div>
 
-        {/* People — invisible native select (the live's stepper values). */}
-        <div className="relative mt-2 md:mt-0">
-          <div className={cn(fieldPill, "h-[52px] w-full md:h-[52px] md:w-auto md:gap-2")}>
+        {/* People — invisible native select (the live's stepper values);
+            session-24: the live groups date+people at a 6px gap (mt-1.5). */}
+        <div className="relative mt-1.5 md:mt-0">
+          <div className={cn(fieldPill, "min-h-[54px] w-full md:w-auto md:gap-2")}>
             <Users className="h-4 w-4 shrink-0 text-[#141413]" strokeWidth={2} aria-hidden />
             <span className="min-w-0">
               <span className="block text-[12px] font-medium leading-none text-muted">People</span>

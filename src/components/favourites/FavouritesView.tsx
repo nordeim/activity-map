@@ -17,12 +17,17 @@ import { PlaceCard } from "@/components/places/PlaceCard";
 
 export function FavouritesView({ places }: { places: PlaceDTO[] }) {
   return (
-    <main className="relative min-h-[calc(100dvh-84px)] bg-cream px-5 pb-20 md:px-8">
+    <main className="relative min-h-[calc(100dvh-84px)] bg-cream pb-20">
       {/* Session-14 re-measure: the live scopes the 18px grid overlay to
           the HEADING SECTION (an overflow-hidden block — the texture stops
           after the subtitle; the cards below sit on plain cream) and the
-          section runs pt-16 → md:pt-24 (h1 y≈244). */}
-      <section className="relative overflow-hidden px-5 pb-8 pt-16 md:px-8 md:pt-24">
+          section runs pt-16 → md:pt-24 (h1 y≈244). Session-24 re-measure:
+          the section owns ALL the horizontal padding (px-4 → md:px-8 — the
+          main carries none, so the texture block spans the FULL viewport
+          width like the live's) and the mobile contract is the live's
+          uniform pt-112 / px-16 / pb-22 (spacer 52 + pt-[60px] → the h1
+          anchors at y≈188). */}
+      <section className="relative overflow-hidden px-4 pb-[22px] pt-[60px] md:px-8 md:pb-8 md:pt-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
@@ -41,11 +46,13 @@ export function FavouritesView({ places }: { places: PlaceDTO[] }) {
       </section>
 
       {/* The saved collection (or the empty state) sits below the textured
-          heading block on plain cream. */}
-      <div className="relative mx-auto mt-6 max-w-[1100px]">
+          heading block on plain cream. Session-24: the container owns its
+          px (the main carries none) so the cards align with the heading
+          content at 16px on phones. */}
+      <div className="relative mx-auto mt-6 max-w-[1100px] px-4 md:px-8">
         {places.length === 0 ? (
           <section className="mx-auto max-w-md">
-            <div className="flex flex-col items-center rounded-[28px] border border-black/[0.08] bg-white px-6 py-16 text-center shadow-card">
+            <div className="flex flex-col items-center rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white py-16 text-center">
               <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#F8F7F4]">
                 <Heart className="h-7 w-7 text-[#0E0E0E]" strokeWidth={1.8} aria-hidden />
               </span>

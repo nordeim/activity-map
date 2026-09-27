@@ -109,7 +109,7 @@ export function MapExplorer({
           graph-paper texture at 40% opacity — and the live's textured
           block WRAPS the search bar + the filter pills too (section
           h≈413 at 1280), like the browse views. */}
-      <section className="relative overflow-visible px-4 pb-8 pt-16 md:px-8 md:pt-24">
+      <section className="relative overflow-visible px-4 pb-[22px] pt-[60px] md:px-8 md:pb-8 md:pt-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
@@ -124,13 +124,20 @@ export function MapExplorer({
             </p>
           </div>
 
-          {/* Search bar — session-12 live chrome: a FULL-WIDTH cream pill
-              (radius 999, h-48, border black/5) carrying the violet circular
-              icon cell, plus the round filters button beside it.
-              Session-18: inside the textured heading section (live parity). */}
+          {/* Search + filters — session-24 re-measure: the live rebuilt
+              this area into a STICKY glass "command center"
+              (.discover-filter-shell): top-10 on phones / top-96 at md,
+              inner radius 30/34, bg white/92 phones / white/78 md, the 1px
+              white/70 hairline, the 0 8px 22px /0.10 shadow — wrapping the
+              ORIGINAL search pill (h-48, r-full, black/5 border, cream/55)
+              + the 56px cream/55 filter button; the category pills render
+              below as a centered scrollable row. Session-18's textured
+              heading section wraps it all (live parity). */}
           <section className="mb-2">
-            <div className="mx-auto flex max-w-[1138px] items-center gap-3">
-          <div className="flex h-12 flex-1 items-center gap-2 rounded-full border border-black/5 bg-[rgba(248,247,244,0.55)] px-2 shadow-none">
+            <div className="map-filter-shell sticky top-[10px] z-30 md:top-24">
+            <div className="rounded-[30px] border border-white/70 bg-white/92 p-2.5 shadow-[0_8px_22px_rgba(0,0,0,0.10)] md:rounded-[34px] md:bg-white/78 md:p-2">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          <div className="flex h-12 w-full flex-1 items-center gap-2 rounded-full border border-black/5 bg-[rgba(248,247,244,0.55)] px-2 shadow-none md:w-auto">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-roam text-white">
               <Sparkles className="h-4 w-4" strokeWidth={1.8} aria-hidden />
             </span>
@@ -153,20 +160,26 @@ export function MapExplorer({
               </button>
             ) : null}
           </div>
+          <div className="flex shrink-0 justify-center md:justify-end">
           <button
             type="button"
             aria-label="Open map filters"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white text-ink shadow-[0_6px_16px_rgba(14,14,14,0.08)] transition hover:bg-cream"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-black/5 bg-[rgba(248,247,244,0.55)] text-ink transition hover:bg-cream md:h-12 md:w-12"
           >
             <SlidersHorizontal className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
           </button>
-        </div>
+          </div>
+            </div>
+            </div>
+            </div>
 
         {/* Filter pills — session-12 live chrome: 41px tall with 12px
             text; the ACTIVE pill is violet-tinted (bg #F0EAFF, border
             #D8CAFF, text #571AFF); inactive = white +
-            rgba(14,14,14,0.08) + #555550. */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+            rgba(14,14,14,0.08) + #555550. Session-24 re-measure: weight
+            600, 44px min-height touch targets on phones, a centered
+            non-wrapping scrollable row at gap-2 below the shell. */}
+        <div className="no-scrollbar mt-[14px] flex items-center justify-center gap-2 overflow-x-auto md:mt-[52px]">
           {FILTERS.map(({ label, value, icon: Icon }) => (
             <button
               key={value}
@@ -174,10 +187,10 @@ export function MapExplorer({
               onClick={() => setFilter(value)}
               aria-pressed={filter === value}
               className={cn(
-                "flex h-[41px] items-center gap-2 rounded-full px-5 text-xs font-medium transition-all",
+                "flex min-h-[44px] shrink-0 items-center gap-2 whitespace-nowrap rounded-full border px-4 py-[10px] text-xs font-semibold transition-all md:min-h-[41px]",
                 filter === value
-                  ? "border border-[#D8CAFF] bg-[#F0EAFF] text-[#571AFF]"
-                  : "border border-[rgba(14,14,14,0.08)] bg-white text-[#555550] hover:border-black/25",
+                  ? "border-[#D8CAFF] bg-[#F0EAFF] text-[#571AFF]"
+                  : "border-[rgba(14,14,14,0.08)] bg-white text-[#555550] hover:border-black/25",
               )}
             >
               <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />

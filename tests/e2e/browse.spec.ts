@@ -170,6 +170,69 @@ test.describe("browse views", () => {
     await page.getByRole("button", { name: "All", exact: true }).click();
     await expect(page.locator("article")).toHaveCount(18);
   });
+
+  test("the filter chips match the live's 600-weight hairline pills (session-24)", async ({ page }) => {
+    await page.goto("/eat");
+    const chip = page.getByRole("button", { name: "Open now", exact: true });
+    // Session-24 re-measure: the live's chips render 12px/600 with the
+    // rgba(14,14,14,0.08) hairline + #555550 text (the clone had 500,
+    // ink/secondary text, borderless). The ACTIVE chip flips to the violet
+    // #571FF fill with white text (the clone used the ink fill).
+    await expect(chip).toHaveCSS("font-weight", "600");
+    await expect(chip).toHaveCSS("color", "rgb(85, 85, 80)");
+    await expect(chip).toHaveCSS("border-top-width", "1px");
+    await expect(chip).toHaveCSS("border-top-color", "rgba(14, 14, 14, 0.08)");
+    await chip.click();
+    await expect(chip).toHaveCSS("background-color", "rgb(87, 26, 255)");
+    await expect(chip).toHaveCSS("color", "rgb(255, 255, 255)");
+    // Phones: the chips grow to 44px touch targets (min-height — the live's
+    // mobile override), not the fixed 38px.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/eat");
+    await expect(page.getByRole("button", { name: "Open now", exact: true })).toHaveCSS("height", "44px");
+  });
+
+  test("the browse cards carry the live's floating shell (session-24)", async ({ page }) => {
+    await page.goto("/eat");
+    const card = page.locator("article").first();
+    // Session-24 re-measure: the live's browse card is a floating shell —
+    // white bg, the 1px rgba(14,14,14,0.08) hairline, radius 28 at md /
+    // 24 on phones, the 0 18px 44px /0.08 shadow (the clone rendered a
+    // flat composite with no shell chrome — never measured since
+    // session 3). The internals (h-372 photo, p-5 body) are unchanged.
+    await expect(card).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(card).toHaveCSS("border-top-width", "1px");
+    await expect(card).toHaveCSS("border-top-color", "rgba(14, 14, 14, 0.08)");
+    await expect(card).toHaveCSS("border-radius", "28px");
+    const shadow = await card.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(shadow).toContain("0px 18px 44px");
+    // The heart disc is the live's 36px (w-9 h-9) — the clone had drifted
+    // to the 44px h-11.
+    const heart = card.locator("button").first();
+    const heartBox = await heart.boundingBox();
+    expect(Math.round(heartBox!.width)).toBe(36);
+    expect(Math.round(heartBox!.height)).toBe(36);
+    // Phones: radius 24.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/eat");
+    await expect(page.locator("article").first()).toHaveCSS("border-radius", "24px");
+  });
+
+  test("the mobile heading sections sit at the live's 112px contract (session-24)", async ({ page }) => {
+    // The live's mobile override stylesheet pins every FIRST heading
+    // section at pt 112 / px 16 / pb 22 (content slides under the fixed
+    // glass tab-bar) — with the 52px spacer the clone's sections carry
+    // pt-[60px] so the h1 anchors land at the same y.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/eat");
+    const eatH1 = await page.getByRole("heading", { name: "Eat Well Tonight" }).boundingBox();
+    expect(eatH1!.y).toBeGreaterThanOrEqual(110);
+    expect(eatH1!.y).toBeLessThanOrEqual(114);
+    await page.goto("/favourites");
+    const favH1 = await page.getByRole("heading", { name: "Favourites", exact: true }).boundingBox();
+    expect(favH1!.y).toBeGreaterThanOrEqual(186);
+    expect(favH1!.y).toBeLessThanOrEqual(190);
+  });
 });
 
 test.describe("place detail", () => {
@@ -238,13 +301,16 @@ test.describe("place detail", () => {
     const h = await photo.evaluate((el) => el.getBoundingClientRect().height);
     expect(Math.round(h)).toBe(260);
 
-    // Session-10 re-measure: the heart overlay is a 44×44 dark glass circle
-    // (the live's h-11 button), not the old 36px h-9.
+    // Session-24 re-measure: the heart overlay is the live's 36×36 dark
+    // glass disc (w-9 h-9, svg 16px) — the session-10 "44×44" reading had
+    // encoded the clone's own drift (the AGENTS.md "36px black/45 disc"
+    // was right all along); verified on BOTH the browse cards and the
+    // detail hero.
     const heart = page.getByRole("button", { name: "Save to favourites" }).first();
     const heartBox = await heart.boundingBox();
     expect(heartBox).not.toBeNull();
-    expect(Math.round(heartBox!.width)).toBe(44);
-    expect(Math.round(heartBox!.height)).toBe(44);
+    expect(Math.round(heartBox!.width)).toBe(36);
+    expect(Math.round(heartBox!.height)).toBe(36);
   });
 
   test("detail page container: max-w-6xl rounded-36 card, no border (session 10)", async ({ page }) => {
@@ -312,6 +378,24 @@ test.describe("place detail", () => {
     await page.goto("/profile");
     await expect(page.getByText("My bookings")).toBeVisible();
     await expect(page.getByText("Courtyard Stay")).toBeVisible();
+  });
+
+  test("the mobile detail header sits at the live's 112px contract with the 36px Back pill (session-24)", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/place/courtyard-stay");
+    // Session-24 re-measure: the live's detail section rides the same
+    // mobile pt-112 contract as the browses — the Back pill lands at
+    // y≈112 — and the pill itself is the compact 36px-tall white pill
+    // (pad 8/16, 14px/600, no shadow; the clone rendered 40px with the
+    // float shadow and asymmetric pl-5/pr-7 padding).
+    const back = page.getByRole("link", { name: "Back" });
+    const backBox = await back.boundingBox();
+    expect(backBox).not.toBeNull();
+    expect(Math.round(backBox!.height)).toBe(36);
+    expect(backBox!.y).toBeGreaterThanOrEqual(108);
+    expect(backBox!.y).toBeLessThanOrEqual(116);
+    const backShadow = await back.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(backShadow).toBe("none");
   });
 });
 
@@ -483,6 +567,46 @@ test.describe("map view", () => {
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
     await expect(page.locator(".roam-marker")).toHaveCount(3);
     await expect(page.getByText("3 places")).toBeVisible();
+  });
+
+  test("the map search shell is the live's sticky command center (session-24)", async ({ page }) => {
+    await page.goto("/map");
+    // Session-24 re-measure: the live REDESIGNED the map's filter area
+    // into a STICKY glass shell (top-96 at md / top-10 on phones) that
+    // wraps the original search pill + the filter button — inner radius
+    // 34 at md / 30 on phones, bg white/78 (md) / white/92 (phones), the
+    // 1px white/70 hairline, the 0 8px 22px /0.10 shadow; the category
+    // pills render below at weight 600 (the clone had a static cream
+    // pill with 500-weight pills below it).
+    const shell = page.locator(".map-filter-shell");
+    await expect(shell).toBeVisible();
+    await expect(shell).toHaveCSS("position", "sticky");
+    await expect(shell).toHaveCSS("top", "96px");
+    const inner = shell.locator("> div").first();
+    await expect(inner).toHaveCSS("border-radius", "34px");
+    await expect(inner).toHaveCSS("border-top-width", "1px");
+    // α-blended colors serialize as oklab(...) in Chromium — assert the
+    // parsed alpha instead of the exact string (the 1px white/70 hairline).
+    const innerBorderAlpha = await inner.evaluate((el) => {
+      const m = getComputedStyle(el).borderTopColor.match(/([\d.]+)\)$/);
+      return m ? parseFloat(m[1]) : -1;
+    });
+    expect(innerBorderAlpha).toBeGreaterThan(0.6);
+    expect(innerBorderAlpha).toBeLessThan(0.8);
+    const innerShadow = await inner.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(innerShadow).toContain("rgba(0, 0, 0, 0.1)");
+    await expect(page.getByRole("button", { name: "All Places", exact: true })).toHaveCSS("font-weight", "600");
+    // The search input still lives inside the shell (the live nests the
+    // original rounded-full pill within the new glass shell).
+    await expect(shell.getByLabel("Search the map")).toBeVisible();
+
+    // Phones: the shell sticks at 10px under the tab-bar and the pills
+    // grow to 44px touch targets.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/map");
+    await expect(page.locator(".map-filter-shell")).toHaveCSS("top", "10px");
+    await expect(page.locator(".map-filter-shell > div").first()).toHaveCSS("border-radius", "30px");
+    await expect(page.getByRole("button", { name: "All Places", exact: true })).toHaveCSS("height", "44px");
   });
 });
 

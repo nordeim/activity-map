@@ -34,19 +34,22 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           18px graph-paper grid texture at 40% opacity (the live's new
           heading surface), and the About + form content moved BELOW the
           card into a separate two-column grid. */}
-      <section className="relative overflow-visible px-4 pt-4 md:px-8 md:pt-6">
+      <section className="relative overflow-visible px-4 pt-[60px] md:px-8 md:pt-6">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
         />
         <div className="relative mx-auto max-w-6xl">
-          {/* Back — the live's white shadow pill (no border). */}
+          {/* Back — session-24 re-measure: the live's compact white pill —
+              36px tall (py-2 px-4, 14px/600), no shadow, no border (the
+              clone had the 40px float-shadow pill with asymmetric
+              pl-5/pr-7 padding). */}
           <div className="mb-6">
             <Link
               href={meta.href}
-              className="group inline-flex items-center gap-2 rounded-full bg-white py-2.5 pl-5 pr-7 text-sm font-semibold text-ink shadow-float transition hover:bg-black/[0.03]"
+              className="group inline-flex items-center gap-2 rounded-full bg-white py-2 px-4 text-sm font-semibold text-ink transition hover:bg-black/[0.03]"
             >
-              <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" strokeWidth={2} aria-hidden />
               Back
             </Link>
           </div>

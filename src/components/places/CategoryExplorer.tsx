@@ -51,7 +51,7 @@ export function CategoryExplorer({
           40% opacity — and the live's textured block WRAPS the planner +
           the filter chips too (section h≈385 at 1280), not just the h1.
           The live's mobile padding computes to 16px (px-4). */}
-      <section className="relative overflow-visible px-4 pb-8 pt-16 md:px-8 md:pt-24">
+      <section className="relative overflow-visible px-4 pb-[22px] pt-[60px] md:px-8 md:pb-8 md:pt-24">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(to_right,rgba(20,20,19,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(20,20,19,0.055)_1px,transparent_1px)] [background-size:18px_18px]"
@@ -79,12 +79,15 @@ export function CategoryExplorer({
               initialEnd={planner?.end ?? null}
             />
 
-            {/* Filter chips — session-12 live chrome: compact 38px pills with
-                12px text (the live shrank them from 40px/14px). The live's
+            {/* Filter chips — session-12 live chrome: compact 38px pills
+                with 12px text; session-24 re-measure: 600 weight, the
+                rgba(14,14,14,0.08) hairline, #555550 inactive text, the
+                violet #571AFF active fill, and 44px min-height touch
+                targets on phones (the live's mobile override). The live's
                 row bleeds past the inner container to the section edges. */}
-            <div className="relative mt-4 -mx-4 md:-mx-8">
+            <div className="relative mt-[14px] -mx-4 md:-mx-8 md:mt-5">
               <div className="no-scrollbar flex gap-2 overflow-x-auto px-1 pb-2">
-                {chipsAvailable.map(({ label, kind }) => {
+                {chipsAvailable.map(({ label }) => {
                   const active = chips.includes(label);
                   return (
                     <button
@@ -93,11 +96,10 @@ export function CategoryExplorer({
                       onClick={() => toggleChip(label)}
                       aria-pressed={active}
                       className={cn(
-                        "flex h-[38px] items-center whitespace-nowrap rounded-full px-4 text-xs font-medium transition-all",
+                        "flex min-h-[44px] items-center whitespace-nowrap rounded-full border px-4 py-[10px] text-xs font-semibold transition-all md:min-h-[38px]",
                         active
-                          ? "bg-ink text-white"
-                          : "bg-white text-secondary hover:shadow-[0_8px_18px_rgba(14,14,14,0.1)]",
-                        kind === "special" && !active && "text-ink",
+                          ? "border-[rgba(14,14,14,0.08)] bg-roam text-white"
+                          : "border-[rgba(14,14,14,0.08)] bg-white text-[#555550] hover:shadow-[0_8px_18px_rgba(14,14,14,0.1)]",
                       )}
                     >
                       {label}
@@ -121,7 +123,7 @@ export function CategoryExplorer({
         {visible.length} {visible.length === 1 ? "place" : "places"}
       </p>
 
-      <section className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-[18px] md:grid-cols-2 md:gap-5 lg:grid-cols-3">
         {visible.map((place) =>
           meta.key === "stay" ? (
             <StayCard key={place.id} place={place} />

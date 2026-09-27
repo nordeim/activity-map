@@ -22,7 +22,7 @@ export function PlaceCard({ place }: { place: PlaceDTO }) {
   const duration = formatDuration(place.durationMin);
 
   return (
-    <article className="group h-full">
+    <article className="group h-full overflow-hidden rounded-[24px] border border-[rgba(14,14,14,0.08)] bg-white shadow-[0_18px_44px_rgba(14,14,14,0.08)] md:rounded-[28px]">
       <Link href={`/place/${place.slug}`} className="flex h-full flex-col">
         {/* Image with the overlaid name */}
         <div className="relative h-[300px] flex-shrink-0 overflow-hidden bg-surface2 sm:h-[372px]">
