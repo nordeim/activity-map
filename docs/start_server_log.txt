@@ -54,13 +54,13 @@ $ bun run build
 $ next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
 ▲ Next.js 16.3.6 (Turbopack)
 - Environments: .env
-✓ Running next.config.ts took 87ms
+✓ Running next.config.ts took 113ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 85s
-✓ Finished TypeScript in 25.1s    
-✓ Collecting page data using 3 workers in 2.7s    
-✓ Generating static pages using 3 workers (12/12) in 1042ms
+✓ Compiled successfully in 62s
+✓ Finished TypeScript in 29.5s    
+✓ Collecting page data using 3 workers in 3.7s    
+✓ Generating static pages using 3 workers (12/12) in 1102ms
 Turbopack build encountered 1 warning:
 ./src/lib/db-path.ts:159:16
 Warning: Dynamic filesystem access causes tracing of the whole project
@@ -99,7 +99,7 @@ Import traces:
     ./src/app/api/auth/login/route.ts
 
 
-✓ Finalizing page optimization in 7.2s    
+✓ Finalizing page optimization in 7.1s    
 
 Route (app)
 ┌ ƒ /
@@ -127,12 +127,11 @@ Route (app)
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
-
-$ PORT=3010 bun run start
+$ bun run start
 $ NODE_ENV=production DATABASE_URL=file:../db/custom.db bun .next/standalone/server.js 2>&1 | tee server.log
 ▲ Next.js 16.3.6
-- Local:         http://localhost:3010
-- Network:       http://0.0.0.0:3010
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
 ✓ Ready in 0ms
 ✓ Running next.config took 45ms
 
