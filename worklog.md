@@ -469,3 +469,19 @@ Stage Summary:
 - The 1px tab-bar, the footer chrome/paddings/legal row, and the four page-bottom chains remediated to EXACT live parity (all values measured identical post-fix).
 - Gates: 42 unit + 27 smoke + 61 E2E (3 new contracts) — all green on the push tree.
 - 17 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 23-push
+Agent: Super Z (main agent)
+Task: Session 23 — push verification record.
+
+Work Log:
+- Push infrastructure reused: paramiko 5.0.0 present, the Appendix-A paramiko ssh shim at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the full diff + the new untracked files: 0 matches (the README demo-login lines were pre-existing context, no new credential lines added).
+- Dry-run: authenticated, remote main at b055131 (the session base), fast-forward confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: b055131..97969ba HEAD -> main; wrapper verified refs/heads/main @ 97969ba == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit 97969ba (26 files: 8 source/spec + 7 docs + 11 screenshots/scripts) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
