@@ -46,21 +46,20 @@ seeded 42 places (eat/stay/do) → file:../db/custom.db
 seeded 27 home-only places (route/sights/restaurants, status "home")
 seeded 9 map demo places (status "map")
 
-$ ls -l db/
-total 120
--rw-r--r-- 1 pete pete 118784 Sep 27 08:55 custom.db
+$ ls -l db/custom.db 
+-rw-r--r-- 1 pete pete 118784 Sep 27 13:17 db/custom.db
 
 $ bun run build
 $ next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/
 ▲ Next.js 16.3.6 (Turbopack)
 - Environments: .env
-✓ Running next.config.ts took 77ms
+✓ Running next.config.ts took 253ms
 
   Creating an optimized production build ...
-✓ Compiled successfully in 30.4s
-✓ Finished TypeScript in 20.8s    
-✓ Collecting page data using 3 workers in 1736ms    
-✓ Generating static pages using 3 workers (12/12) in 669ms
+✓ Compiled successfully in 27.7s
+✓ Finished TypeScript in 12.9s    
+✓ Collecting page data using 3 workers in 3.0s    
+✓ Generating static pages using 3 workers (14/14) in 1913ms
 Turbopack build encountered 1 warning:
 ./src/lib/db-path.ts:159:16
 Warning: Dynamic filesystem access causes tracing of the whole project
@@ -99,12 +98,13 @@ Import traces:
     ./src/app/api/auth/login/route.ts
 
 
-✓ Finalizing page optimization in 5.4s    
+✓ Finalizing page optimization in 5.6s    
 
 Route (app)
 ┌ ƒ /
 ├ ○ /_not-found
 ├ ○ /accessibility
+├ ○ /accessibility-statement
 ├ ƒ /api/auth/login
 ├ ƒ /api/auth/logout
 ├ ƒ /api/auth/me
@@ -120,17 +120,13 @@ Route (app)
 ├ ƒ /map
 ├ ƒ /place/[slug]
 ├ ○ /privacy
+├ ○ /privacy-policy
 ├ ƒ /profile
 └ ƒ /stay
 
 
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
-
-(venv) pete@pop-os:/Home1/project/activity-map
-$ bun install
-[0.07ms] ".env"
-bun install v1.3.14 (0d9b296a)
 
 $ bun run start
 $ NODE_ENV=production DATABASE_URL=file:../db/custom.db bun .next/standalone/server.js 2>&1 | tee server.log
