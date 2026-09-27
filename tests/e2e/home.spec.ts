@@ -160,6 +160,22 @@ test.describe("home content parity (session 2)", () => {
     const mobileCard = page.locator("[data-category-card]").first();
     await expect(mobileCard).toHaveCSS("border-radius", "24px");
 
+    // Session-26 re-measure: the live's mobile track (its override
+    // stylesheet) pads the track 18/18/40 and tightens the gap to 12px
+    // (gap-3) — the cards ride the hero photo's bottom edge at y≈578 (the
+    // clone's track had no top pad, gap 16, cards at y≈559).
+    const trackGap = await cardRow.evaluate((el) =>
+      Math.round(
+        (el.children[1] as HTMLElement).getBoundingClientRect().x -
+          (el.children[0] as HTMLElement).getBoundingClientRect().right,
+      ),
+    );
+    expect(trackGap).toBeGreaterThanOrEqual(10);
+    expect(trackGap).toBeLessThanOrEqual(14);
+    const cardY = await mobileCard.evaluate((el) => Math.round(el.getBoundingClientRect().y + window.scrollY));
+    expect(cardY).toBeGreaterThanOrEqual(570);
+    expect(cardY).toBeLessThanOrEqual(585);
+
     // Desktop (1280): the VIEW ALL pills stay near-black #141413 — session-16
     // re-measure: the pill now HANGS BELOW the glass card's bottom edge
     // (w≈229, h=54, half-overlapping the card onto the hero photo below)
@@ -426,6 +442,47 @@ test.describe("home content parity (session 2)", () => {
     expect(Math.round(mobileCardBox!.width)).toBeLessThanOrEqual(360);
   });
 
+  test("the mobile route heading pins INSIDE the trap at y=68 (session 26)", async ({ page }) => {
+    // Session-26 re-measure: the live HIDES its recommended-route-heading
+    // section on phones and renders the h2 INSIDE the pinned trap —
+    // `absolute left-1/2 top-[68px] w-[min(92vw,360px)] -translate-x-1/2`,
+    // font clamp(38px, 11vw, 48px) (42.9px @390), lh ≈1.02, tracking
+    // −0.055em — so the heading rides the FULL trap scroll at viewport
+    // y=68 (the clone's old model pinned it at y=120 in a separate
+    // heading section that vanished mid-trap). The trap zone also grew to
+    // 220vh (1857px at an 844 viewport).
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    // Exactly ONE "Recommended Route" heading renders at 390 (the desktop
+    // heading section is hidden below lg; the trap carries the h2).
+    const headings = page.getByRole("heading", { name: "Recommended Route" });
+    await expect(headings).toHaveCount(1);
+    const h2 = headings.first();
+    await expect(h2).toBeVisible();
+    // The h2's font is the live's clamp — 42.9px at 390.
+    await expect(h2).toHaveCSS("font-size", "42.9px");
+    // The trap zone is 220vh (1856-1858px at an 844-tall viewport).
+    const trapH = await page.evaluate(() => {
+      const t = document.querySelector("#recommended-route > div > div");
+      return t ? Math.round(t.getBoundingClientRect().height) : 0;
+    });
+    expect(trapH).toBeGreaterThanOrEqual(1840);
+    expect(trapH).toBeLessThanOrEqual(1875);
+    // Mid-trap: the h2 pins at viewport y≈68 over the pinned svg.
+    const trapY = await page.evaluate(() => {
+      const t = document.querySelector("#recommended-route > div > div");
+      return t ? t.getBoundingClientRect().y + window.scrollY : 0;
+    });
+    await page.evaluate((y) => window.scrollTo(0, y + 300), trapY);
+    await page.waitForTimeout(250);
+    const h2ViewportY = await h2.evaluate((el) => Math.round(el.getBoundingClientRect().y));
+    expect(Math.abs(h2ViewportY - 68)).toBeLessThanOrEqual(6);
+    // The h2's width caps at min(92vw, 360px) → 358-360 at 390.
+    const h2W = await h2.evaluate((el) => Math.round(el.getBoundingClientRect().width));
+    expect(h2W).toBeGreaterThanOrEqual(355);
+    expect(h2W).toBeLessThanOrEqual(362);
+  });
+
   test("highlighted restaurants: blue section, glass detail card, View All (session-6 carousel)", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const section = page.locator("#highlighted-restaurants");
@@ -459,14 +516,15 @@ test.describe("home content parity (session 2)", () => {
     await expect(watermark).toBeVisible();
   });
 
-  test("highlighted restaurants: the mobile list flows SIX static cards (session 18)", async ({ page }) => {
+  test("highlighted restaurants: the mobile deck STACKS — sticky cards pinned at y=88 (session 26)", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const section = page.locator("#highlighted-restaurants");
-    // Session-18 re-measure: the live's mobile restaurant section FLOWS as
-    // a plain list — the FIRST SIX restaurants (Volta, Roux, Aura, Garbo,
-    // Kōan, Ember) as static cards at ~620px advances (~130px gaps), NOT
-    // the old sticky-stacking deck.
+    // Session-26 re-measure: the live's mobile-restaurant-stack returned to
+    // a STICKY STACKING deck — the cards flow 620px apart (490 card + 130
+    // gap), each card pins at viewport y≈88, and the next card slides up
+    // OVER it (the later card paints above in DOM order). The section pads
+    // 56px 18px 0px (the cards at x=18, 354 wide).
     const deck = section.locator("article");
     await expect(deck).toHaveCount(6, { timeout: 15_000 });
     const first = deck.first();
@@ -475,9 +533,11 @@ test.describe("home content parity (session 2)", () => {
     await expect(deck.nth(5).getByRole("heading", { name: "Ember", exact: true })).toBeVisible();
     // No desktop View All on the mobile deck (live parity).
     await expect(section.getByRole("link", { name: /View All/ })).toHaveCount(0);
-    // The cards are STATIC (no sticky stacking) with the live's spacing.
-    const firstPos = await first.evaluate((el) => getComputedStyle(el).position);
-    expect(firstPos).toBe("static");
+    // The cards are STICKY at top 88px (the live's pin offset — below the
+    // 52px tab-bar), NOT the session-18 static list.
+    await expect(first).toHaveCSS("position", "sticky");
+    await expect(first).toHaveCSS("top", "88px");
+    // The flow advance stays 620 (490 card + 130 gap) at rest.
     const firstBox = await first.boundingBox();
     const secondBox = await deck.nth(1).boundingBox();
     expect(firstBox).not.toBeNull();
@@ -485,6 +545,21 @@ test.describe("home content parity (session 2)", () => {
     const advance = secondBox!.y - firstBox!.y;
     expect(advance).toBeGreaterThanOrEqual(580);
     expect(advance).toBeLessThanOrEqual(660);
+    // The deck insets: the section pads px-[18px] → the cards sit at x=18.
+    expect(Math.round(firstBox!.x)).toBe(18);
+    expect(Math.round(firstBox!.width)).toBeGreaterThanOrEqual(348);
+    expect(Math.round(firstBox!.width)).toBeLessThanOrEqual(360);
+    // THE STACKING: scroll mid-deck (after the second card's pin) — two
+    // adjacent cards share viewport y≈88 (the second has slid OVER the
+    // first), while the later cards still flow below.
+    const firstAbs = await first.evaluate((el) => el.getBoundingClientRect().y + window.scrollY);
+    await page.evaluate((y) => window.scrollTo(0, y), firstAbs + 700);
+    await page.waitForTimeout(200);
+    const pinned = await deck.evaluateAll((els) =>
+      els.slice(0, 2).map((el) => Math.round(el.getBoundingClientRect().y)),
+    );
+    expect(Math.abs(pinned[0] - 88)).toBeLessThanOrEqual(6);
+    expect(Math.abs(pinned[1] - 88)).toBeLessThanOrEqual(6);
     // No band overlap at mobile — the list starts after the route ends.
     const routeEnd = await page
       .locator("#recommended-route")
@@ -525,6 +600,23 @@ test.describe("home content parity (session 2)", () => {
     await expect(stayTitle).toHaveCSS("font-size", "24px");
     const sightTitle = page.locator("#highlighted-sights article h3").first();
     await expect(sightTitle).toHaveCSS("font-size", "24px");
+
+    // Session-26 re-measure: the live's mobile showcase sections render
+    // INSET cards — the stay grid pads px-[18px] (cards 354 wide @x=18)
+    // and the sights grid pads px-4 (cards 358 wide @x=16); the clone had
+    // rendered both grids FULL-BLEED (390 @x=0).
+    const stayCard = page.locator("#stay-showcase article").first();
+    const stayBox = await stayCard.boundingBox();
+    expect(stayBox).not.toBeNull();
+    expect(Math.round(stayBox!.x)).toBe(18);
+    expect(Math.round(stayBox!.width)).toBeGreaterThanOrEqual(350);
+    expect(Math.round(stayBox!.width)).toBeLessThanOrEqual(358);
+    const sightCard = page.locator("#highlighted-sights article").first();
+    const sightBox = await sightCard.boundingBox();
+    expect(sightBox).not.toBeNull();
+    expect(Math.round(sightBox!.x)).toBe(16);
+    expect(Math.round(sightBox!.width)).toBeGreaterThanOrEqual(354);
+    expect(Math.round(sightBox!.width)).toBeLessThanOrEqual(362);
 
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -684,6 +776,18 @@ test.describe("home content parity (session 2)", () => {
     await expect(cr).toHaveCSS("font-size", "12px");
     await expect(cr).toHaveCSS("color", "rgb(138, 135, 128)");
 
+    // Session-26 re-measure: the legal row carries a TOP HAIRLINE
+    // (1px rgba(0,0,0,0.05)) + its own pt-3/sm:pt-5 padding + mt-4/sm:mt-8
+    // margin — the hairline renders at every breakpoint and the legal
+    // text sits 13/21px lower than a bare gap would place it.
+    await expect(bottomRow).toHaveCSS("border-top-width", "1px");
+    // The oklab() serialization gotcha: alpha-blended black arrives as
+    // `oklab(0 0 0 / 0.05)` — assert the parsed alpha instead of the string.
+    const legalBorder = await bottomRow.evaluate((el) => getComputedStyle(el).borderTopColor);
+    expect(legalBorder).toMatch(/0\.05\)?$/);
+    await expect(bottomRow).toHaveCSS("padding-top", "20px");
+    await expect(bottomRow).toHaveCSS("margin-top", "32px");
+
     // Mobile (390): the footer pads 32/24 and the nav fills the width.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -694,6 +798,39 @@ test.describe("home content parity (session 2)", () => {
     expect(navWMobile).toBeLessThanOrEqual(352);
     // The bottom row stacks (column) on phones.
     await expect(bottomRow).toHaveCSS("flex-direction", "column");
+    // Session-26: the mobile legal row carries the hairline + pt-3/mt-4.
+    await expect(bottomRow).toHaveCSS("border-top-width", "1px");
+    await expect(bottomRow).toHaveCSS("padding-top", "12px");
+    await expect(bottomRow).toHaveCSS("margin-top", "16px");
+
+    // Session-26 re-measure — the sm (640) window: the live switches the
+    // footer pads AND the legal row layout at sm, NOT md — at 640 the
+    // footer already pads 64/56, the legal row is a space-between ROW,
+    // and the pill caps at max-w 390 centered (the live's mobile-override
+    // pill max-width; the clone rendered a 600px w-full pill there).
+    await page.setViewportSize({ width: 640, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(footer).toHaveCSS("padding-top", "64px");
+    await expect(footer).toHaveCSS("padding-bottom", "56px");
+    await expect(bottomRow).toHaveCSS("flex-direction", "row");
+    await expect(bottomRow).toHaveCSS("justify-content", "space-between");
+    await expect(bottomRow).toHaveCSS("padding-top", "20px");
+    // The legal row is ALSO capped at 390 centered below md (the live's
+    // override) — 390 wide @x=125 at 640, like the pill above it.
+    const row640 = await bottomRow.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: Math.round(r.x), w: Math.round(r.width) };
+    });
+    expect(row640.w).toBeGreaterThanOrEqual(386);
+    expect(row640.w).toBeLessThanOrEqual(394);
+    expect(row640.x).toBeGreaterThanOrEqual(123);
+    expect(row640.x).toBeLessThanOrEqual(127);
+    const navW640 = await nav.evaluate((el) => el.getBoundingClientRect().width);
+    expect(navW640).toBeGreaterThanOrEqual(386);
+    expect(navW640).toBeLessThanOrEqual(394);
+    const navX640 = await nav.evaluate((el) => el.getBoundingClientRect().x);
+    expect(Math.round(navX640)).toBeGreaterThanOrEqual(123);
+    expect(Math.round(navX640)).toBeLessThanOrEqual(127);
   });
 
   test("page-bottom spacing matches the live (session-23): the sights pill hands off flush to the footer", async ({ page }) => {

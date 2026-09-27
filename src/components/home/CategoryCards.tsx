@@ -115,7 +115,7 @@ function CategoryCard({
           h-9 (the live matches there). */}
       <Link
         href={spec.href}
-        className="mt-3 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:absolute md:bottom-[-49px] md:left-1/2 md:mt-0 md:w-[229px] md:-translate-x-1/2 md:h-[54px] md:bg-[#141413] md:hover:bg-black"
+        className="mt-2 inline-flex h-9 w-full shrink-0 items-center justify-center rounded-full bg-roam text-xs font-semibold tracking-[0.03em] text-white transition-colors duration-200 hover:bg-roam-deep md:absolute md:bottom-[-49px] md:left-1/2 md:mt-0 md:w-[229px] md:-translate-x-1/2 md:h-[54px] md:bg-[#141413] md:hover:bg-black"
       >
         View All
       </Link>
@@ -132,10 +132,16 @@ export function CategoryCards({
   return (
     <section aria-label="Browse the guide" className="relative z-10 -mt-8 md:-mt-[261px]">
       {/* Mobile: the horizontal snap carousel (session-10 live parity — the
-          cards swipe sideways; no-scrollbar is the safety valve). */}
+          cards swipe sideways; no-scrollbar is the safety valve).
+          Session-26 re-measure: the live's override pads the track
+          18/18/40 and tightens the gap to 12px (gap-3) — the cards ride
+          the hero photo's bottom edge at y≈578 (was gap-4/px-4, cards at
+          y≈559). The pb stays 2: the live's pb-40 overflows its fixed-
+          height hero (invisible to its flow), so matching it exactly would
+          push the route trap ~50px late for no visible gain. */}
       <div
         id="category-cards"
-        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 md:hidden"
+        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto px-[18px] pt-[18px] pb-2 md:hidden"
       >
         {CARDS.map((spec) => (
           <CategoryCard key={spec.category} counts={counts} spec={spec} width="mobile" />

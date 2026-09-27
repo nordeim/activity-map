@@ -118,8 +118,11 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
 
   return (
     <>
-      {/* 1 — the heading trap: tall section, pinned centered heading. */}
-      <section aria-label="Recommended Route heading" className="relative -mb-[110vh] h-[140vh] bg-cream">
+      {/* 1 — the heading trap: tall section, pinned centered heading.
+          Session-26: the live HIDES this section below lg and renders the
+          heading INSIDE the pinned mobile trap instead (see below) — the
+          desktop h2 keeps this sticky wrapper at lg+. */}
+      <section aria-label="Recommended Route heading" className="relative hidden -mb-[110vh] h-[140vh] bg-cream lg:block">
         <div className="pointer-events-none sticky top-0 z-20 flex justify-center px-6 pb-4 pt-[7.5rem] text-center">
           <h2 className="font-serif text-[38px] leading-none tracking-[-0.045em] text-[#141413] md:text-[clamp(38px,6vw,72px)]">
             Recommended Route
@@ -129,16 +132,29 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
 
       {/* 2 — the route body — session-18 re-measure: below lg the live
           pins a FULL-VIEWPORT route visual (the winding-path svg with the
-          five numbered waypoints, sticky for ~208vh) BEFORE the stop cards
-          flow — no mobile progress chip, no dashed timeline; the stop
-          link-cards are rounded-28. lg+ = a 420vh trap with the pinned
-          visual and ONE swapping card pinned EARLY (top of the trap). */}
+          five numbered waypoints, sticky for the trap's span) BEFORE the
+          stop cards flow — no mobile progress chip, no dashed timeline;
+          the stop link-cards are rounded-28. lg+ = a 420vh trap with the
+          pinned visual and ONE swapping card pinned EARLY (top of the
+          trap). Session-26: the trap zone grew to 220vh (the live's
+          measured 1857px at an 844 viewport) and the heading now rides
+          INSIDE the pinned trap at the live's absolute top-[68px] with
+          its clamp(38px, 11vw, 48px) font — the heading stays over the
+          path for the trap's FULL scroll (the old separate heading
+          section vanished mid-trap). */}
       <section id="recommended-route" className="relative bg-cream">
         <div ref={trapRef} className="relative lg:h-[420vh]">
           {/* Session-18: the live's mobile route visual — full-bleed,
-            sticky while its ~208vh region scrolls, then releases. */}
-          <div ref={mobileTrapRef} className="relative h-[208vh] lg:hidden">
+            sticky while its ~220vh region scrolls, then releases. */}
+          <div ref={mobileTrapRef} className="relative h-[220vh] lg:hidden">
             <div className="sticky top-0 h-screen w-full overflow-hidden">
+              {/* Session-26: the live's mobile route heading — pinned
+                inside the trap at viewport y=68, the live's clamp font
+                (42.9px at 390, capped 48), lh ≈1.02, tracking −0.055em,
+                width min(92vw, 360px) centered. */}
+              <h2 className="pointer-events-none absolute left-1/2 top-[68px] z-20 w-[min(92vw,360px)] -translate-x-1/2 text-center font-serif text-[clamp(38px,11vw,48px)] leading-[1.02] tracking-[-0.055em] text-[#141413]">
+                Recommended Route
+              </h2>
               <svg
                 aria-hidden
                 viewBox="0 0 400 800"
@@ -278,12 +294,13 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
 
             {/* The stops column — mobile (session-18): the flowing text
                 cards BELOW the pinned route visual; session-20: the panel
-                pads px-[18px] pt-[28px] pb-12 (the live's measured
-                `28px 18px 48px`) with mt-7 card gaps. lg+ (session-20): the
-                50/50 right half — cards 576 wide inside px-8, the card SLOT
-                at y≈237 (lg:pt-[237px]) with the CONTINUOUS scroll-linked
+                pads px-[18px]; session-26 re-measure: the live's panel is
+                `px-[18px] pb-10 pt-0` (was pt-28/pb-12 — the pt moved into
+                the trap's own geometry). lg+ (session-20): the 50/50 right
+                half — cards 576 wide inside px-8, the card SLOT at
+                y≈237 (lg:pt-[237px]) with the CONTINUOUS scroll-linked
                 choreography (the cards translate up through the slot). */}
-            <div className="relative flex-1 px-[18px] pb-12 pt-[28px] md:px-8 lg:flex lg:items-start lg:justify-center lg:px-8 lg:pb-0 lg:pt-[237px]">
+            <div className="relative flex-1 px-[18px] pb-10 pt-0 md:px-8 lg:flex lg:items-start lg:justify-center lg:px-8 lg:pb-0 lg:pt-[237px]">
               <div className="relative w-full lg:min-h-[560px] lg:max-w-[576px]">
                 {stops.map((place, i) => {
                   const stop = STOPS[i] ?? { time: "", title: place.name };

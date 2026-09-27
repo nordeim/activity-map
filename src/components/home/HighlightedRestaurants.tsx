@@ -184,19 +184,23 @@ export function HighlightedRestaurants({ restaurants }: { restaurants: PlaceDTO[
       </div>
 
       {/* ---------- Mobile (<md): the flowing card list (session 18) ---------- */}
-      <div className="px-4 pb-16 pt-16 md:hidden">
+      {/* Session-26 re-measure: the live's mobile-restaurant-stack
+          returned to a STICKY STACKING deck — the section pads 56/18/0
+          (pt-14, px-[18px], no bottom pad) and each card is
+          `sticky top-[88px]` (the live's pin offset below the 52px
+          tab-bar): a card pins at viewport y=88 and the next flows up
+          OVER it (DOM order paints the later card above). The flow gap
+          stays 130px (620px advances). */}
+      <div className="px-[18px] pt-14 md:hidden">
         <h2 className="mb-8 text-center font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-white">
           Highlighted Restaurants
         </h2>
 
-        {/* Session-18 re-measure: the live dropped the sticky-stacking deck
-            — the six cards flow as plain static cards with ~130px gaps
-            (~620px advances). */}
         <div className="relative">
           {deck.map((r, i) => (
             <article
               key={r.slug}
-              className="block overflow-hidden rounded-[28px] bg-white"
+              className="sticky top-[88px] block overflow-hidden rounded-[28px] bg-white"
               style={{ marginBottom: i === deck.length - 1 ? 0 : 130 }}
             >
               <Link href={`/place/${r.slug}`} className="flex h-full flex-col">

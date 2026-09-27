@@ -31,11 +31,15 @@ const FOOTER_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="bg-cream pt-8 pb-6 md:pt-16 md:pb-14">
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-4 px-5 md:gap-8 md:px-6">
+    // Session-26 re-measure: the live's footer carries the horizontal
+    // padding itself (`px-5`) and switches its vertical pads at **sm**
+    // (640), not md — the inner is BARE (no px, no gap; the legal row's
+    // own mt spaces it).
+    <footer className="bg-cream px-5 pt-8 pb-6 sm:pt-16 sm:pb-14">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
         <nav
           aria-label="Footer"
-          className="grid w-full grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center"
+          className="grid w-full max-w-[390px] grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center"
         >
           {FOOTER_LINKS.map(({ href, label, icon: Icon }) => (
             <Link
@@ -48,7 +52,14 @@ export function SiteFooter() {
             </Link>
           ))}
         </nav>
-        <div className="flex w-full flex-col items-center gap-2 text-center md:flex-row md:justify-between md:gap-4">
+        {/* Session-26 re-measure: the legal row carries the live's chrome —
+            a 1px black/[0.05] TOP HAIRLINE at every breakpoint, pt-3
+            (12px) phones / sm:pt-5 (20px), and its own mt-4/sm:mt-8
+            margin — and the row switches to the space-between ROW at
+            **sm** (640), matching the live's own breakpoint mix. Below md
+            the live's override caps the row at max-w 390 CENTERED (same
+            as the pill) — at 640 the row renders 390 wide @x=125. */}
+        <div className="mt-4 flex w-full max-w-[390px] flex-col items-center gap-2 border-t border-black/[0.05] pt-3 text-center sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:pt-5 sm:text-left md:max-w-none">
           <p className="text-xs text-[#8A8780]">© 2026 Roam. Activity Map for Augsburg.</p>
           <p className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[#8A8780]">
             <Link

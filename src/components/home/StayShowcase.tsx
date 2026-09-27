@@ -33,11 +33,13 @@ export function StayShowcase({ stays }: { stays: PlaceDTO[] }) {
         </p>
       </div>
 
-      {/* Session-14: the 1178px grid carries NO horizontal padding (the
-          live's grid box IS 1178 — 381px cards at an 18px gap) and fills
-          column-major from md (grid-rows-4 + grid-flow-col). */}
+      {/* Session-14: the 1178px grid carries NO horizontal padding at
+          md+ (the live's grid box IS 1178 — 381px cards at an 18px gap) and
+          fills column-major from md (grid-rows-4 + grid-flow-col).
+          Session-26: below md the live's mobile grid pads px-[18px] —
+          the cards render INSET (354 wide at 390), not full-bleed. */}
       <div className="mx-auto w-full max-w-[1178px] pb-[144px]">
-        <ul className="grid grid-cols-1 gap-[18px] md:grid-cols-3 md:grid-rows-4 md:[grid-auto-flow:column]">
+        <ul className="grid grid-cols-1 gap-[18px] px-[18px] md:grid-cols-3 md:grid-rows-4 md:px-0 md:[grid-auto-flow:column]">
           {stays.map((stay) => (
             <li key={stay.slug}>
               <StayCard place={stay} home />
