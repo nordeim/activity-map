@@ -479,6 +479,14 @@ test.describe("favourites round-trip", () => {
     expect(emptyFont.toLowerCase()).toContain("inter");
     await expect(emptyTitle).toHaveCSS("font-size", "20px");
     await expect(emptyTitle).toHaveCSS("font-weight", "600");
+    // Session-25 re-measure: the live's empty card is max-w-xl — 576px wide
+    // and centered at 1280 (the clone had drifted to max-w-md/448; the
+    // mobile 358@x16 contract is unchanged).
+    const emptyCard = emptyTitle.locator("xpath=ancestor::section[1]");
+    const emptyBox = await emptyCard.boundingBox();
+    expect(emptyBox).not.toBeNull();
+    expect(emptyBox!.width).toBeGreaterThan(550);
+    expect(Math.abs(emptyBox!.x + emptyBox!.width / 2 - 640)).toBeLessThanOrEqual(2);
   });
 });
 

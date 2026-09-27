@@ -51,11 +51,14 @@ export function SiteFooter() {
         <div className="flex w-full flex-col items-center gap-2 text-center md:flex-row md:justify-between md:gap-4">
           <p className="text-xs text-[#8A8780]">© 2026 Roam. Activity Map for Augsburg.</p>
           <p className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[#8A8780]">
-            <Link href="/privacy" className="underline-offset-2 hover:text-ink hover:underline">
+            <Link
+              href="/privacy-policy"
+              className="underline-offset-2 hover:text-ink hover:underline"
+            >
               Privacy policy
             </Link>
             <Link
-              href="/accessibility"
+              href="/accessibility-statement"
               className="underline-offset-2 hover:text-ink hover:underline"
             >
               Accessibility Statement

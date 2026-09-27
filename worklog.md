@@ -523,3 +523,25 @@ Work Log:
 Stage Summary:
 - Commit ff32686 (35 files: 7 source/spec + 7 docs + 20 screenshots + 1 script) pushed to main and verified on the remote.
 - No secrets in the tree; key material destroyed post-push.
+
+---
+Task ID: 25
+Agent: Super Z (main agent, session 25)
+Task: Session 25 — deployed-mirror verification + live-source re-measure → the login/legal/category parity (TDD).
+
+Work Log:
+- Workspace refreshed (git pull brought docs/session_25.md + the start-server log update); every root doc + the session-24 logs + the worklog re-read; the codebase state re-validated (env, db, configs, skills exclusion); the baseline gate run on the untouched tree: lint ✓ (2 pre-existing warnings) · typecheck ✓ · 42 unit ✓ · build ✓ · 27/27 smoke ✓ · 66/66 E2E ✓.
+- Deployed-mirror audit (activity-map.jesspete.shop, logged in): REDEPLOYED WITH THE SESSION-24 CODE — verified by DOM signature (the chips 600/#555550/hairline with the violet #571AFF active at 38px@1280/44px@390; the card shell r-28 + hairline + 0 18 44 /0.08 shadow; the map command center sticky-96 h66 w1216 with pills 41/600; the mobile h1 y=112; the heart disc 36 with the 16px svg; the tab-bar 52). Functionally ALL GREEN: zero console errors across every page at 390; the mobile navbar end-to-end (no overflow, tap navigation, active-state movement, fixed-bar scroll persistence, icon actions); the favourites round-trip; the booking round-trip (visible under Profile → My bookings).
+- Live-source re-measure (activity-map.base44.app, logged in at 1280/390): every session-24 surface re-verified UNCHANGED (chips, card shell, map command center, planner chrome, pt-112, hero, pill, footer, route h3s, stay squares, sights, blue band, detail split, profile, favourites heading, map cards + interleaved order, mobile carousel) — then the LONGEST-PINNED surfaces swept for the first time. Findings F1–F5: the login (the shadcn inputs are 14px text-sm — the clone rendered 16px; the whole "Need an account? Sign up" line is ONE button with a font-medium span); the category cards' desktop internals (root cause: the live renders its session-10 internals at md — 230px cards, 36px rows, 28×28 cells — and SCALES the row transform:matrix(1.15), so the visible contract is 24px headers / 32×32 cells / ~13.8px gap / cards 210–231 / the pill hanging 49px past the card bottom; the clone rendered the session-16 build: 32px header, 34×35 cells, gap 20, the pill at −27px); the favourites empty card (max-w-xl 576 centered @1280 vs the clone's max-w-md 448); the legal pages (the live's routes /privacy-policy + /accessibility-statement — its old /privacy 404s; the ← Back home link 14px/400 #8A8780; max-w-3xl; the 48px Libre Baskerville h1; 14px/28px #5F5C56 paras; no Last-updated eyebrow; the live's verbatim texts).
+- Remediation plan written (docs/remediation-plan-session-25.md) and validated against the codebase before execution.
+- TDD RED: four touched specs verified failing on the unmodified tree (the login chrome extension, the NEW legal-pages contract, the updated category-card pins, the favourites empty width).
+- TDD GREEN: R1 the login (text-sm inputs + the one-button signup row); R2 the category cards (md:leading-6, md:h-8 md:w-8 cells with 15px svgs, gap-3.5, md:bottom-[-49px]); R3 the favourites empty card max-w-xl; R4 the legal pages (the new routes + redirect stubs + the LegalPage rebuild + the footer hrefs + absolute titles).
+- Side-by-side verification on the production server: every remediated surface EXACT (login inputs 14/48 + one button; cards header 24/cells 32×32/svg 15/gap 14/x 232-509-786/h 215/pill 229×54 at 48/6 vs the live 49/5; the mobile carousel untouched; the empty card 576@x352 centered; the legal chrome exact). The login card height 784 vs the live's 746 documented as a whitespace non-gap (the live's merged-block + hidden field slots).
+- En-route lessons: a computed-vs-rect width mismatch (230 vs 264.5) exposed the live's ancestor transform — walk the chain before trusting raw geometry; a VLM flipped a height comparison (called the shorter live card taller) — the DOM is the truth; browser daemons left from the audit starved one E2E run (a do-view flake) — kill them before the gate.
+- Full gates on the push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 67/67 E2E ✓ (the new legal-pages contract + the extended login/category/favourites pins; every prior pin green).
+- 25 screenshots (14 refreshed + 5 new session-25 captures via capture-screens-v6-session25, VLM-verified); .env.example re-verified; docs aligned (README, AGENTS, CLAUDE, PAD v2.4, activity-map_SKILL v1.12.0, the plan, this log).
+
+Stage Summary:
+- The mirror verified running the session-24 code ALL GREEN (the session-24 close-the-loop spot-check); the live re-measured with the login/category/legal/favourites-empty surfaces swept for the first time — 5 findings, all remediated to EXACT visible parity.
+- Gates: 42 unit + 27 smoke + 67 E2E (1 new contract + 3 extended) — all green on the push tree.
+- 25 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.

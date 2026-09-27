@@ -51,7 +51,10 @@ export function FavouritesView({ places }: { places: PlaceDTO[] }) {
           content at 16px on phones. */}
       <div className="relative mx-auto mt-6 max-w-[1100px] px-4 md:px-8">
         {places.length === 0 ? (
-          <section className="mx-auto max-w-md">
+          // Session-25 re-measure: the live's empty card is max-w-xl —
+          // 576px centered at 1280 (was max-w-md/448; the mobile 358@x16
+          // contract is unchanged).
+          <section className="mx-auto max-w-xl">
             <div className="flex flex-col items-center rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white py-16 text-center">
               <span className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#F8F7F4]">
                 <Heart className="h-7 w-7 text-[#0E0E0E]" strokeWidth={1.8} aria-hidden />

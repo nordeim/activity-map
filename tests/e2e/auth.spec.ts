@@ -23,7 +23,10 @@ test.describe("login route", () => {
     await expect(page.getByRole("button", { name: "Continue with Google" })).toBeVisible();
     await expect(page.getByText("or", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Forgot password?" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
+    // Session-25 re-measure: the live renders the whole "Need an account?
+    // Sign up" as ONE button (the emphasized part a font-medium span) — the
+    // accessible name is the full string, not just "Sign up".
+    await expect(page.getByRole("button", { name: "Need an account? Sign up" })).toBeVisible();
 
     // Session-10 re-measure: the card is the shadcn-style rounded-16 white
     // panel (radius 16px, white/95) — NOT the old rounded-28 card.
@@ -48,6 +51,12 @@ test.describe("login route", () => {
     await expect(emailField.locator("svg")).toBeVisible();
     const passwordField = page.getByLabel("Password").locator("xpath=..");
     await expect(passwordField.locator("svg")).toBeVisible();
+
+    // Session-25 re-measure: the live's shadcn fields set text-sm — the
+    // input text is 14px (the clone had drifted to text-base/16px; the
+    // 48px field height and the 14px/500 labels were already exact).
+    await expect(page.getByLabel("Email")).toHaveCSS("font-size", "14px");
+    await expect(page.getByLabel("Password")).toHaveCSS("font-size", "14px");
 
     // The Sign in button is slate-900 (#0F172A) with a 12px radius (not the
     // old black pill).
@@ -99,5 +108,48 @@ test.describe("login route", () => {
     expect(res.ok()).toBeTruthy();
     await page.goto("/login", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("the legal pages match the live (session-25)", async ({ page }) => {
+    // The live's legal routes are /privacy-policy and
+    // /accessibility-statement (its old /privacy 404s). The clone keeps
+    // permanent redirects on the legacy paths so inbound links survive.
+    for (const [legacy, target] of [
+      ["/privacy", "/privacy-policy"],
+      ["/accessibility", "/accessibility-statement"],
+    ] as const) {
+      await page.goto(legacy, { waitUntil: "domcontentloaded" });
+      await expect(page).toHaveURL(new RegExp(target.replace("/", "\\/")));
+    }
+
+    // Chrome contract (measured on the live): the ← Back home link
+    // (14px/400, #8A8780, href=/), the max-w-3xl content column, the 48px
+    // Libre Baskerville h1, 14px/28px #5F5C56 paras, NO "Last updated"
+    // eyebrow, and no navbar/footer (the legal pages are chrome-less).
+    await page.goto("/privacy-policy", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveTitle(/Privacy Policy \| Activity Map/);
+    const back = page.getByRole("link", { name: "Back home" });
+    await expect(back).toBeVisible();
+    await expect(back).toHaveCSS("font-size", "14px");
+    await expect(back).toHaveCSS("color", "rgb(138, 135, 128)");
+    await expect(back).toHaveAttribute("href", "/");
+    const h1 = page.getByRole("heading", { name: "Privacy policy" });
+    await expect(h1).toHaveCSS("font-size", "48px");
+    const h1Font = await h1.evaluate((el) => getComputedStyle(el).fontFamily);
+    expect(h1Font).toContain("Baskerville");
+    const para = page.locator("article p").first();
+    await expect(para).toHaveCSS("font-size", "14px");
+    await expect(para).toHaveCSS("line-height", "28px");
+    await expect(para).toHaveCSS("color", "rgb(95, 92, 86)");
+    await expect(page.getByText(/last updated/i)).toHaveCount(0);
+    await expect(page.getByRole("navigation")).toHaveCount(0);
+    await expect(page.locator("footer")).toHaveCount(0);
+    await expect(page.getByText("Roam uses account, booking, preference, and trip details")).toBeVisible();
+
+    await page.goto("/accessibility-statement", { waitUntil: "domcontentloaded" });
+    await expect(page).toHaveTitle(/Accessibility Statement \| Activity Map/);
+    await expect(page.getByRole("heading", { name: "Accessibility Statement" })).toHaveCSS("font-size", "48px");
+    await expect(page.getByText("Roam aims to provide a clear, readable, and navigable experience")).toBeVisible();
+    await expect(page.getByRole("navigation")).toHaveCount(0);
   });
 });

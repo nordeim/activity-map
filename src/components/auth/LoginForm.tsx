@@ -146,7 +146,7 @@ export function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-base text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
+                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-sm text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-base text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
+                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-sm text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
                 />
               </div>
             </div>
@@ -207,18 +207,19 @@ export function LoginForm() {
             >
               Forgot password?
             </button>
-            <p className="text-slate-500">
-              Need an account?{" "}
-              <button
-                type="button"
-                onClick={() =>
-                  setNotice("Sign-up is a hosted-platform feature — this clone ships the demo account only.")
-                }
-                className="font-semibold text-slate-700 underline-offset-4 transition hover:underline"
-              >
-                Sign up
-              </button>
-            </p>
+            {/* Session-25 re-measure: the live renders the whole line as ONE
+                button — "Need an account? <span font-medium>Sign up</span>"
+                (text-sm slate-500, the emphasized part slate-700 medium; was
+                a p + a nested font-semibold button). */}
+            <button
+              type="button"
+              onClick={() =>
+                setNotice("Sign-up is a hosted-platform feature — this clone ships the demo account only.")
+              }
+              className="text-sm text-slate-500 transition-colors hover:text-slate-700"
+            >
+              Need an account? <span className="font-medium text-slate-700">Sign up</span>
+            </button>
           </div>
         </div>
       </div>
