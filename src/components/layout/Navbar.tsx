@@ -97,10 +97,13 @@ export function Navbar({ userEmail }: { userEmail: string }) {
         <nav
           aria-label="Primary"
           className={cn(
-            // Inner bar — mobile: the 52px tab row; desktop: the white
-            // floating PILL (session-6: max-w 820, radius 999, full border,
-            // soft shadow — no longer the full-width bottom-bordered bar).
-            "flex h-[52px] items-center justify-between px-4 md:h-14 md:w-full md:max-w-[820px] md:px-3",
+            // Inner bar — mobile: the tab row (session-23: h-[51px] + the
+            // header's 1px border-b = the live's 52px border-box bar — the
+            // live's nav is h-12 48px + chrome, measured 52 at 390–767);
+            // desktop: the white floating PILL (session-6: max-w 820,
+            // radius 999, full border, soft shadow — no longer the
+            // full-width bottom-bordered bar).
+            "flex h-[51px] items-center justify-between px-4 md:h-14 md:w-full md:max-w-[820px] md:px-3",
             "md:rounded-full md:border md:border-line md:bg-white md:shadow-[0_2px_12px_rgba(14,14,14,0.08)]",
             !hidden && "md:translate-y-0 md:opacity-100",
             hidden && "md:-translate-y-[130%] md:opacity-0",

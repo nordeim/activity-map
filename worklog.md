@@ -446,3 +446,26 @@ Work Log:
 
 Stage Summary:
 - Session 22 delivered and pushed to main (fb5f78b); remote ref verified; no key residue.
+
+---
+Task ID: 23
+Agent: Super Z (main agent, session 23)
+Task: Session 23 — deployed-mirror + live-source dual audit → footer re-measure, the 1px tab-bar, and the page-bottom spacing parity (TDD).
+
+Work Log:
+- Workspace refreshed (git pull — session_23.md + the start-server-log update arrived); every root doc + the session-22/23 logs + the worklog re-read; the baseline gate run on the untouched tree: lint ✓ (2 pre-existing warnings) · typecheck ✓ · 42 unit ✓ · build ✓ · 27/27 smoke ✓ · 58/58 E2E ✓.
+- Deployed-mirror audit (activity-map.jesspete.shop, logged in): verified running the SESSION-22 code by DOM signature (hero img y=−86 h=1010 @1280; blur(24px) saturate(1.5) glass; −0.12px mobile tracking). All 10 pages + place detail load with ZERO console errors; the mobile navbar works end-to-end (fixed glass tab-bar, tap navigation, icon actions, scroll persistence, no 390 overflow — no Tailwind v4 failure classes); favourites round-trip (save 201 → visible → unsave); booking round-trip (submit → confirmation → visible under My bookings).
+- Live-source re-measure (activity-map.base44.app, logged in at 1280/768/390): every session-22 surface re-verified UNCHANGED (hero, pill, tracking, route cards, time pills, eat/stay/do headings, detail split, map, profile, login, mobile cards) — then the FOOTER swept for the first time since session 2: F1 the mobile tab-bar totals 52px border-box (clone 53); F2 the desktop footer is a compact shrink-wrapped GLASS pill 506×96 (r-28, border 1px #E8E6DC, blur(40px) saturate(1.5), pad 8px 10px, links 74×78/20px icon/11px-600; inner 1024; footer pt-64/pb-56; justify-between legal row 12px #8A8780); F3 the mobile footer (350px grid, pt-32/pb-24, column legal row); F4 the page-bottom chains (home card→pill 32 + pill→footer 0/22; browse/map/detail 96).
+- Remediation plan written (docs/remediation-plan-session-23.md) and validated against the codebase before execution; one plan error caught en-route by dev-server measurement: the "map has NO bottom padding" claim was a probe artifact (the map chain already measured 96 = pb-16 + the footer's mt-8) — the correct fix compensated the removed mt-8 (pb-16→pb-24) instead of stacking a second padding.
+- TDD RED: three new contracts added first (mobile-navigation.spec.ts the tab-bar 52px border-box; home.spec.ts the footer re-measure + the page-bottom spacing) — all three verified failing against the unmodified tree.
+- TDD GREEN: R1 Navbar nav h-[52px]→h-[51px] (52 border-box with the header's 1px border-b); R2 SiteFooter rebuilt (the glass pill + footer-owned paddings + max-w-5xl inner + the justify-between legal row + #8A8780 text; mt-8 removed); R3 the page-bottom chains (home main pb-16 removed + the sights section pb-[22px] md:pb-0 + the pill wrapper mt-8/no pb; CategoryExplorer pb-24; the detail main pb-24; MapExplorer inner pb-24).
+- Full gates on the push tree: lint ✓ typecheck ✓ 42 unit ✓ build ✓ 27/27 smoke ✓ 61/61 E2E ✓ (3 new contracts; every prior pin green).
+- Side-by-side verification on the dev server: every remediated surface EXACT (tab-bar 52 @390; footer 506×96 r-28 #E8E6DC blur(40px) saturate(1.5) pad 8px 10px links 74×78 icon 20 span 11px/600 inner 1024 pt-64/pb-56; mobile 350/104×78 pt-32/pb-24 column row; home 0/32 desktop + 22/32 mobile; eat/map/detail 96; pixel-verified border #E8E6DC + cream canvas in the captures).
+- 17 screenshots (14 refreshed via capture-screens-v3 + crop-sections-v3; 3 new footer captures via capture-screens-v4-footer — the smooth-scroll trap fixed with instant scrollTo + rect verification); .env.example verified against every code-referenced env var (DATABASE_URL + AUTH_SECRET live; NEXT_PUBLIC_SITE_URL the documented reserved slot).
+- Docs aligned: README (17 captures, 61 E2E, the session-23 status row), AGENTS (the 52px tab-bar precision + the footer contract, 61 E2E), CLAUDE (the mobile chrome footer description + the E2E suite map, 61), PAD (v2.2), activity-map_SKILL (v1.10.0), the session-23 plan + this log.
+
+Stage Summary:
+- The deployed mirror audited ALL GREEN on the session-22 code; the live re-measured with the footer swept for the first time since session 2 — 4 findings.
+- The 1px tab-bar, the footer chrome/paddings/legal row, and the four page-bottom chains remediated to EXACT live parity (all values measured identical post-fix).
+- Gates: 42 unit + 27 smoke + 61 E2E (3 new contracts) — all green on the push tree.
+- 17 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.

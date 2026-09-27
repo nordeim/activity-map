@@ -114,7 +114,7 @@ export function CategoryExplorer({
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 pb-20 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
 
       {/* Results */}
       <p className="sr-only" aria-live="polite">

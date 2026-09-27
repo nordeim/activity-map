@@ -14,8 +14,10 @@ import type { PlaceDTO } from "@/types";
 
 export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
   if (sights.length === 0) return null;
+  // Session-23: the section's bottom padding is the live's mobile
+  // pill→footer hand-off (22px); desktop hands off flush (0).
   return (
-    <section id="highlighted-sights" className="w-full pb-16">
+    <section id="highlighted-sights" className="w-full pb-[22px] md:pb-0">
       <div className="mx-auto mb-10 max-w-3xl px-4 text-center sm:px-6">
         <h2 className="font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-ink sm:text-[clamp(42px,6.5vw,86px)]">
           Highlighted Sights
@@ -88,8 +90,10 @@ export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
       </div>
 
       {/* The More Things to Do hand-off — a DARK pill (session-8 live
-          re-measure: bg #111111, white text, 166×46, radius 999). */}
-      <div className="mt-12 flex justify-center pb-4">
+          re-measure: bg #111111, white text, 166×46, radius 999).
+          Session-23: the last sight card → the pill is 32px on BOTH
+          breakpoints (mt-8, no pb — the footer takes it from here). */}
+      <div className="mt-8 flex justify-center">
         <Link
           href="/do"
           className="flex h-[46px] items-center justify-center rounded-full bg-[#111111] px-8 text-sm font-semibold text-white transition hover:bg-black"

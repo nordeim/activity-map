@@ -8,13 +8,17 @@ import {
   Heart,
 } from "lucide-react";
 
-// The site footer, re-measured from the live app (session 6): the six view
-// links as ICON CELLS (icon over label, white/55 tiles, radius 18, hairline
-// border) inside a WHITE rounded-28 pill — a 3-column grid on phones and a
-// centered flex-wrap from md — then the legal line "© 2026 Roam. Activity
-// Map for Augsburg." with the Privacy policy / Accessibility Statement
-// links (real static pages in this app). Rendered from the (app) layout on
-// every authenticated page (live parity).
+// The site footer — session-23 re-measure (the footer had drifted since
+// session 2): the live renders a COMPACT shrink-wrapped centered GLASS pill
+// — border 1px #E8E6DC, backdrop blur(40px) saturate(1.5), radius 28, pad
+// 8px 10px — carrying the six view links as icon cells (20px icon over
+// 11px/600 label, gap 8px; 74px wide from md, a 3-column grid on phones);
+// the footer element itself owns the vertical padding (pt-32/pb-24 mobile,
+// pt-64/pb-56 desktop) with NO top margin — every page's last section hands
+// off to the footer's own pt. The inner is max-w-5xl (1024). The legal row
+// is a justify-between ROW from md (© 12px #8A8780 left, the Privacy /
+// Accessibility links right, gap 8px/20px) and a centered column on phones.
+// Rendered from the (app) layout on every authenticated page (live parity).
 
 const FOOTER_LINKS = [
   { href: "/", label: "Highlights", icon: Sun },
@@ -27,26 +31,26 @@ const FOOTER_LINKS = [
 
 export function SiteFooter() {
   return (
-    <footer className="mt-8 bg-cream">
-      <div className="mx-auto flex max-w-[1120px] flex-col items-center gap-7 px-4 py-9 sm:px-6">
+    <footer className="bg-cream pt-8 pb-6 md:pt-16 md:pb-14">
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-4 px-5 md:gap-8 md:px-6">
         <nav
           aria-label="Footer"
-          className="grid w-full max-w-[350px] grid-cols-3 gap-2 rounded-[28px] bg-white p-2.5 md:flex md:max-w-none md:flex-wrap md:justify-center md:gap-2 md:rounded-[34px] md:p-4"
+          className="grid w-full grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center"
         >
           {FOOTER_LINKS.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="group flex h-[78px] flex-col items-center justify-center gap-1 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] transition-colors md:h-[78px] md:w-[98px]"
+              className="group flex h-[78px] flex-col items-center justify-center gap-2 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] transition-colors md:h-[78px] md:w-[74px]"
             >
-              <Icon className="h-4 w-4" strokeWidth={1.8} aria-hidden />
-              <span className="font-inter text-[13px] font-medium md:text-sm">{label}</span>
+              <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
+              <span className="font-inter text-[11px] font-semibold">{label}</span>
             </Link>
           ))}
         </nav>
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-xs text-black/50">© 2026 Roam. Activity Map for Augsburg.</p>
-          <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted">
+        <div className="flex w-full flex-col items-center gap-2 text-center md:flex-row md:justify-between md:gap-4">
+          <p className="text-xs text-[#8A8780]">© 2026 Roam. Activity Map for Augsburg.</p>
+          <p className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-[#8A8780]">
             <Link href="/privacy" className="underline-offset-2 hover:text-ink hover:underline">
               Privacy policy
             </Link>

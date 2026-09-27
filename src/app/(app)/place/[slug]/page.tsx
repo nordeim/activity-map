@@ -28,7 +28,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       : place.tags;
 
   return (
-    <main className="w-full pb-20">
+    <main className="w-full pb-24">
       {/* Session-18 re-measure: the live restructured the detail page — the
           heading + hero photo card is now a FULL-BLEED section carrying the
           18px graph-paper grid texture at 40% opacity (the live's new

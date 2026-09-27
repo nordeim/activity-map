@@ -189,7 +189,7 @@ export function MapExplorer({
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+      <div className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
 
       {/* Map canvas — session-12: the live's desktop height is 620px
           (measured at 1280); phones keep the responsive shorter canvas. */}

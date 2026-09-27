@@ -119,6 +119,17 @@ test.describe("mobile navigation", () => {
     expect(ls).toBeGreaterThanOrEqual(-0.16);
   });
 
+  test("the tab-bar totals 52px border-box (session-23)", async ({ page }) => {
+    // Session-23 re-measure: the live's header.tab-bar measures 52px
+    // border-box at every mobile width 390–767 (its nav is h-12 48px +
+    // chrome). The clone rendered nav h-[52px] + 1px header border-b =
+    // 53px — a 1px delta. The fix: nav h-[51px] so the header totals 52.
+    const header = page.locator("header");
+    const h = await header.evaluate((el) => el.getBoundingClientRect().height);
+    expect(h).toBeGreaterThanOrEqual(51.5);
+    expect(h).toBeLessThanOrEqual(52.5);
+  });
+
   test("view-link taps switch routes and move the active state", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
 

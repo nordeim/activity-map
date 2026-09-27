@@ -602,6 +602,125 @@ test.describe("home content parity (session 2)", () => {
     await expect(page.getByRole("contentinfo").getByRole("link", { name: "Accessibility Statement" })).toBeVisible();
   });
 
+  test("the footer matches the live re-measure (session-23): compact glass pill + paddings + legal row", async ({ page }) => {
+    // Session-23 re-measure — the footer had not been re-audited since
+    // session 2. The live renders: a COMPACT shrink-wrapped centered glass
+    // pill (506×96 @1280, r-28, border 1px #E8E6DC, backdrop
+    // blur(40px) saturate(1.5), pad 8px 10px, links 74×78 with 20px icons
+    // over 11px/600 text); the footer element carries pt-64/pb-56 (desktop)
+    // / pt-32/pb-24 (mobile); the inner is max-w-5xl (1024); the bottom row
+    // is a justify-between ROW at md (© 12px #8A8780 left, legal nav right
+    // with gap 8px 20px) and a centered column on phones.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const footer = page.getByRole("contentinfo");
+    const nav = footer.locator("nav").first();
+
+    // The compact pill: shrink-wrapped (~506 = 6×74 + 5×8 + 2×10 + 2×1).
+    const navW = await nav.evaluate((el) => el.getBoundingClientRect().width);
+    expect(navW).toBeGreaterThanOrEqual(500);
+    expect(navW).toBeLessThanOrEqual(512);
+    await expect(nav).toHaveCSS("border-radius", "28px");
+    await expect(nav).toHaveCSS("border-top-width", "1px");
+    await expect(nav).toHaveCSS("border-top-color", "rgb(232, 230, 220)");
+    // The two backdrop utilities must compose into ONE declaration.
+    await expect(nav).toHaveCSS("backdrop-filter", "blur(40px) saturate(1.5)");
+    const pad = await nav.evaluate((el) => getComputedStyle(el).padding);
+    expect(pad).toBe("8px 10px");
+
+    // The link tiles: 74px wide, 20px icon over 11px/600 text.
+    const link = nav.getByRole("link").first();
+    const linkW = await link.evaluate((el) => el.getBoundingClientRect().width);
+    expect(linkW).toBeGreaterThanOrEqual(72);
+    expect(linkW).toBeLessThanOrEqual(76);
+    const iconH = await link.evaluate((el) => {
+      const svg = el.querySelector("svg");
+      return svg ? svg.getBoundingClientRect().height : 0;
+    });
+    expect(iconH).toBeGreaterThanOrEqual(19);
+    const span = link.locator("span").first();
+    await expect(span).toHaveCSS("font-size", "11px");
+    await expect(span).toHaveCSS("font-weight", "600");
+
+    // The footer element carries the vertical padding (pt-64/pb-56).
+    await expect(footer).toHaveCSS("padding-top", "64px");
+    await expect(footer).toHaveCSS("padding-bottom", "56px");
+
+    // The inner is max-w-5xl (1024).
+    const innerW = await footer.evaluate((el) => {
+      const child = el.firstElementChild;
+      return child ? child.getBoundingClientRect().width : 0;
+    });
+    expect(innerW).toBeGreaterThanOrEqual(1020);
+    expect(innerW).toBeLessThanOrEqual(1028);
+
+    // The bottom row: justify-between at md, 12px #8A8780 text.
+    const bottomRow = footer.locator("div").filter({ hasText: "© 2026 Roam" }).last();
+    await expect(bottomRow).toHaveCSS("justify-content", "space-between");
+    const cr = bottomRow.locator("p").first();
+    await expect(cr).toHaveCSS("font-size", "12px");
+    await expect(cr).toHaveCSS("color", "rgb(138, 135, 128)");
+
+    // Mobile (390): the footer pads 32/24 and the nav fills the width.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await expect(footer).toHaveCSS("padding-top", "32px");
+    await expect(footer).toHaveCSS("padding-bottom", "24px");
+    const navWMobile = await nav.evaluate((el) => el.getBoundingClientRect().width);
+    expect(navWMobile).toBeGreaterThanOrEqual(348);
+    expect(navWMobile).toBeLessThanOrEqual(352);
+    // The bottom row stacks (column) on phones.
+    await expect(bottomRow).toHaveCSS("flex-direction", "column");
+  });
+
+  test("page-bottom spacing matches the live (session-23): the sights pill hands off flush to the footer", async ({ page }) => {
+    // Session-23 re-measure: on the live, the last sight card → the
+    // More-pill = 32px (both breakpoints); the pill → the footer top = 0px
+    // desktop / 22px mobile; the browse/map/detail pages end 96px above
+    // the footer. The clone rendered a 176px void (pb-4 + section pb-16 +
+    // main pb-16 + footer mt-8 + inner py-9).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const footer = page.getByRole("contentinfo");
+    const ftrTop = await footer.evaluate((el) => el.getBoundingClientRect().y + scrollY);
+    const pill = page.getByRole("link", { name: /More Things to Do/ });
+    const pillBottom = await pill.evaluate((el) => el.getBoundingClientRect().y + scrollY + el.getBoundingClientRect().height);
+    // Desktop: the pill hands off FLUSH (0px ± 2).
+    expect(Math.abs(ftrTop - pillBottom)).toBeLessThanOrEqual(2);
+
+    // The last sight card → the pill = 32px (± 2).
+    const cardGap = await pill.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const cards = [...document.querySelectorAll("main a")].filter((a) => {
+        const ar = a.getBoundingClientRect();
+        return ar.height > 150 && ar.y + scrollY < r.y + scrollY - 10;
+      });
+      const last = cards[cards.length - 1] as HTMLElement | undefined;
+      if (!last) return -1;
+      const lr = last.getBoundingClientRect();
+      return r.y + scrollY - (lr.y + scrollY + lr.height);
+    });
+    expect(cardGap).toBeGreaterThanOrEqual(30);
+    expect(cardGap).toBeLessThanOrEqual(34);
+
+    // The browse page: the last card ends 96px above the footer (± 4).
+    await page.goto("/eat", { waitUntil: "domcontentloaded" });
+    const ftrTopEat = await footer.evaluate((el) => el.getBoundingClientRect().y + scrollY);
+    const eatGap = await footer.evaluate((el) => {
+      const cards = [...document.querySelectorAll("main a")].filter((a) => {
+        const ar = a.getBoundingClientRect();
+        return ar.height > 80 && ar.y + scrollY < el.getBoundingClientRect().y + scrollY - 20;
+      });
+      const last = cards[cards.length - 1] as HTMLElement | undefined;
+      if (!last) return -1;
+      const lr = last.getBoundingClientRect();
+      return el.getBoundingClientRect().y + scrollY - (lr.y + scrollY + lr.height);
+    });
+    expect(eatGap).toBeGreaterThanOrEqual(92);
+    expect(eatGap).toBeLessThanOrEqual(100);
+    expect(ftrTopEat).toBeGreaterThan(0);
+  });
+
   test("browses stay unpolluted: 12 stays, 12 eats, 18 dos", async ({ page }) => {
     await page.goto("/stay");
     await expect(page.locator('a[href^="/place/"]')).toHaveCount(12);

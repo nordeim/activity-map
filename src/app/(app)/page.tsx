@@ -52,7 +52,11 @@ export default async function HomePage() {
 
   return (
     <>
-      <main className="pb-16">
+      {/* Session-23: main carries NO bottom padding — the live's home
+          hands the More-pill off FLUSH to the footer (the footer's own
+          pt-64/pt-32 provides the gap; the section + wrapper paddings
+          carry the mobile 22px). */}
+      <main>
         <Hero />
         <CategoryCards counts={counts} signedInName={user?.name ?? null} />
         <RecommendedRoute stops={route} />
