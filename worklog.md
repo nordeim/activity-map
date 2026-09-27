@@ -507,3 +507,19 @@ Stage Summary:
 - The deployed mirror audited ALL GREEN on the session-23 code; the live re-measured with the filter surfaces swept for the first time — 10 findings, all remediated to EXACT parity.
 - Gates: 42 unit + 27 smoke + 66 E2E (5 new contracts) — all green on the push tree.
 - 20 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 24-push
+Agent: Super Z (main agent)
+Task: Session 24 — push verification record.
+
+Work Log:
+- Push infrastructure rebuilt (the sandbox had been reset): paramiko 5.0.0 present on the system python (/usr/bin/python3 — the venv python lacks it, so the shim's shebang points at the system one), the Appendix-A paramiko ssh shim deployed at /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the full diff + the new untracked files: 0 new matches (the AGENTS.md demo-login lines are pre-existing seeded-account documentation).
+- Dry-run: authenticated, remote main at 7dba315 (the session base), fast-forward confirmed.
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: 7dba315..ff32686 HEAD -> main; wrapper verified refs/heads/main @ ff32686 == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit ff32686 (35 files: 7 source/spec + 7 docs + 20 screenshots + 1 script) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
