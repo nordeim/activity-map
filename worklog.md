@@ -621,3 +621,19 @@ Stage Summary:
 - The mirror verified running the session-26 code ALL GREEN (the session-26 close-the-loop spot-check); the live re-measured with the route stop cards swept below the session-20 contract + the login fields re-checked at every breakpoint — 6 findings, all remediated to EXACT visible parity.
 - Gates: 42 unit + 27 smoke + 68 E2E (2 extended contracts) — all green on the push tree.
 - 32 screenshots; 7 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 27-push
+Agent: Super Z (main agent)
+Task: Session 27 — push verification record.
+
+Work Log:
+- Push infrastructure rebuilt from scratch (the workspace had been reset): paramiko 5.0.0 installed on the venv python (/home/z/.venv/bin/python3 — the shebang of the Appendix-A shim points there), the shim extracted from the runbook to /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the staged diff + the new untracked files: 0 new matches (the README/AGENTS/worklog demo-login lines are pre-existing seeded-account documentation); 0 SSH key material.
+- Dry-run: authenticated, remote main at e4b5b29 (the owner's post-session-26 "update start server log" commit — pulled at this session's start), fast-forward confirmed (e4b5b29..644d97e).
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: e4b5b29..644d97e HEAD -> main; wrapper verified refs/heads/main @ 644d97e == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit 644d97e (18 files: 2 source + 2 specs + 7 docs + 4 screenshots + 3 scripts) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
