@@ -275,14 +275,32 @@ test.describe("home content parity (session 2)", () => {
     await expect(stopTitle).toHaveCSS("color", "rgb(20, 20, 19)");
 
     // The time pill is a WHITE pill (radius 999) — session-20 re-measure:
-    // px-3 py-1, 12px/400 text, NO shadow (the live dropped it).
+    // px-3 py-1, 12px/400 text. Session-27 re-measure: the live RE-ADDED a
+    // soft shadow + a hairline border + a PER-STOP category icon + dimmer
+    // #3A3A3A text (the shadow-less session-20 contract is overtaken).
     const timePill = page.locator("[data-stop-time='9:00 AM']");
     await expect(timePill).toHaveCSS("background-color", "rgb(255, 255, 255)");
     const timeRadius = await timePill.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius));
     expect(timeRadius).toBeGreaterThan(1000);
     await expect(timePill).toHaveCSS("font-weight", "400");
     const timeShadow = await timePill.evaluate((el) => getComputedStyle(el).boxShadow);
-    expect(timeShadow).toBe("none");
+    expect(timeShadow).toContain("rgba(14, 14, 14, 0.06)");
+    expect(timeShadow).toContain("22px");
+    // Session-27: the pill carries a 1px rgba(14,14,14,0.1) hairline.
+    const timeBorder = await timePill.evaluate(
+      (el) => `${getComputedStyle(el).borderTopWidth} ${getComputedStyle(el).borderTopColor}`,
+    );
+    expect(timeBorder).toBe("1px rgba(14, 14, 14, 0.1)");
+    // Session-27: the pill text dims to #3A3A3A (was #141413).
+    await expect(timePill).toHaveCSS("color", "rgb(58, 58, 58)");
+    // Session-27: the pill renders a PER-STOP category icon — the first
+    // stop (Morning Coffee) carries the lucide Coffee svg at 14px.
+    const pillIcon = timePill.locator("svg");
+    await expect(pillIcon).toHaveCount(1);
+    const pillIconClass = await pillIcon.evaluate((el) => el.getAttribute("class") ?? "");
+    expect(pillIconClass).toContain("coffee");
+    const pillIconW = await pillIcon.evaluate((el) => el.getBoundingClientRect().width);
+    expect(Math.round(pillIconW)).toBe(14);
     // Session-22 re-measure: the live's pill text carries +0.05em tracking
     // (0.6px at 12px) — the "9:00 AM" span is tracked out slightly.
     const timeLs = await timePill.evaluate((el) => parseFloat(getComputedStyle(el).letterSpacing));
@@ -324,6 +342,32 @@ test.describe("home content parity (session 2)", () => {
     await expect(metaLine).toHaveCSS("color", "rgb(114, 112, 106)");
     const linkShadow = await stopLinkCard.evaluate((el) => getComputedStyle(el).boxShadow);
     expect(linkShadow).toContain("rgba(14, 14, 14, 0.08)");
+
+    // Session-27 re-measure: the live's stop-card chrome re-tightened —
+    // (a) the serif stop TITLE carries line-height 1.1 (52.8px at the 48px
+    // desktop title) + an 8px bottom margin above the link card;
+    const stopTitleLh = await stopTitle.evaluate((el) => parseFloat(getComputedStyle(el).lineHeight));
+    const stopTitleFs = await stopTitle.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(stopTitleLh / stopTitleFs).toBeGreaterThanOrEqual(1.08);
+    expect(stopTitleLh / stopTitleFs).toBeLessThanOrEqual(1.12);
+    const stopTitleMb = await stopTitle.evaluate((el) => parseFloat(getComputedStyle(el).marginBottom));
+    expect(stopTitleMb).toBeGreaterThanOrEqual(6);
+    expect(stopTitleMb).toBeLessThanOrEqual(10);
+    // (b) the white LINK CARD gained a 1px rgba(14,14,14,0.08) hairline
+    // (it previously rendered shadow-only);
+    const linkBorder = await stopLinkCard.evaluate(
+      (el) => `${getComputedStyle(el).borderTopWidth} ${getComputedStyle(el).borderTopColor}`,
+    );
+    expect(linkBorder).toBe("1px rgba(14, 14, 14, 0.08)");
+    // (c) the META row is a flex-wrap gap-1.5 row carrying a 14px map-pin
+    // svg (stroke #72706A) BEFORE the neighborhood text.
+    const metaRow = stopLinkCard.locator(".mt-2").first();
+    const metaPin = metaRow.locator("svg");
+    await expect(metaPin).toHaveCount(1);
+    const metaPinW = await metaPin.evaluate((el) => el.getBoundingClientRect().width);
+    expect(Math.round(metaPinW)).toBe(14);
+    const metaPinStroke = await metaPin.evaluate((el) => el.getAttribute("stroke") ?? "");
+    expect(metaPinStroke).toBe("#72706A");
 
     // Session-8 swap (session-20 rework): at desktop the right panel pins
     // EARLY and the stop cards translate upward CONTINUOUSLY with scroll

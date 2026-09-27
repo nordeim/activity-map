@@ -146,7 +146,7 @@ export function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-sm text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
+                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-base text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12 md:text-sm"
                 />
               </div>
             </div>
@@ -170,7 +170,7 @@ export function LoginForm() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-sm text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12"
+                  className="flex h-11 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-3 font-system text-base text-[#0F172A] outline-none transition placeholder:text-slate-600 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/40 disabled:opacity-50 sm:h-12 md:text-sm"
                 />
               </div>
             </div>
@@ -190,7 +190,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={busy}
-              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0F172A] font-system text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0F172A] font-system text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60 sm:h-12"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
               Sign in

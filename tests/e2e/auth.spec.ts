@@ -64,6 +64,39 @@ test.describe("login route", () => {
     await expect(signIn).toHaveCSS("background-color", "rgb(15, 23, 42)");
     await expect(signIn).toHaveCSS("border-radius", "12px");
 
+    // Session-27 re-measure: the live's login fields are RESPONSIVE — the
+    // inputs carry text-base + md:text-sm (16px below md → 14px at md+)
+    // over h-11 + sm:h-12 (44px below sm → 48px from sm), and the Sign-in
+    // button carries the same h-11 sm:h-12 height switch. At the default
+    // 1280 viewport both compute 14px/48px (the pins above); at 390 the
+    // live renders 16px/44px inputs + a 44px button; at 640 the heights
+    // switch (48px) while the font stays 16px until md.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(page.getByLabel("Email")).toHaveCSS("font-size", "16px");
+    await expect(page.getByLabel("Password")).toHaveCSS("font-size", "16px");
+    const emailH390 = await page
+      .getByLabel("Email")
+      .evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(emailH390).toBe(44);
+    const signInH390 = await signIn.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(signInH390).toBe(44);
+    // The 640 window: the sm: heights switch on, the md: font does not.
+    await page.setViewportSize({ width: 640, height: 700 });
+    await expect(page.getByLabel("Email")).toHaveCSS("font-size", "16px");
+    const emailH640 = await page
+      .getByLabel("Email")
+      .evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(emailH640).toBe(48);
+    const signInH640 = await signIn.evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(signInH640).toBe(48);
+    // Back at 1280 the md: font + sm: height both apply (14px/48px).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(page.getByLabel("Email")).toHaveCSS("font-size", "14px");
+    const emailH1280 = await page
+      .getByLabel("Email")
+      .evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(emailH1280).toBe(48);
+
     // The page behind the card is plain white — the old photographic wash
     // is gone (session-10: the live login has no background image).
     const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundImage);

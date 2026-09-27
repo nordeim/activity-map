@@ -30,27 +30,31 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Clock } from "lucide-react";
+import { Coffee, Utensils, Palette, Martini, Leaf, MapPin } from "lucide-react";
 import { cn, priceRangeSymbols } from "@/lib/utils";
 import type { PlaceDTO } from "@/types";
 
-const STOPS: Array<{ time: string; title: string }> = [
-  { time: "9:00 AM", title: "Morning Coffee" },
-  { time: "1:00 PM", title: "Lunch Break" },
-  { time: "4:00 PM", title: "Afternoon Culture" },
-  { time: "7:00 PM", title: "Sunset Drinks" },
-  { time: "9:30 PM", title: "Dinner" },
+// Session-27: each stop carries the live's PER-STOP category icon in its
+// time pill (measured on the live: coffee / utensils / palette / martini /
+// leaf — 14px svgs at stroke-width 1.8, stroke #141413).
+const STOPS: Array<{ time: string; title: string; icon: typeof Coffee }> = [
+  { time: "9:00 AM", title: "Morning Coffee", icon: Coffee },
+  { time: "1:00 PM", title: "Lunch Break", icon: Utensils },
+  { time: "4:00 PM", title: "Afternoon Culture", icon: Palette },
+  { time: "7:00 PM", title: "Sunset Drinks", icon: Martini },
+  { time: "9:30 PM", title: "Dinner", icon: Leaf },
 ];
 
-// The live card's INLINE meta line: "Altstadt · 4.8 rating · €€ · Coffee".
-function stopMetaInline(p: PlaceDTO): string {
+// The live card's meta parts (session-27: rendered as SEPARATE spans in a
+// gap-1.5 flex-wrap row after a 14px map-pin svg — was one joined string).
+function stopMetaParts(p: PlaceDTO): string[] {
   const parts: string[] = [];
   if (p.neighborhood) parts.push(p.neighborhood);
-  if (p.avgRating) parts.push(`${p.avgRating} rating`);
+  if (p.avgRating) parts.push(`· ${p.avgRating} rating`);
   const symbols = priceRangeSymbols(p.priceRange);
-  if (symbols) parts.push(symbols);
-  if (p.subCategory) parts.push(p.subCategory);
-  return parts.join(" · ");
+  if (symbols) parts.push(`· ${symbols}`);
+  if (p.subCategory) parts.push(`· ${p.subCategory}`);
+  return parts;
 }
 
 export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
@@ -338,21 +342,23 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                       )}
                     >
                       {/* The time pill — white, radius 999 (session-20
-                          re-measure: px-3 py-1, 12px/400, the 14px clock,
-                          NO shadow, gap-2; session-22: the text carries
-                          the live's +0.05em tracking; and the pill's mb-4
-                          spaces the serif title). */}
+                          re-measure: px-3 py-1, 12px/400, gap-2; session-22:
+                          the text carries the live's +0.05em tracking; the
+                          pill's mb-4 spaces the serif title). Session-27
+                          re-measure: the live RE-ADDED the soft shadow + a
+                          1px hairline border + a PER-STOP category icon
+                          (stroke-width 1.8) + dimmer #3A3A3A text. */}
                       <span
                         data-stop-time={stop.time}
-                        className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-normal tracking-[0.05em] text-[#141413]"
+                        className="mb-4 inline-flex items-center gap-2 rounded-full border border-[rgba(14,14,14,0.1)] bg-white px-3 py-1 text-xs font-normal leading-[18px] tracking-[0.05em] text-[#3A3A3A] shadow-[0_8px_22px_rgba(14,14,14,0.06)]"
                       >
-                        <Clock className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                        <stop.icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden />
                         {stop.time}
                       </span>
 
                       {/* The serif stop title — dark on cream (no photo).
                           Session-10: h2, matching the live's stop headings. */}
-                      <h2 className="font-serif text-[44px] font-normal leading-[1.05] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
+                      <h2 className="mb-2 font-serif text-[44px] font-normal leading-[1.1] tracking-[-0.02em] text-[#141413] lg:text-[48px]">
                         {stop.title}
                       </h2>
 
@@ -363,13 +369,21 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                           name, the 13px #72706C meta line. */}
                       <Link
                         href={`/place/${place.slug}`}
-                        className="mt-7 block max-w-md rounded-[28px] bg-white p-5 shadow-[0_8px_28px_rgba(14,14,14,0.08)]"
+                        className="mt-7 block max-w-md rounded-[28px] border border-[rgba(14,14,14,0.08)] bg-white p-5 shadow-[0_8px_28px_rgba(14,14,14,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_44px_rgba(14,14,14,0.10)]"
                       >
                         <h3 className="text-[20px] font-semibold leading-[30px] tracking-[-0.02em] text-[#141413]">
                           {place.name}
                         </h3>
-                        <span className="mt-2 block text-[13px] font-normal text-[#72706A]">
-                          {stopMetaInline(place)}
+                        <span className="mt-2 flex flex-wrap items-center gap-1.5 text-[13px] font-normal text-[#72706A]">
+                          <MapPin
+                            className="h-3.5 w-3.5 shrink-0"
+                            strokeWidth={2}
+                            stroke="#72706A"
+                            aria-hidden
+                          />
+                          {stopMetaParts(place).map((part, idx) => (
+                            <span key={idx}>{part}</span>
+                          ))}
                         </span>
                         {place.shortDescription && (
                           <span className="mt-4 block text-sm leading-relaxed text-[#3a3a3a]">
@@ -378,7 +392,7 @@ export function RecommendedRoute({ stops }: { stops: PlaceDTO[] }) {
                         )}
                         <span
                           data-learn-more
-                          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-ink text-[13px] font-semibold text-white transition hover:bg-black"
+                          className="mt-5 flex h-11 w-full items-center justify-center rounded-full bg-ink text-[13px] font-semibold text-white transition hover:bg-roam hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)]"
                         >
                           Learn More
                         </span>
