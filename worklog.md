@@ -696,3 +696,19 @@ Stage Summary:
 - The mirror verified running the session-28 code ALL GREEN; the live re-measured with the desktop restaurant band swept as a whole + the map card chrome + the stats pills + the rating pill — 8 findings, all remediated to EXACT visible parity.
 - Gates: 42 unit + 27 smoke + 69 E2E (the band contract reworked + the map/detail contracts extended) — all green on the push tree.
 - 43 screenshots; 8 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 29-push
+Agent: Super Z (main agent)
+Task: Session 29 — push verification record.
+
+Work Log:
+- Push infrastructure rebuilt (the workspace had been reset but the shim survived at /home/z/my-project/bin/ssh): paramiko 5.0.0 verified on the venv python (/home/z/.venv/bin/python3 — the shebang of the Appendix-A shim points there), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the staged diff + the new untracked files: 0 new matches (the README/AGENTS/worklog demo-login lines are pre-existing seeded-account documentation; the capture script's demo login follows the established scripts/capture-screens-v9-session28.mjs pattern); 0 SSH key material.
+- Dry-run: authenticated, remote main at 8000452 (the owner's post-session-28 "update start server log" commit — pulled at this session's start), fast-forward confirmed (8000452..b98a951).
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: 8000452..b98a951 HEAD -> main; wrapper verified refs/heads/main @ b98a951 == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit b98a951 (20 files: 3 source + 2 specs + 8 docs + 6 screenshots + 1 script) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
