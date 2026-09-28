@@ -659,3 +659,19 @@ Stage Summary:
 - The mirror verified running the session-27 code ALL GREEN; the live re-measured with the date-picker popover swept below the session-3 model + the stay pills + the booking labels + the chips — 4 findings, all remediated to EXACT visible parity.
 - Gates: 42 unit + 27 smoke + 69 E2E (the new date-picker contract) — all green on the push tree.
 - 37 screenshots; 8 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 28-push
+Agent: Super Z (main agent)
+Task: Session 28 — push verification record.
+
+Work Log:
+- Push infrastructure rebuilt from scratch (the workspace had been reset): paramiko 5.0.0 installed on the venv python (/home/z/.venv/bin/pip3 — the shebang of the Appendix-A shim points there), the shim extracted from the runbook to /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the staged diff + the new untracked files: 0 new matches (the README/AGENTS/worklog/spec demo-login lines are pre-existing seeded-account documentation; the capture script's demo login follows the established scripts/capture-screens-v8-session27.mjs pattern); 0 SSH key material.
+- Dry-run: authenticated, remote main at cb6e463 (the owner's post-session-27 "update session log" commit — pulled at this session's start), fast-forward confirmed (cb6e463..36104e2).
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: cb6e463..36104e2 HEAD -> main; wrapper verified refs/heads/main @ 36104e2 == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit 36104e2 (21 files: 5 source + 2 specs + 8 docs + 5 screenshots + 1 script) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
