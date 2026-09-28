@@ -213,13 +213,14 @@ export function MapExplorer({
 
         {/* The live's bottom stats overlay: Augsburg center · N places ·
             € pricing (session-8 — replaces the old top-right status
-            badge). */}
+            badge). Session-29 re-measure: the pills carry NO shadow (the
+            live dropped the 0 6px 16px /0.08 — plain white pills). */}
         <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2 text-xs text-muted">
-          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">Augsburg center</span>
-          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">
+          <span className="rounded-full bg-white px-3 py-2">Augsburg center</span>
+          <span className="rounded-full bg-white px-3 py-2">
             {visible.length} {visible.length === 1 ? "place" : "places"}
           </span>
-          <span className="rounded-full bg-white px-3 py-2 shadow-[0_6px_16px_rgba(14,14,14,0.08)]">€ pricing</span>
+          <span className="rounded-full bg-white px-3 py-2">€ pricing</span>
         </div>
       </section>
 
@@ -273,7 +274,11 @@ export function MapExplorer({
           live's card is a FOUR-row layout — the eyebrow and the €-price
           share ONE justified row (price right), the 15px/600 ink title
           below, and the 12px #888580 NEIGHBORHOOD line at the bottom
-          (card h≈119, pad 16). */}
+          (card h≈119, pad 16). Session-29 re-measure: the eyebrow renders
+          as a CREAM PILL (bg #F8F7F4, full radius, pad 4px 10px — 26px
+          tall), the eyebrow row drops the fixed height for mb-3 (12px),
+          the neighborhood line carries a 12px MapPin icon, and the grid
+          gap is 12px. */}
       <section id="places-list" className="mt-10">
         <div className="mb-3 flex items-end justify-between">
           <div>
@@ -281,23 +286,26 @@ export function MapExplorer({
             <p className="mt-1 text-sm text-muted">Fictional restaurants, hotels and things to do.</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((place) => (
             <Link
               key={place.id}
               href={`/place/${place.slug}`}
               className="group rounded-[24px] border border-[rgba(14,14,14,0.08)] bg-white p-4 transition-colors duration-300 hover:border-black/20"
             >
-              <div className="flex h-[26px] items-center justify-between gap-2">
-                <p className="text-xs font-semibold uppercase leading-[18px] tracking-[0.08em] text-[#555550]">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="inline-flex items-center gap-1.5 self-start rounded-full bg-cream px-2.5 py-1 text-xs font-semibold uppercase leading-[18px] tracking-[0.08em] text-[#555550]">
                   {mapListEyebrow(place)}
                 </p>
                 <p className="shrink-0 text-[13px] text-[#72706C]">
                   {priceRangeSymbols(place.priceRange ?? 2)}
                 </p>
               </div>
-              <p className="mt-3 text-[15px] font-semibold leading-snug text-ink">{place.name}</p>
-              <p className="mt-2 text-xs text-[#888580]">{place.neighborhood ?? "Augsburg"}</p>
+              <p className="text-[15px] font-semibold leading-snug text-ink">{place.name}</p>
+              <p className="mt-2 flex items-center gap-1 truncate text-xs text-[#888580]">
+                <MapPin className="h-3 w-3 shrink-0" strokeWidth={2} aria-hidden />
+                {place.neighborhood ?? "Augsburg"}
+              </p>
             </Link>
           ))}
         </div>

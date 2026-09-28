@@ -624,11 +624,12 @@ test.describe("home content parity (session 2)", () => {
     expect(h2W).toBeLessThanOrEqual(362);
   });
 
-  test("highlighted restaurants: blue section, glass detail card, View All (session-6 carousel)", async ({ page }) => {
+  test("highlighted restaurants: centered heading column, 5-name window, compact detail card (session-29 re-measure)", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const section = page.locator("#highlighted-restaurants");
     await expect(section).toBeVisible();
-    await expect(section.getByRole("heading", { name: "Highlighted Restaurants" })).toBeVisible();
+    const h2 = section.getByRole("heading", { name: "Highlighted Restaurants" });
+    await expect(h2).toBeVisible();
 
     // Session-18 re-measure: the live's blue band now rises over the route
     // trap's TAIL — its top starts ~800px before the route box ends (at
@@ -642,19 +643,92 @@ test.describe("home content parity (session 2)", () => {
     expect(overlap).toBeGreaterThanOrEqual(700);
     expect(overlap).toBeLessThanOrEqual(900);
 
-    // The frosted-glass detail card with the ACTIVE restaurant (Volta at
-    // rest) + its actions, and the white View All pill.
-    await expect(section.getByRole("heading", { name: "Volta", exact: true })).toBeVisible();
-    await expect(section.getByRole("link", { name: /Book a Table/ })).toHaveAttribute(
-      "href",
-      /\/place\/home-restaurant-volta/,
-    );
-    await expect(section.getByRole("link", { name: /View All/ })).toHaveAttribute("href", "/eat");
+    // Session-29 re-measure (F1): the heading layer is a sticky, vertically
+    // + horizontally CENTERED column — the h2 centers on the viewport (not
+    // a left-aligned justify-between row) and the white View All pill
+    // renders BELOW the h2 (gap 24), h 44 with 13px/600 text.
+    const h2Box = await h2.boundingBox();
+    expect(h2Box).not.toBeNull();
+    expect(Math.abs(h2Box!.x + h2Box!.width / 2 - 1280 / 2)).toBeLessThanOrEqual(6);
+    const viewAll = section.getByRole("link", { name: /View All/ });
+    await expect(viewAll).toHaveAttribute("href", "/eat");
+    const viewAllBox = await viewAll.boundingBox();
+    expect(viewAllBox).not.toBeNull();
+    expect(viewAllBox!.y).toBeGreaterThanOrEqual(h2Box!.y + h2Box!.height);
+    expect(Math.round(viewAllBox!.height)).toBeGreaterThanOrEqual(42);
+    expect(Math.round(viewAllBox!.height)).toBeLessThanOrEqual(46);
+    await expect(viewAll).toHaveCSS("font-size", "13px");
+    // The h2's min clamp rises to 46px (was 42px).
+    const h2Font = await h2.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(h2Font).toBeGreaterThanOrEqual(46);
 
-    // The name watermark: the active name renders solid white; the rest
-    // faint. (.first(): the hidden mobile deck repeats names in its h3s.)
-    const watermark = section.getByText("Garbo", { exact: true }).first();
-    await expect(watermark).toBeVisible();
+    // Session-29 re-measure (F2): the names watermark is a FIVE-name
+    // sliding window — exactly 5 spans at the viewport's vertical center,
+    // UNIFORM Inter font (not the serif), the active solid white, the rest
+    // white/0.32. The row centers as a group (the active lands near — not
+    // exactly at — the viewport center).
+    const nameWindow = section.locator("[data-band-names] span");
+    await expect(nameWindow).toHaveCount(5);
+    const nameFonts = await nameWindow.evaluateAll((els) =>
+      els.map((el) => ({
+        font: getComputedStyle(el).fontSize,
+        family: getComputedStyle(el).fontFamily,
+        color: getComputedStyle(el).color,
+      })),
+    );
+    const fonts = new Set(nameFonts.map((n) => n.font));
+    expect(fonts.size).toBe(1); // uniform — the active is NOT bigger
+    expect(nameFonts[0].family).toContain("Inter");
+    expect(nameFonts[0].family).not.toContain("Libre Baskerville");
+    const solid = nameFonts.find((n) => n.color === "rgb(255, 255, 255)");
+    const faint = nameFonts.find((n) => n.color.includes("0.32"));
+    expect(solid).toBeDefined();
+    expect(faint).toBeDefined();
+    // The window at rest: Granary + Faro before Volta (circular wrap),
+    // Volta solid + centered-ish, Roux + Aura after.
+    await expect(nameWindow.nth(2)).toHaveText("Volta");
+    await expect(nameWindow.first()).toHaveText("Granary");
+
+    // Session-29 re-measure (F3): the featured detail card is the compact
+    // centered model — NO name heading inside, min-width 330, pad 16, a 1px
+    // border, and two flex-1 h-38 buttons.
+    const card = section.locator("[data-featured-card]");
+    await expect(card).toBeVisible();
+    await expect(card.getByRole("heading")).toHaveCount(0);
+    const cardBox = await card.boundingBox();
+    expect(cardBox).not.toBeNull();
+    expect(Math.round(cardBox!.width)).toBeGreaterThanOrEqual(325);
+    expect(Math.abs(cardBox!.x + cardBox!.width / 2 - 1280 / 2)).toBeLessThanOrEqual(8);
+    await expect(card).toHaveCSS("padding", "16px");
+    await expect(card).toHaveCSS("border-top-width", "1px");
+    const bookBtn = card.getByRole("link", { name: /Book a Table/ });
+    const learnBtn = card.getByRole("link", { name: /Learn More/ });
+    await expect(bookBtn).toHaveAttribute("href", /\/place\/home-restaurant-volta/);
+    for (const btn of [bookBtn, learnBtn]) {
+      const btnBox = await btn.boundingBox();
+      expect(btnBox).not.toBeNull();
+      expect(Math.round(btnBox!.height)).toBeGreaterThanOrEqual(36);
+      expect(Math.round(btnBox!.height)).toBeLessThanOrEqual(40);
+    }
+    // The two buttons are equal-width (flex-1) side by side (±2px — the
+    // fractional flex split can round asymmetrically).
+    const bookBox = await bookBtn.boundingBox();
+    const learnBox = await learnBtn.boundingBox();
+    expect(Math.abs(Math.round(bookBox!.width) - Math.round(learnBox!.width))).toBeLessThanOrEqual(2);
+
+    // Session-29 re-measure (the crossfade): at the trap's head the
+    // heading layer is visible and the card is hidden; scrolled deep the
+    // card is fully visible.
+    const bandStart = bandBox!.y;
+    await page.evaluate((y) => window.scrollTo(0, y + 400), bandStart);
+    await page.waitForTimeout(300);
+    await expect(card).toHaveCSS("opacity", "0");
+    await page.evaluate((y) => window.scrollTo(0, y + 2000), bandStart);
+    await page.waitForTimeout(300);
+    await expect(card).toHaveCSS("opacity", "1");
+    // The heading layer is gone deep in the band (faded out).
+    const headingLayer = section.locator("[data-band-heading]");
+    await expect(headingLayer).toHaveCSS("opacity", "0");
   });
 
   test("highlighted restaurants: the mobile deck STACKS — sticky cards pinned at y=88 (session 26)", async ({ page }) => {

@@ -103,9 +103,9 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
               {place.reviewCount > 0 ? (
                 <div
                   data-photo-rating
-                  className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 sm:right-6 sm:top-6"
+                  className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-white px-3 py-2 sm:right-6 sm:top-6"
                 >
-                  <Star className="h-[13px] w-[13px] fill-ink text-ink" aria-hidden />
+                  <Star className="h-3.5 w-3.5 fill-ink text-ink" aria-hidden />
                   <span className="text-xs font-bold text-ink">{place.avgRating.toFixed(1)}</span>
                 </div>
               ) : null}

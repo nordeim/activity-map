@@ -303,6 +303,17 @@ test.describe("place detail", () => {
     await expect(ratingPill).toBeVisible();
     await expect(ratingPill).toHaveCSS("background-color", "rgb(255, 255, 255)");
     await expect(ratingPill).toContainText("4.8");
+    // Session-29 re-measure (F8): the detail hero pill grew — pad 8px 12px
+    // (was 6px 10px), a 14px star (was 13px) → 61×32 at desktop. Pinned at
+    // 390 here: the pill computes 30-34px tall with a ≥14px star.
+    const pillBox = await ratingPill.boundingBox();
+    expect(pillBox!.height).toBeGreaterThanOrEqual(30);
+    expect(pillBox!.height).toBeLessThanOrEqual(34);
+    const starW = await ratingPill.evaluate((el) => {
+      const svg = el.querySelector("svg");
+      return svg ? Math.round(svg.getBoundingClientRect().width) : 0;
+    });
+    expect(starW).toBeGreaterThanOrEqual(14);
     // …and the Map link is GONE from the photo (live parity). Scoped to
     // main: the navbar and footer carry their own Map links.
     await expect(page.locator("main").getByRole("link", { name: "Map", exact: true })).toHaveCount(0);
@@ -581,10 +592,41 @@ test.describe("map view", () => {
     await expect(listSection).toContainText("ART WORKSHOP");
     await expect(listSection.getByText("Sight", { exact: true })).toHaveCount(0);
 
+    // Session-29 re-measure (F4): the eyebrow renders as a CREAM PILL —
+    // bg #F8F7F4, full radius, ~26px tall (was plain text).
+    const eyebrowPill = listCard.locator("p").first();
+    await expect(eyebrowPill).toHaveCSS("background-color", "rgb(248, 247, 244)");
+    const eyebrowRadius = await eyebrowPill.evaluate(
+      (el) => parseFloat(getComputedStyle(el).borderRadius) > 1000,
+    );
+    expect(eyebrowRadius).toBe(true);
+    const eyebrowBox = await eyebrowPill.boundingBox();
+    expect(eyebrowBox!.height).toBeGreaterThanOrEqual(24);
+    expect(eyebrowBox!.height).toBeLessThanOrEqual(28);
+    // Session-29 re-measure (F5): the neighborhood line carries a 12px
+    // MapPin svg before the text.
+    const hoodLine = listCard.locator("p").last();
+    const hoodHasIcon = await hoodLine.evaluate((el) => {
+      const svg = el.querySelector("svg");
+      return !!svg && Math.round(svg.getBoundingClientRect().width) === 12;
+    });
+    expect(hoodHasIcon).toBe(true);
+    // Session-29 re-measure (F6): the list grid gap computes 12px (was 16).
+    const gridGap = await listSection.evaluate((el) => {
+      const grid = el.querySelector("div.grid");
+      return grid ? getComputedStyle(grid).columnGap : "";
+    });
+    expect(gridGap).toBe("12px");
+
     // The Hotels pill narrows the canvas.
     await page.getByRole("button", { name: "Hotels", exact: true }).click();
     await expect(page.locator(".roam-marker")).toHaveCount(3);
     await expect(page.getByText("3 places")).toBeVisible();
+
+    // Session-29 re-measure (F7): the map stats pills carry NO shadow
+    // (was the 0 6px 16px /0.08 shadow).
+    const statsPill = page.getByText("Augsburg center");
+    await expect(statsPill).toHaveCSS("box-shadow", "none");
   });
 
   test("the map search shell is the live's sticky command center (session-24)", async ({ page }) => {
