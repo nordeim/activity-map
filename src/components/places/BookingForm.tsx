@@ -102,10 +102,12 @@ export function BookingForm({ place }: { place: BookablePlace }) {
   // Session-18 re-measure: the field corners are 16px radii (the live moved
   // off rounded-full); the textarea matches at 16px.
   const field =
-    "flex h-11 w-full items-center rounded-[16px] border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50";
+    "flex h-11 w-full items-center rounded-[16px] border border-[#DDDBD5] bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:text-black/35 focus:border-roam/50";
   const pickerField =
-    "flex h-11 w-full items-center rounded-[16px] border border-black/10 bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:font-semibold placeholder:text-[#888580] focus:border-roam/50";
-  const label = "mb-1.5 block text-sm font-semibold text-ink";
+    "flex h-11 w-full items-center rounded-[16px] border border-[#DDDBD5] bg-white px-5 text-sm font-medium text-ink outline-none transition placeholder:font-semibold placeholder:text-[#888580] focus:border-roam/50";
+  // Session-28 re-measure: the live's labels are 12px/600 #3A3A3A with
+  // the asterisk INLINE in the same color (no violet span).
+  const label = "mb-1.5 block text-xs font-semibold text-[#3a3a3a]";
 
   return (
     <aside
@@ -124,7 +126,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className={label} htmlFor="booking-name">
-            Name<span className="text-roam" aria-hidden>*</span>
+            Name*
           </label>
           <input
             id="booking-name"
@@ -138,7 +140,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
         </div>
         <div>
           <label className={label} htmlFor="booking-surname">
-            Surname<span className="text-roam" aria-hidden>*</span>
+            Surname*
           </label>
           <input
             id="booking-surname"
@@ -152,7 +154,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
         </div>
         <div>
           <label className={label} htmlFor="booking-dates">
-            Dates<span className="text-roam" aria-hidden>*</span>
+            Dates*
           </label>
           <input
             id="booking-dates"
@@ -166,7 +168,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
         </div>
         <div>
           <label className={label} htmlFor="booking-time">
-            Time<span className="text-roam" aria-hidden>*</span>
+            Time*
           </label>
           <input
             id="booking-time"
@@ -194,7 +196,7 @@ export function BookingForm({ place }: { place: BookablePlace }) {
         </div>
         <div>
           <label className={label} htmlFor="booking-email">
-            Email<span className="text-roam" aria-hidden>*</span>
+            Email*
           </label>
           <input
             id="booking-email"

@@ -7,12 +7,13 @@
 // buttons that slide up on md-hover (always visible on touch sizes).
 // `home` = the home showcase variant (session-6): the meta-right reads
 // "€€€ · ★ 4.8" (price symbols + star + rating) instead of price +
-// sub-category, and the buttons render 41px pills.
+// sub-category; the pills render at the live's session-28 34px height
+// with the bordered Book Now.
 
 import Link from "next/link";
 import { Star } from "lucide-react";
 import type { PlaceDTO } from "@/types";
-import { priceRangeSymbols } from "@/lib/utils";
+import { cn, priceRangeSymbols } from "@/lib/utils";
 import { SaveButton } from "./SaveButton";
 
 export function StayCard({ place, home = false }: { place: PlaceDTO; home?: boolean }) {
@@ -72,10 +73,30 @@ export function StayCard({ place, home = false }: { place: PlaceDTO; home?: bool
               </span>
             </p>
             <div className="mt-3 flex translate-y-0 gap-2 opacity-100 transition-all duration-300 ease-out md:translate-y-4 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
-              <span className="flex h-9 flex-1 items-center justify-center rounded-full border border-white/35 bg-white/10 text-xs font-semibold text-white transition-all duration-200 hover:border-roam hover:bg-roam hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)] " style={home ? { height: 41 } : undefined}>
+              {/* Session-28 re-measure: the home-showcase pills carry the
+                  live's inline 34px height (was the session-6 41px
+                  override) with the Learn More border/bg at white/[0.36]
+                  and white/[0.08], and the Book Now gained a 1px
+                  white/[0.92] border — the /stay BROWSE variant stays at
+                  the 36px h-9 borderless chrome. */}
+              <span
+                className={cn(
+                  "flex flex-1 items-center justify-center rounded-full text-xs transition-all duration-200",
+                  home
+                    ? "h-[34px] border border-white/[0.36] bg-white/[0.08] font-semibold text-white hover:border-roam hover:bg-roam hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)]"
+                    : "h-9 border border-white/35 bg-white/10 font-semibold text-white hover:border-roam hover:bg-roam hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)]",
+                )}
+              >
                 Learn More
               </span>
-              <span className="flex h-9 flex-1 items-center justify-center rounded-full bg-white text-xs font-bold text-black transition-all duration-200 hover:bg-roam hover:text-white hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)] " style={home ? { height: 41 } : undefined}>
+              <span
+                className={cn(
+                  "flex flex-1 items-center justify-center rounded-full text-xs transition-all duration-200",
+                  home
+                    ? "h-[34px] border border-white/[0.92] bg-white font-bold text-black hover:bg-roam hover:text-white hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)]"
+                    : "h-9 bg-white font-bold text-black hover:bg-roam hover:text-white hover:shadow-[0_12px_28px_rgba(87,26,255,0.28)]",
+                )}
+              >
                 Book Now
               </span>
             </div>

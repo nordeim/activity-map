@@ -127,13 +127,13 @@ export function ProfileView({
               Session-16: the icons are map-pin / SUN / HEART on the live
               (was flame / compass). */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 md:justify-start">
-            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-4 text-xs font-medium text-black/55">
               <MapPin className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden /> Augsburg
             </span>
-            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-4 text-xs font-medium text-black/55">
               <Sun className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> 0 day streak
             </span>
-            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-3.5 text-xs font-medium text-black/55">
+            <span className="flex h-[34px] items-center gap-1.5 rounded-full border border-black/[0.06] bg-cream px-4 text-xs font-medium text-black/55">
               <Heart className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden /> Explorer
             </span>
           </div>

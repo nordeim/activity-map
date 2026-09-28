@@ -114,6 +114,103 @@ test.describe("home content parity (session 2)", () => {
     expect(mdGeom.imgY).toBeGreaterThanOrEqual(-95);
   });
 
+  test("the trip-planner date-range popover matches the live re-measure (session 28)", async ({ page }) => {
+    // Session-28 re-measure: the live's react-day-picker popover, swept for
+    // the first time since session 3 — the container is 510px wide at
+    // desktop (358 at 390 = calc(100vw-32px)) with pad 12px; the from/to
+    // header is a 2-col grid of SELF-CONTAINED white pill fields (h 50,
+    // border-black/10, px-4 py-2) carrying the 12px/500 #8A8780 label +
+    // the 12px/600 ink value + a 14px calendar svg INSIDE; NO "Done"
+    // button (outside-click closes); the month label 14px/500; the nav
+    // buttons 28×28; the weekday cells 12.8px/400 #737373; the selected
+    // day violet bg + weight 400; the in-range days #F7F4FF bg + violet
+    // text; the PREV-MONTH trailing days render grayed in the first row.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.getByLabel("Choose trip dates").click();
+    const popover = page.locator("[role=dialog][aria-label='Choose trip dates']");
+    await expect(popover).toBeVisible();
+
+    // Container chrome: width 510 (±6), pad 12, radius 40, white bg.
+    const box = await popover.boundingBox();
+    expect(Math.round(box!.width)).toBeGreaterThanOrEqual(504);
+    expect(Math.round(box!.width)).toBeLessThanOrEqual(516);
+    await expect(popover).toHaveCSS("padding", "12px");
+    await expect(popover).toHaveCSS("border-radius", "40px");
+    await expect(popover).toHaveCSS("background-color", "rgb(255, 255, 255)");
+
+    // The from/to header: two self-contained white pill fields (h 50) with
+    // the label + value + a calendar icon INSIDE each.
+    const fromField = popover.locator("text=from").first().locator("xpath=..");
+    const fromBox = await fromField.boundingBox();
+    expect(Math.round(fromBox!.height)).toBeGreaterThanOrEqual(48);
+    expect(Math.round(fromBox!.height)).toBeLessThanOrEqual(52);
+    await expect(fromField).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    const fromBorder = await fromField.evaluate((el) => getComputedStyle(el).borderTopWidth);
+    expect(fromBorder).toBe("1px");
+    // Each field carries a calendar svg inside.
+    const calendarIcons = await fromField.locator("svg").count();
+    expect(calendarIcons).toBeGreaterThanOrEqual(1);
+
+    // NO "Done" button — the live closes on outside-click only.
+    await expect(popover.getByRole("button", { name: "Done" })).toHaveCount(0);
+
+    // The month label: 14px / weight 500 (the live's font-medium).
+    const monthLabel = popover.getByText(/2026/, { exact: false }).first();
+    await expect(monthLabel).toHaveCSS("font-size", "14px");
+    const monthWeight = await monthLabel.evaluate((el) => getComputedStyle(el).fontWeight);
+    expect(monthWeight).toBe("500");
+
+    // The month nav buttons: 28×28 circles.
+    const prevBtn = popover.getByLabel("Previous month");
+    const prevBox = await prevBtn.boundingBox();
+    expect(Math.round(prevBox!.width)).toBeGreaterThanOrEqual(26);
+    expect(Math.round(prevBox!.width)).toBeLessThanOrEqual(30);
+
+    // The weekday row: 12.8px / 400 #737373 (the live's 0.8rem neutral).
+    const weekday = popover.getByText("Su", { exact: true }).first();
+    await expect(weekday).toHaveCSS("font-size", "12.8px");
+    const weekdayWeight = await weekday.evaluate((el) => getComputedStyle(el).fontWeight);
+    expect(weekdayWeight).toBe("400");
+    await expect(weekday).toHaveCSS("color", "rgb(115, 115, 115)");
+
+    // The prev-month trailing days render as GRAY BUTTONS (#737373 — the
+    // same neutral as the weekday row) in the leading cells of the first
+    // row (the live's react-day-picker outside days: 30, 31 before the 1).
+    const trailingBtn = popover.getByRole("button", { name: /^30$/ }).first();
+    await expect(trailingBtn).toBeVisible();
+    await expect(trailingBtn).toHaveCSS("color", "rgb(115, 115, 115)");
+
+    // Select a day: violet bg + white text + weight 400 (not 600); the
+    // from field value updates to the DD/MM/YYYY format.
+    const day15 = popover.getByRole("button", { name: /15/ }).first();
+    await day15.click();
+    await expect(day15).toHaveCSS("background-color", "rgb(87, 26, 255)");
+    await expect(day15).toHaveCSS("color", "rgb(255, 255, 255)");
+    const selWeight = await day15.evaluate((el) => getComputedStyle(el).fontWeight);
+    expect(selWeight).toBe("400");
+
+    // Complete a range: the in-range day carries #F7F4FF bg + violet text.
+    const day18 = popover.getByRole("button", { name: /18/ }).first();
+    await day18.click();
+    const day17 = popover.getByRole("button", { name: /17/ }).first();
+    await expect(day17).toHaveCSS("background-color", "rgb(247, 244, 255)");
+    await expect(day17).toHaveCSS("color", "rgb(87, 26, 255)");
+
+    // The mobile cap: at 390 the popover computes 358 wide (100vw-32).
+    await page.mouse.click(10, 400); // outside-click closes
+    await expect(popover).toHaveCount(0);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.getByLabel("Choose trip dates").click();
+    await expect(popover).toBeVisible();
+    const mobileBox = await popover.boundingBox();
+    expect(Math.round(mobileBox!.width)).toBeGreaterThanOrEqual(354);
+    expect(Math.round(mobileBox!.width)).toBeLessThanOrEqual(362);
+    expect(Math.round(mobileBox!.x)).toBeGreaterThanOrEqual(14);
+    expect(Math.round(mobileBox!.x)).toBeLessThanOrEqual(18);
+  });
+
   test("desktop navbar is the floating pill (session-6 redesign)", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -710,6 +807,24 @@ test.describe("home content parity (session 2)", () => {
     expect(visual.row1).toEqual(["Courtyard Stay", "Maison Altstadt", "Velvet Residence"]);
     expect(visual.cardW).toBeGreaterThanOrEqual(375);
     expect(visual.cardW).toBeLessThanOrEqual(385);
+
+    // Session-28 re-measure: the live's home-showcase pills carry the
+    // inline height 34px (was the session-6 41px override) and the Book
+    // Now pill gained a 1px rgba(255,255,255,0.92) border (the /stay
+    // BROWSE variant stays 36px borderless — verified separately).
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const courtyardCard = showcase.locator("a", { hasText: "Learn More" }).first();
+    const learnPill = courtyardCard.getByText("Learn More", { exact: true });
+    const bookPill = courtyardCard.getByText("Book Now", { exact: true });
+    const learnBox = await learnPill.boundingBox();
+    expect(Math.round(learnBox!.height)).toBeGreaterThanOrEqual(32);
+    expect(Math.round(learnBox!.height)).toBeLessThanOrEqual(36);
+    const bookBox = await bookPill.boundingBox();
+    expect(Math.round(bookBox!.height)).toBeGreaterThanOrEqual(32);
+    expect(Math.round(bookBox!.height)).toBeLessThanOrEqual(36);
+    const bookBorder = await bookPill.evaluate((el) => getComputedStyle(el).borderTopWidth);
+    expect(bookBorder).toBe("1px");
   });
 
   test("highlighted sights: six cards linking to home-sight place pages", async ({ page }) => {

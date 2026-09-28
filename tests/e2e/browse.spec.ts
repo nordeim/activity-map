@@ -283,6 +283,16 @@ test.describe("place detail", () => {
     const nameX = await page.getByLabel("Name", { exact: true }).boundingBox();
     const surnameX = await page.getByLabel("Surname", { exact: true }).boundingBox();
     expect(Math.abs(nameX!.x - surnameX!.x)).toBeLessThanOrEqual(2);
+
+    // Session-28 re-measure: the live's field LABELS are 12px/600 #3A3A3A
+    // with the asterisk INLINE in the same color (no violet span), and the
+    // fields' border is the #DDDBD5 token (was 14px ink + black/10).
+    const nameLabel = page.locator("label[for=booking-name]");
+    await expect(nameLabel).toHaveCSS("font-size", "12px");
+    await expect(nameLabel).toHaveCSS("font-weight", "600");
+    await expect(nameLabel).toHaveCSS("color", "rgb(58, 58, 58)");
+    const nameInputBorder = await nameField.evaluate((el) => getComputedStyle(el).borderTopColor);
+    expect(nameInputBorder).toBe("rgb(221, 219, 213)");
   });
 
   test("photo overlays: the white rating pill on the photo, no Map button (session 8)", async ({ page }) => {

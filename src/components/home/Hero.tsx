@@ -53,8 +53,14 @@ export function Hero() {
           spans the full bleed (the live h1 measures ~1232px at 1280 — a
           max-w-3xl box would clip the nowrap wordmark). Session-14
           re-measure: the live's content container carries px-6 (24px) at
-          every breakpoint — the h1 starts at x=24 on phones AND desktop. */}
-      <div className="relative z-10 flex h-[591px] flex-col px-6 pb-16 pt-[203px] md:h-[900px] md:pt-[290px] md:pb-24 lg:h-[938px]">
+          every breakpoint — the h1 starts at x=24 on phones AND desktop.
+          Session-28: NO z-index on this wrapper — a z-10 here would CAP
+          the planner popover's z-[30000] inside a stacking context that
+          the category section's own z-10 (later in the DOM) paints over,
+          intercepting the popover's day-cell clicks (the backdrop sibling
+          is absolute/z-auto, so plain DOM order keeps the content on top
+          — identical rendering, uncapped popover). */}
+      <div className="relative flex h-[591px] flex-col px-6 pb-16 pt-[203px] md:h-[900px] md:pt-[290px] md:pb-24 lg:h-[938px]">
         <div className="mx-auto w-full text-center">
           <h1
             className="font-serif whitespace-nowrap text-white"
