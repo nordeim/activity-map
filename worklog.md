@@ -845,3 +845,19 @@ Stage Summary:
 - The mirror verified running the session-32 code ALL GREEN (no bugs); the live re-measured with the footer block swept at multiple scroll positions — four findings (the scroll-linked continuous pill growth, the violet link hover, the pill's soft shadow, the icon/label chrome) — all remediated to EXACT measured parity.
 - Gates: 42 unit + 27 smoke + 76 E2E (the rewritten footer contract with the interpolation midpoint pin) — all green on the push tree.
 - 66 screenshots; 9 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 33-push
+Agent: Super Z (main agent, session 33)
+Task: Session 33 — push verification record.
+
+Work Log:
+- Push infrastructure rebuilt from scratch (the workspace had been reset): paramiko 5.0.0 installed on the venv python (/home/z/.venv/bin/python3 — the shebang of the Appendix-A shim points there), the shim extracted from the runbook to /home/z/my-project/bin/ssh (outside the repo), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the staged diff + the new untracked files: 0 private-key material, 0 GitHub tokens; the 3 "sepnetflix" matches are the pre-existing seeded-account documentation lines (AGENTS/CLAUDE demo-login, following every prior session's precedent) + the capture script's demo login (the established scripts/capture-screens-v13-session32.mjs pattern).
+- Dry-run: authenticated, remote main at 2432bc9 (the owner's post-session-32 "update session log" commit — the repo state at this session's clone), fast-forward confirmed (2432bc9..4f0fc97).
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: 2432bc9..4f0fc97 HEAD -> main; wrapper verified refs/heads/main @ 4f0fc97 == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit 4f0fc97 (18 files: 2 source + 1 spec + 8 docs + 5 screenshots + 2 scripts + the plan) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
