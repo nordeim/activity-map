@@ -62,6 +62,21 @@
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Session-32 re-measure: the live app's nav links carry the platform's
+   `press-shrink` touch feedback — a 0.18s spring-ease transform/box-shadow
+   transition that scales the pressed element to 0.97. The :active rule
+   lives UNLAYERED (next to the h1 reset) so it beats every @layer utility
+   — the same mechanism the map zoom overrides use. */
+@utility press-shrink {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.18s;
+}
+
+.press-shrink:active {
+  transform: scale(0.97);
+}
+
 /* Full-bleed hero image with the legibility gradient used on the
    reference home page (dark bottom for the white serif wordmark). */
 /* (hero-shade removed in session-31 — the live renders its hero image RAW

@@ -10,10 +10,15 @@ import {
 
 // The site footer — session-23 re-measure (the footer had drifted since
 // session 2): the live renders a COMPACT shrink-wrapped centered GLASS pill
-// — border 1px #E8E6DC, backdrop blur(40px) saturate(1.5), radius 28, pad
-// 8px 10px — carrying the six view links as icon cells (20px icon over
-// 11px/600 label, gap 8px; 74px wide from md, a 3-column grid on phones);
-// the footer element itself owns the vertical padding (pt-32/pb-24 mobile,
+// — border 1px #E8E6DC, backdrop blur(40px) saturate(1.5) — carrying the six
+// view links as icon cells (gap 8px; 74px-wide h-[78px] tiles with 20px
+// icons over 11px/600 labels, a 3-column grid on phones capped at 390).
+// Session-32 re-measure: the DESKTOP pill grew on the live — radius 34, pad
+// 12px 16px, gap 12, the links 92×92 tiles with 24px icons over 12px/600
+// labels (one row of six → 646×118; was 506×96 with 74×78 tiles). The MOBILE
+// (<md) pill is UNCHANGED (the 3-col grid, max-w 390, r-28, pad 8/10, gap 8,
+// the 104×78 tiles at 390 — verified EXACT against the live).
+// The footer element itself owns the vertical padding (pt-32/pb-24 mobile,
 // pt-64/pb-56 desktop) with NO top margin — every page's last section hands
 // off to the footer's own pt. The inner is max-w-5xl (1024). The legal row
 // is a justify-between ROW from md (© 12px #8A8780 left, the Privacy /
@@ -39,16 +44,16 @@ export function SiteFooter() {
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
         <nav
           aria-label="Footer"
-          className="grid w-full max-w-[390px] grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center"
+          className="grid w-full max-w-[390px] grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center md:rounded-[34px] md:gap-3 md:py-3 md:px-4"
         >
           {FOOTER_LINKS.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="group flex h-[78px] flex-col items-center justify-center gap-2 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] transition-colors md:h-[78px] md:w-[74px]"
+              className="group flex h-[78px] flex-col items-center justify-center gap-2 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] transition-colors md:h-[92px] md:w-[92px]"
             >
-              <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
-              <span className="font-inter text-[11px] font-semibold">{label}</span>
+              <Icon className="h-5 w-5 md:h-6 md:w-6" strokeWidth={1.8} aria-hidden />
+              <span className="font-inter text-[11px] font-semibold md:text-[12px]">{label}</span>
             </Link>
           ))}
         </nav>

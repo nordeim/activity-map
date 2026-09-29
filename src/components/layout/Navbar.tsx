@@ -115,7 +115,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               25.6px/88px from md (measured). */}
           <Link
             href="/"
-            className="flex h-8 shrink-0 items-center md:ml-1"
+            className="press-shrink flex h-8 shrink-0 items-center md:ml-1"
             aria-label="ROAM home"
           >
             <span aria-hidden className="relative block h-[18px] w-[18px] shrink-0 overflow-hidden md:h-[25.6px] md:w-[25.6px]">
@@ -135,13 +135,18 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               700 ink / inactive 500 ink-40%); md+: icon+text 13px with the
               rgba(14,14,14,0.08) active pill and inactive #555550. no-scrollbar
               keeps the row from ever sliding under the logo or right cluster
-              at 390px. Explicit rgba() utilities (not hex/α-modifiers) pin
+              at 390px. Session-32 re-measure: the live's middle group is now
+              SHRINK-WRAPPED (min-w-0 + mr-2, no flex-1) — the four text links
+              sit 4px further left (121/192/222/259 at 390) than the
+              flex-1-centered group rendered (125/196/226/263); the nav's
+              justify-between distributes the freed space into the two outer
+              gaps instead. Explicit rgba() utilities (not hex/α-modifiers) pin
               exact computed colors for the specs — Tailwind v4 α-modifiers
               compile to color-mix() instead. */}
           <div
             className={cn(
-              "no-scrollbar flex min-w-0 flex-1 items-center justify-center overflow-x-auto",
-              "gap-3 md:flex-none md:gap-1 md:overflow-visible",
+              "no-scrollbar flex min-w-0 items-center justify-center overflow-x-auto",
+              "mr-2 gap-3 md:mr-0 md:flex-none md:gap-1 md:overflow-visible",
             )}
           >
             {LINKS.map(({ href, label, icon: Icon }) => {
@@ -152,7 +157,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "font-nav flex h-full shrink-0 items-center whitespace-nowrap text-[12px] tracking-[-0.01em] transition-colors md:text-[13px] md:tracking-[0.01em]",
+                    "press-shrink font-nav flex h-full shrink-0 items-center whitespace-nowrap text-[12px] tracking-[-0.01em] md:text-[13px] md:tracking-[0.01em]",
                     "md:h-auto md:rounded-full md:px-4 md:py-2",
                     active
                       ? "font-bold text-ink md:bg-[rgba(14,14,14,0.08)]"
@@ -160,7 +165,11 @@ export function Navbar({ userEmail }: { userEmail: string }) {
                   )}
                 >
                   <Icon className="mr-2 hidden h-4 w-4 md:block" strokeWidth={1.5} aria-hidden />
-                  <span>{label}</span>
+                  {/* The live puts the 200ms color transition on the LABEL span
+                      (not the anchor) so its own press-shrink transform
+                      transition never collides with the color one — the span's
+                      inherited color still transitions on hover. */}
+                  <span className="transition-colors duration-200">{label}</span>
                 </Link>
               );
             })}
@@ -171,14 +180,14 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               href="/map"
               aria-current={isActive("/map") ? "page" : undefined}
               className={cn(
-                "font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-[13px] tracking-[0.01em] transition-colors md:flex",
+                "press-shrink font-nav hidden shrink-0 items-center whitespace-nowrap rounded-full px-4 py-2 text-[13px] tracking-[0.01em] md:flex",
                 isActive("/map")
                   ? "bg-[rgba(14,14,14,0.08)] text-ink"
                   : "text-[#555550] hover:bg-black/[0.04] hover:text-ink",
               )}
             >
               <MapPin className="mr-2 h-4 w-4" strokeWidth={1.5} aria-hidden />
-              <span>Map</span>
+              <span className="transition-colors duration-200">Map</span>
             </Link>
           </div>
 
@@ -189,7 +198,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               href="/map"
               aria-label="Map"
               className={cn(
-                "flex h-full w-[18px] items-center justify-center transition-colors md:hidden",
+                "press-shrink flex h-full w-[18px] items-center justify-center md:hidden",
                 isActive("/map") ? "text-ink" : "text-ink hover:opacity-70",
               )}
             >
@@ -199,7 +208,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               href="/favourites"
               aria-label="Favourites"
               className={cn(
-                "flex h-full w-[18px] items-center justify-center transition-colors md:h-9 md:w-9 md:rounded-full md:bg-[#0e0e0e]/[0.07]",
+                "press-shrink flex h-full w-[18px] items-center justify-center md:h-9 md:w-9 md:rounded-full md:bg-[#0e0e0e]/[0.07]",
                 isActive("/favourites")
                   ? "text-ink"
                   : "text-ink hover:opacity-70 md:hover:bg-[#0e0e0e]/[0.12]",
@@ -211,7 +220,7 @@ export function Navbar({ userEmail }: { userEmail: string }) {
               href="/profile"
               aria-label="Profile"
               className={cn(
-                "flex h-full w-[18px] items-center justify-center transition-colors md:h-9 md:w-9 md:rounded-full md:bg-ink",
+                "press-shrink flex h-full w-[18px] items-center justify-center md:h-9 md:w-9 md:rounded-full md:bg-ink",
                 isActive("/profile")
                   ? "text-ink md:text-white"
                   : "text-ink hover:opacity-70 md:text-white md:hover:opacity-90",

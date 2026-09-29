@@ -130,6 +130,69 @@ test.describe("mobile navigation", () => {
     expect(h).toBeLessThanOrEqual(52.5);
   });
 
+  test("the text links sit at the live's shrink-wrapped positions (session-32)", async ({ page }) => {
+    // Session-32 re-measure: the live's middle link group is now
+    // SHRINK-WRAPPED (`min-w-0 mr-2`, no flex-1) — the four text links sit
+    // 4px further LEFT than the clone's flex-1-centered group measured
+    // (125/196/226/263): Highlights x=121, Eat 192, Stay 222, Do 259
+    // (the logo 16/84 and the icons 304/330/356 unchanged). The geometry:
+    // 358 inner − (84 logo + 154 group + 8 mr-2 + 70 icons) = 42 → two
+    // 21px justify-between gaps put the group's content at x=121.
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const xs = await nav
+      .getByRole("link")
+      .evaluateAll((els) =>
+        els
+          .filter((el) => el instanceof HTMLElement && el.offsetParent !== null)
+          .map((el) => Math.round(el.getBoundingClientRect().x)),
+      );
+    // Anchor elements: the logo (16), the three icon actions (304/330/356).
+    expect(xs).toContain(16);
+    expect(xs).toContain(304);
+    expect(xs).toContain(330);
+    expect(xs).toContain(356);
+    // The four text links — selected by label (their desktop icons are
+    // hidden-but-present spans, so an svg-less filter would miss them).
+    const labels = ["Highlights", "Eat", "Stay", "Do"];
+    const textXs: number[] = [];
+    for (const label of labels) {
+      const x = await nav
+        .getByRole("link", { name: label, exact: true })
+        .evaluate((el) => Math.round(el.getBoundingClientRect().x));
+      textXs.push(x);
+    }
+    expect(textXs[0]).toBeGreaterThanOrEqual(119); // Highlights 121
+    expect(textXs[0]).toBeLessThanOrEqual(123);
+    expect(textXs[1]).toBeGreaterThanOrEqual(190); // Eat 192
+    expect(textXs[1]).toBeLessThanOrEqual(194);
+    expect(textXs[2]).toBeGreaterThanOrEqual(220); // Stay 222
+    expect(textXs[2]).toBeLessThanOrEqual(224);
+    expect(textXs[3]).toBeGreaterThanOrEqual(257); // Do 259
+    expect(textXs[3]).toBeLessThanOrEqual(261);
+  });
+
+  test("the nav links carry the live's press-shrink feedback (session-32)", async ({ page }) => {
+    // Session-32 re-measure: every live nav link carries the platform's
+    // `press-shrink` utility — `transition: transform 0.18s
+    // cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s` + `:active
+    // { transform: scale(0.97) }`. The clone's links had no press
+    // feedback. Pin the utility class + the computed transition contract.
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const logo = nav.getByRole("link", { name: "ROAM home" });
+    await expect(logo).toHaveClass(/press-shrink/);
+    const eat = nav.getByRole("link", { name: "Eat", exact: true });
+    await expect(eat).toHaveClass(/press-shrink/);
+    const mapIcon = nav.getByRole("link", { name: "Map", exact: true });
+    await expect(mapIcon).toHaveClass(/press-shrink/);
+    // The transition: 0.18s on transform with the live's spring curve.
+    const t = await eat.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { duration: cs.transitionDuration, timing: cs.transitionTimingFunction };
+    });
+    expect(t.duration).toContain("0.18s");
+    expect(t.timing).toContain("cubic-bezier(0.22, 1, 0.36, 1)");
+  });
+
   test("view-link taps switch routes and move the active state", async ({ page }) => {
     const nav = page.getByRole("navigation", { name: "Primary" });
 
@@ -185,6 +248,33 @@ test.describe("middle state (640) navigation", () => {
     expect(box).not.toBeNull();
     expect(box!.width).toBeLessThan(640);
     expect(box!.x).toBeGreaterThan(4);
+  });
+
+  test("the text links sit at the live's shrink-wrapped positions at 640 (session-32)", async ({ page }) => {
+    // Session-32 re-measure: at 640 the live's centered 430px tab-bar
+    // puts the logo at x=121 (viewport) with the shrink-wrapped group at
+    // 246 → Eat 317, Stay 347, Do 384, the icons 449/475/501. The
+    // geometry: the header caps at 430 centered (x=105) → the nav inner
+    // starts at 121; 398 inner − (84 + 154 + 8 + 70) = 82 → two 41px
+    // justify-between gaps put the group at 121+84+41 = 246.
+    await page.goto("/");
+    const nav = page.getByRole("navigation", { name: "Primary" });
+    const labels = ["Highlights", "Eat", "Stay", "Do"];
+    const textXs: number[] = [];
+    for (const label of labels) {
+      const x = await nav
+        .getByRole("link", { name: label, exact: true })
+        .evaluate((el) => Math.round(el.getBoundingClientRect().x));
+      textXs.push(x);
+    }
+    expect(textXs[0]).toBeGreaterThanOrEqual(244); // Highlights 246
+    expect(textXs[0]).toBeLessThanOrEqual(248);
+    expect(textXs[1]).toBeGreaterThanOrEqual(315); // Eat 317
+    expect(textXs[1]).toBeLessThanOrEqual(319);
+    expect(textXs[2]).toBeGreaterThanOrEqual(345); // Stay 347
+    expect(textXs[2]).toBeLessThanOrEqual(349);
+    expect(textXs[3]).toBeGreaterThanOrEqual(382); // Do 384
+    expect(textXs[3]).toBeLessThanOrEqual(386);
   });
 });
 

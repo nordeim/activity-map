@@ -1062,44 +1062,58 @@ test.describe("home content parity (session 2)", () => {
     await expect(page.getByRole("contentinfo").getByRole("link", { name: "Accessibility Statement" })).toBeVisible();
   });
 
-  test("the footer matches the live re-measure (session-23): compact glass pill + paddings + legal row", async ({ page }) => {
+  test("the footer matches the live re-measure (session-23 + session-32): compact glass pill + paddings + legal row", async ({ page }) => {
     // Session-23 re-measure — the footer had not been re-audited since
     // session 2. The live renders: a COMPACT shrink-wrapped centered glass
-    // pill (506×96 @1280, r-28, border 1px #E8E6DC, backdrop
-    // blur(40px) saturate(1.5), pad 8px 10px, links 74×78 with 20px icons
-    // over 11px/600 text); the footer element carries pt-64/pb-56 (desktop)
-    // / pt-32/pb-24 (mobile); the inner is max-w-5xl (1024); the bottom row
-    // is a justify-between ROW at md (© 12px #8A8780 left, legal nav right
-    // with gap 8px 20px) and a centered column on phones.
+    // pill (border 1px #E8E6DC, backdrop blur(40px) saturate(1.5)) carrying
+    // the six view links as icon cells; the footer element carries
+    // pt-64/pb-56 (desktop) / pt-32/pb-24 (mobile); the inner is max-w-5xl
+    // (1024); the bottom row is a justify-between ROW at md (© 12px
+    // #8A8780 left, legal nav right with gap 8px 20px) and a centered
+    // column on phones.
+    // Session-32 re-measure — the DESKTOP pill grew on the live: 646×118
+    // (was 506×96), radius 34 (was 28), pad 12px 16px (was 8/10), gap 12
+    // (was 8), the links 92×92 tiles (was 74×78) with 24px icons (was 20)
+    // over 12px/600 labels (was 11px) — one row of six. The MOBILE pill
+    // (<md) is UNCHANGED (the 3-col grid, max-w 390, r-28, gap 8, pad
+    // 8/10, the 104×78 links at 390).
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const footer = page.getByRole("contentinfo");
     const nav = footer.locator("nav").first();
 
-    // The compact pill: shrink-wrapped (~506 = 6×74 + 5×8 + 2×10 + 2×1).
+    // The grown pill: shrink-wrapped (~646 = 6×92 + 5×12 + 2×16 + 2×1).
     const navW = await nav.evaluate((el) => el.getBoundingClientRect().width);
-    expect(navW).toBeGreaterThanOrEqual(500);
-    expect(navW).toBeLessThanOrEqual(512);
-    await expect(nav).toHaveCSS("border-radius", "28px");
+    expect(navW).toBeGreaterThanOrEqual(640);
+    expect(navW).toBeLessThanOrEqual(652);
+    const navH = await nav.evaluate((el) => el.getBoundingClientRect().height);
+    expect(navH).toBeGreaterThanOrEqual(115); // 118 with the 1px borders
+    expect(navH).toBeLessThanOrEqual(121);
+    await expect(nav).toHaveCSS("border-radius", "34px");
     await expect(nav).toHaveCSS("border-top-width", "1px");
     await expect(nav).toHaveCSS("border-top-color", "rgb(232, 230, 220)");
     // The two backdrop utilities must compose into ONE declaration.
     await expect(nav).toHaveCSS("backdrop-filter", "blur(40px) saturate(1.5)");
     const pad = await nav.evaluate((el) => getComputedStyle(el).padding);
-    expect(pad).toBe("8px 10px");
+    expect(pad).toBe("12px 16px");
+    const gap = await nav.evaluate((el) => getComputedStyle(el).columnGap ?? getComputedStyle(el).gap);
+    expect(gap).toBe("12px");
 
-    // The link tiles: 74px wide, 20px icon over 11px/600 text.
+    // The link tiles: 92×92, 24px icon over 12px/600 text.
     const link = nav.getByRole("link").first();
     const linkW = await link.evaluate((el) => el.getBoundingClientRect().width);
-    expect(linkW).toBeGreaterThanOrEqual(72);
-    expect(linkW).toBeLessThanOrEqual(76);
+    expect(linkW).toBeGreaterThanOrEqual(90);
+    expect(linkW).toBeLessThanOrEqual(94);
+    const linkH = await link.evaluate((el) => el.getBoundingClientRect().height);
+    expect(linkH).toBeGreaterThanOrEqual(90);
+    expect(linkH).toBeLessThanOrEqual(94);
     const iconH = await link.evaluate((el) => {
       const svg = el.querySelector("svg");
       return svg ? svg.getBoundingClientRect().height : 0;
     });
-    expect(iconH).toBeGreaterThanOrEqual(19);
+    expect(iconH).toBeGreaterThanOrEqual(23); // 24px
     const span = link.locator("span").first();
-    await expect(span).toHaveCSS("font-size", "11px");
+    await expect(span).toHaveCSS("font-size", "12px");
     await expect(span).toHaveCSS("font-weight", "600");
 
     // The footer element carries the vertical padding (pt-64/pb-56).
