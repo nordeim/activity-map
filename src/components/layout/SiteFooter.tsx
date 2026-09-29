@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import {
   Sun,
   UtensilsCrossed,
@@ -10,14 +13,27 @@ import {
 
 // The site footer — session-23 re-measure (the footer had drifted since
 // session 2): the live renders a COMPACT shrink-wrapped centered GLASS pill
-// — border 1px #E8E6DC, backdrop blur(40px) saturate(1.5) — carrying the six
-// view links as icon cells (gap 8px; 74px-wide h-[78px] tiles with 20px
-// icons over 11px/600 labels, a 3-column grid on phones capped at 390).
-// Session-32 re-measure: the DESKTOP pill grew on the live — radius 34, pad
-// 12px 16px, gap 12, the links 92×92 tiles with 24px icons over 12px/600
-// labels (one row of six → 646×118; was 506×96 with 74×78 tiles). The MOBILE
-// (<md) pill is UNCHANGED (the 3-col grid, max-w 390, r-28, pad 8/10, gap 8,
-// the 104×78 tiles at 390 — verified EXACT against the live).
+// — border 1px #E8E6DC, backdrop blur(40px) saturate(1.5), the soft
+// 0 2px 12px rgba(14,14,14,0.08) shadow — carrying the six view links as
+// icon cells (a 3-column grid on phones capped at 390).
+// Session-32 re-measure: the DESKTOP pill grew on the live — the grown
+// model 646×118 (radius 34, pad 12px 16px, gap 12, the links 92×92 tiles
+// with 24px icons over 12px/600 labels). The MOBILE (<md) pill is UNCHANGED
+// (the 3-col grid, max-w 390, r-28, pad 8/10, gap 8, the 104×78 tiles).
+// Session-33 re-measure: the growth is SCROLL-LINKED and CONTINUOUS — the
+// desktop pill renders the COMPACT model (506×96, gap 8, r-28, pad 8/10,
+// links 74×78 r-18, icons 20px, labels 11px) while the footer is offscreen
+// and interpolates LINEARLY with the footer's visible fraction p (gap
+// 8+4p, pad (8+4p)/(10+6p), radius 28+6p, links 74+18p × 78+14p with
+// radius 18+6p, icons 20+4p, labels 11+1p) — compacting back when it
+// leaves. The per-frame updates are smoothed by the 120ms linear
+// transitions (globals.css: footer-pill-transition on the pill,
+// footer-link-transition on the links — the md+ list composing the growth
+// entries with the 300ms hover entries). The links carry the VIOLET hover
+// (footer-link-hover: translateY(-12px) scale(1.1) composed into one
+// matrix over the #571AFF fill, white text, the 0 16px 34px /0.28 glow;
+// the svg its own group-hover scale 1.1) at BOTH breakpoints; the icons'
+// stroke-width is 2.1 and the labels track −0.01em.
 // The footer element itself owns the vertical padding (pt-32/pb-24 mobile,
 // pt-64/pb-56 desktop) with NO top margin — every page's last section hands
 // off to the footer's own pt. The inner is max-w-5xl (1024). The legal row
@@ -35,25 +51,67 @@ const FOOTER_LINKS = [
 ] as const;
 
 export function SiteFooter() {
+  const footerRef = useRef<HTMLElement | null>(null);
+
+  // Session-33: the desktop pill's scroll-linked growth. The footer's
+  // visible fraction p = clamp((viewportBottom − footerTop) / height, 0, 1)
+  // is written as the --footer-p CSS var (rAF-throttled, passive) — the
+  // md+ calc classes in the markup interpolate the compact→grown geometry
+  // through it. Below md the var is INERT (the mobile classes never read
+  // it — the pill stays the static 3-col model, like the live's own
+  // mobile-override stylesheet). SSR renders p=0: the compact model, the
+  // live's own initial state.
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const rect = footer.getBoundingClientRect();
+      const frac = Math.max(
+        0,
+        Math.min(1, (window.innerHeight - rect.top) / rect.height)
+      );
+      footer.style.setProperty("--footer-p", frac.toFixed(4));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     // Session-26 re-measure: the live's footer carries the horizontal
     // padding itself (`px-5`) and switches its vertical pads at **sm**
     // (640), not md — the inner is BARE (no px, no gap; the legal row's
     // own mt spaces it).
-    <footer className="bg-cream px-5 pt-8 pb-6 sm:pt-16 sm:pb-14">
+    <footer ref={footerRef} className="bg-cream px-5 pt-8 pb-6 sm:pt-16 sm:pb-14">
       <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
         <nav
           aria-label="Footer"
-          className="grid w-full max-w-[390px] grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:justify-center md:rounded-[34px] md:gap-3 md:py-3 md:px-4"
+          className="grid w-full max-w-[390px] grid-cols-3 gap-2 rounded-[28px] border border-[#E8E6DC] bg-white py-2 px-2.5 transition-none shadow-[0_2px_12px_rgba(14,14,14,0.08)] backdrop-blur-[40px] backdrop-saturate-[1.5] md:flex md:w-fit md:max-w-none md:flex-wrap md:items-end md:justify-center md:footer-pill-transition md:gap-[calc(8px_+_var(--footer-p,0)_*_4px)] md:rounded-[calc(28px_+_var(--footer-p,0)_*_6px)] md:py-[calc(8px_+_var(--footer-p,0)_*_4px)] md:px-[calc(10px_+_var(--footer-p,0)_*_6px)]"
         >
           {FOOTER_LINKS.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="group flex h-[78px] flex-col items-center justify-center gap-2 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] transition-colors md:h-[92px] md:w-[92px]"
+              className="group flex h-[78px] flex-col items-center justify-center gap-2 rounded-[18px] border border-black/[0.04] bg-white/55 text-[#141413] footer-link-transition footer-link-hover md:h-[calc(78px_+_var(--footer-p,0)_*_14px)] md:w-[calc(74px_+_var(--footer-p,0)_*_18px)] md:rounded-[calc(18px_+_var(--footer-p,0)_*_6px)]"
             >
-              <Icon className="h-5 w-5 md:h-6 md:w-6" strokeWidth={1.8} aria-hidden />
-              <span className="font-inter text-[11px] font-semibold md:text-[12px]">{label}</span>
+              <Icon
+                className="h-5 w-5 transition-transform duration-300 md:h-[calc(20px_+_var(--footer-p,0)_*_4px)] md:w-[calc(20px_+_var(--footer-p,0)_*_4px)]"
+                strokeWidth={2.1}
+                aria-hidden
+              />
+              <span className="font-inter text-[11px] font-semibold tracking-[-0.01em] md:text-[calc(11px_+_var(--footer-p,0)_*_1px)]">
+                {label}
+              </span>
             </Link>
           ))}
         </nav>

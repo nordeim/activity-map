@@ -1062,29 +1062,109 @@ test.describe("home content parity (session 2)", () => {
     await expect(page.getByRole("contentinfo").getByRole("link", { name: "Accessibility Statement" })).toBeVisible();
   });
 
-  test("the footer matches the live re-measure (session-23 + session-32): compact glass pill + paddings + legal row", async ({ page }) => {
+  test("the footer matches the live re-measure (session-23 + 32 + 33): the scroll-linked pill growth + the hover treatment", async ({ page }) => {
     // Session-23 re-measure — the footer had not been re-audited since
     // session 2. The live renders: a COMPACT shrink-wrapped centered glass
-    // pill (border 1px #E8E6DC, backdrop blur(40px) saturate(1.5)) carrying
-    // the six view links as icon cells; the footer element carries
-    // pt-64/pb-56 (desktop) / pt-32/pb-24 (mobile); the inner is max-w-5xl
-    // (1024); the bottom row is a justify-between ROW at md (© 12px
-    // #8A8780 left, legal nav right with gap 8px 20px) and a centered
-    // column on phones.
-    // Session-32 re-measure — the DESKTOP pill grew on the live: 646×118
-    // (was 506×96), radius 34 (was 28), pad 12px 16px (was 8/10), gap 12
-    // (was 8), the links 92×92 tiles (was 74×78) with 24px icons (was 20)
-    // over 12px/600 labels (was 11px) — one row of six. The MOBILE pill
-    // (<md) is UNCHANGED (the 3-col grid, max-w 390, r-28, gap 8, pad
-    // 8/10, the 104×78 links at 390).
+    // pill (border 1px #E8E6DC, backdrop blur(40px) saturate(1.5), the soft
+    // 0 2px 12px /0.08 shadow) carrying the six view links as icon cells;
+    // the footer element carries pt-64/pb-56 (desktop) / pt-32/pb-24
+    // (mobile); the inner is max-w-5xl (1024); the bottom row is a
+    // justify-between ROW at md (© 12px #8A8780 left, legal nav right with
+    // gap 8px 20px) and a centered column on phones.
+    // Session-32 re-measure — the DESKTOP pill grew on the live: 646×118,
+    // radius 34, pad 12px 16px, gap 12, the links 92×92 tiles with 24px
+    // icons over 12px/600 labels — one row of six. The MOBILE pill (<md)
+    // is UNCHANGED (the 3-col grid, max-w 390, r-28, gap 8, pad 8/10, the
+    // 104×78 links at 390).
+    // Session-33 re-measure — the growth is SCROLL-LINKED and CONTINUOUS:
+    // the pill renders the COMPACT model while the footer is offscreen
+    // (506×96, gap 8, r-28, pad 8/10, links 74×78 r-18, icons 20px, labels
+    // 11px) and interpolates LINEARLY with the footer's visible fraction
+    // p — gap 8+4p, pad (8+4p)/(10+6p), radius 28+6p, links 74+18p ×
+    // 78+14p with radius 18+6p, icons 20+4p, labels 11+1p — reaching the
+    // grown model (646×118, gap 12, r-34, pad 12/16, links 92×92 r-24,
+    // icons 24px, labels 12px) when the footer is fully visible, and
+    // compacting back when it leaves. The per-frame updates are smoothed
+    // by 120ms linear transitions (the pill: gap/padding/border-radius;
+    // the link: width/height/border-radius) composed with the 300ms hover
+    // list. The links carry a VIOLET HOVER at both breakpoints (translateY
+    // −12 + scale 1.1 composed into one matrix, the #571AFF fill, white
+    // text, the 0 16px 34px /0.28 glow; the svg its own group-hover
+    // scale 1.1); the icons' stroke-width is 2.1 and the labels track
+    // −0.01em. Below md the pill NEVER grows (the static 3-col model,
+    // transition none).
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const footer = page.getByRole("contentinfo");
     const nav = footer.locator("nav").first();
+    const link = nav.getByRole("link").first();
+    const span = link.locator("span").first();
 
-    // The grown pill: shrink-wrapped (~646 = 6×92 + 5×12 + 2×16 + 2×1).
+    // ---- The COMPACT state (page load, the footer offscreen) ----
+    const navWCompact = await nav.evaluate((el) => el.getBoundingClientRect().width);
+    expect(navWCompact).toBeGreaterThanOrEqual(500); // 506
+    expect(navWCompact).toBeLessThanOrEqual(512);
+    const navHCompact = await nav.evaluate((el) => el.getBoundingClientRect().height);
+    expect(navHCompact).toBeGreaterThanOrEqual(93); // 96 with the 1px borders
+    expect(navHCompact).toBeLessThanOrEqual(99);
+    await expect(nav).toHaveCSS("border-radius", "28px");
+    const padCompact = await nav.evaluate((el) => getComputedStyle(el).padding);
+    expect(padCompact).toBe("8px 10px");
+    const gapCompact = await nav.evaluate(
+      (el) => getComputedStyle(el).columnGap ?? getComputedStyle(el).gap
+    );
+    expect(gapCompact).toBe("8px");
+    const linkWCompact = await link.evaluate((el) => el.getBoundingClientRect().width);
+    expect(linkWCompact).toBeGreaterThanOrEqual(72); // 74
+    expect(linkWCompact).toBeLessThanOrEqual(76);
+    const linkHCompact = await link.evaluate((el) => el.getBoundingClientRect().height);
+    expect(linkHCompact).toBeGreaterThanOrEqual(76); // 78
+    expect(linkHCompact).toBeLessThanOrEqual(80);
+    await expect(link).toHaveCSS("border-radius", "18px");
+    const iconCompact = await link.evaluate((el) => {
+      const svg = el.querySelector("svg");
+      return svg ? svg.getBoundingClientRect().height : 0;
+    });
+    expect(iconCompact).toBeGreaterThanOrEqual(19); // 20px
+    expect(iconCompact).toBeLessThanOrEqual(21);
+    await expect(span).toHaveCSS("font-size", "11px");
+    await expect(span).toHaveCSS("font-weight", "600");
+
+    // ---- The transition contracts (the live's own lists; Chromium
+    // serializes the computed shorthand in SECONDS — 120ms → 0.12s) ----
+    const pillTransition = await nav.evaluate((el) => getComputedStyle(el).transition);
+    expect(pillTransition).toContain("gap 0.12s linear");
+    expect(pillTransition).toContain("padding 0.12s linear");
+    expect(pillTransition).toContain("border-radius 0.12s linear");
+    const linkTransition = await link.evaluate((el) => getComputedStyle(el).transition);
+    expect(linkTransition).toContain("width 0.12s linear");
+    expect(linkTransition).toContain("height 0.12s linear");
+    expect(linkTransition).toContain("border-radius 0.12s linear");
+    expect(linkTransition).toContain("transform 0.3s");
+    expect(linkTransition).toContain("box-shadow 0.3s");
+
+    // ---- The pill's soft shadow (both breakpoints, the live's inline) ----
+    const pillShadow = await nav.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(pillShadow).toContain("rgba(14, 14, 14, 0.08)");
+    expect(pillShadow).toContain("2px 12px");
+
+    // ---- The icon chrome: stroke-width 2.1 + the label tracking ----
+    const strokeWidth = await link.evaluate((el) => el.querySelector("svg")?.getAttribute("stroke-width"));
+    expect(strokeWidth).toBe("2.1");
+    const labelTrack = await span.evaluate((el) => getComputedStyle(el).letterSpacing);
+    expect(labelTrack).toBe("-0.11px"); // −0.01em at 11px (compact)
+
+    // ---- The GROWN state (scrolled to the page bottom) ----
+    // The pill's growth interpolates with the footer's visible fraction —
+    // scrolling to the document end puts the footer fully in view (p=1).
+    // The 120ms transition needs settling: poll for the grown geometry.
+    await page.evaluate(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" });
+    });
+    await expect
+      .poll(() => nav.evaluate((el) => el.getBoundingClientRect().width), { timeout: 5000 })
+      .toBeGreaterThanOrEqual(640);
     const navW = await nav.evaluate((el) => el.getBoundingClientRect().width);
-    expect(navW).toBeGreaterThanOrEqual(640);
     expect(navW).toBeLessThanOrEqual(652);
     const navH = await nav.evaluate((el) => el.getBoundingClientRect().height);
     expect(navH).toBeGreaterThanOrEqual(115); // 118 with the 1px borders
@@ -1098,23 +1178,69 @@ test.describe("home content parity (session 2)", () => {
     expect(pad).toBe("12px 16px");
     const gap = await nav.evaluate((el) => getComputedStyle(el).columnGap ?? getComputedStyle(el).gap);
     expect(gap).toBe("12px");
-
-    // The link tiles: 92×92, 24px icon over 12px/600 text.
-    const link = nav.getByRole("link").first();
+    // The link tiles: 92×92 with the GROWN 24px radius, 24px icon over
+    // 12px/600 text tracking −0.01em.
     const linkW = await link.evaluate((el) => el.getBoundingClientRect().width);
     expect(linkW).toBeGreaterThanOrEqual(90);
     expect(linkW).toBeLessThanOrEqual(94);
     const linkH = await link.evaluate((el) => el.getBoundingClientRect().height);
     expect(linkH).toBeGreaterThanOrEqual(90);
     expect(linkH).toBeLessThanOrEqual(94);
+    await expect(link).toHaveCSS("border-radius", "24px");
     const iconH = await link.evaluate((el) => {
       const svg = el.querySelector("svg");
       return svg ? svg.getBoundingClientRect().height : 0;
     });
     expect(iconH).toBeGreaterThanOrEqual(23); // 24px
-    const span = link.locator("span").first();
     await expect(span).toHaveCSS("font-size", "12px");
     await expect(span).toHaveCSS("font-weight", "600");
+    await expect(span).toHaveCSS("letter-spacing", "-0.12px"); // −0.01em at 12px
+
+    // ---- The violet hover treatment (grown state, 1280) ----
+    await link.hover();
+    await expect(link).toHaveCSS("transform", "matrix(1.1, 0, 0, 1.1, 0, -12)");
+    await expect(link).toHaveCSS("background-color", "rgb(87, 26, 255)");
+    await expect(link).toHaveCSS("color", "rgb(255, 255, 255)");
+    await expect(link).toHaveCSS("border-top-color", "rgb(87, 26, 255)");
+    const hoverShadow = await link.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(hoverShadow).toContain("rgba(87, 26, 255, 0.28)");
+    expect(hoverShadow).toContain("16px 34px");
+    // The svg carries its own group-hover scale (1.1) with a 300ms
+    // transform transition.
+    const svgScale = await link.evaluate((el) => getComputedStyle(el.querySelector("svg")!).scale);
+    expect(svgScale).toBe("1.1");
+    const svgDuration = await link.evaluate(
+      (el) => getComputedStyle(el.querySelector("svg")!).transitionDuration
+    );
+    expect(svgDuration).toBe("0.3s");
+
+    // ---- The interpolation midpoint (the continuous model) ----
+    // Scroll to the footer's HALF-visibility: p=0.5 → gap 10px, the links
+    // 83 wide (74 + 18×0.5). A binary toggle would read 8 or 12 here.
+    // Move the pointer off the link first — the lingering hover's 1.1
+    // scale would inflate the mid-transition link measurement.
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+      const footer = document.querySelector("footer");
+      if (!footer) return;
+      const rect = footer.getBoundingClientRect();
+      const target = rect.top + window.scrollY - window.innerHeight + rect.height / 2;
+      window.scrollTo({ top: target, behavior: "instant" });
+    });
+    await expect
+      .poll(
+        () =>
+          nav.evaluate((el) => {
+            const g = parseFloat(getComputedStyle(el).gap);
+            return g >= 9.6 && g <= 10.4;
+          }),
+        { timeout: 5000 }
+      )
+      .toBe(true);
+    const midLinkW = await link.evaluate((el) => el.getBoundingClientRect().width);
+    expect(midLinkW).toBeGreaterThanOrEqual(81); // 83 at p=0.5
+    expect(midLinkW).toBeLessThanOrEqual(85);
 
     // The footer element carries the vertical padding (pt-64/pb-56).
     await expect(footer).toHaveCSS("padding-top", "64px");
@@ -1148,6 +1274,8 @@ test.describe("home content parity (session 2)", () => {
     await expect(bottomRow).toHaveCSS("margin-top", "32px");
 
     // Mobile (390): the footer pads 32/24 and the nav fills the width.
+    // The mobile pill NEVER grows — the static 3-col model at any scroll
+    // position (transition none), carrying the same soft shadow.
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(footer).toHaveCSS("padding-top", "32px");
@@ -1155,6 +1283,29 @@ test.describe("home content parity (session 2)", () => {
     const navWMobile = await nav.evaluate((el) => el.getBoundingClientRect().width);
     expect(navWMobile).toBeGreaterThanOrEqual(348);
     expect(navWMobile).toBeLessThanOrEqual(352);
+    // Session-33: the mobile pill carries the shadow but NO transition.
+    const mobilePillShadow = await nav.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(mobilePillShadow).toContain("rgba(14, 14, 14, 0.08)");
+    await expect(nav).toHaveCSS("transition", "none");
+    // The mobile links: 104×78 grid tiles with the 4-prop hover list.
+    const linkWMobile = await link.evaluate((el) => el.getBoundingClientRect().width);
+    expect(linkWMobile).toBeGreaterThanOrEqual(102); // 104
+    expect(linkWMobile).toBeLessThanOrEqual(106);
+    const linkHMobile = await link.evaluate((el) => el.getBoundingClientRect().height);
+    expect(linkHMobile).toBeGreaterThanOrEqual(76); // 78
+    expect(linkHMobile).toBeLessThanOrEqual(80);
+    const linkTransitionMobile = await link.evaluate((el) => getComputedStyle(el).transition);
+    expect(linkTransitionMobile).toContain("transform 0.3s");
+    expect(linkTransitionMobile).toContain("background 0.3s");
+    expect(linkTransitionMobile).toContain("color 0.3s");
+    expect(linkTransitionMobile).toContain("box-shadow 0.3s");
+    expect(linkTransitionMobile).not.toContain("width");
+    // The violet hover applies at mobile too (translateY −12 + scale 1.1
+    // composed, the #571AFF fill, white text).
+    await link.hover();
+    await expect(link).toHaveCSS("transform", "matrix(1.1, 0, 0, 1.1, 0, -12)");
+    await expect(link).toHaveCSS("background-color", "rgb(87, 26, 255)");
+    await expect(link).toHaveCSS("color", "rgb(255, 255, 255)");
     // The bottom row stacks (column) on phones.
     await expect(bottomRow).toHaveCSS("flex-direction", "column");
     // Session-26: the mobile legal row carries the hairline + pt-3/mt-4.

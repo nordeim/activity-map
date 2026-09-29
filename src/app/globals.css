@@ -77,6 +77,67 @@
   transform: scale(0.97);
 }
 
+/* Session-33 re-measure: the live's DESKTOP footer pill grows with the
+   footer's scroll-into-view — a CONTINUOUS interpolation driven by the
+   footer's visible fraction p (written as the --footer-p CSS var by
+   SiteFooter's rAF-throttled scroll listener; 0 = offscreen, 1 = fully
+   visible). The pill's per-frame updates are smoothed by the live's own
+   120ms linear transition list (gap/padding/border-radius on the pill). */
+@utility footer-pill-transition {
+  transition:
+    gap 120ms linear,
+    padding 120ms linear,
+    border-radius 120ms linear;
+}
+
+/* The footer link's combined transition — the live composes the 120ms
+   linear growth entries (width/height/border-radius, md+) with the 300ms
+   hover entries (transform/background/color/box-shadow) into ONE list.
+   Below md only the hover list applies (the mobile pill never grows). */
+@utility footer-link-transition {
+  transition:
+    transform 300ms,
+    background 300ms,
+    color 300ms,
+    box-shadow 300ms;
+}
+
+@media (min-width: 48rem) {
+  /* UNLAYERED (the press-shrink mechanism) so the md+ growth list beats
+     the base utility at the desktop breakpoint. */
+  .footer-link-transition {
+    transition:
+      width 120ms linear,
+      height 120ms linear,
+      border-radius 120ms linear,
+      transform 300ms,
+      background 300ms,
+      color 300ms,
+      box-shadow 300ms;
+  }
+}
+
+/* The live's violet footer-link hover — translateY(-12px) scale(1.1)
+   composed into ONE transform (the live's Tailwind composes them; v4's
+   separate translate/scale properties would read differently in the
+   computed style AND escape the transform transition entry), over the
+   #571AFF fill with white text and the violet glow. The icon carries
+   its own hover scale — written UNGUARDED like the live's own class
+   (Tailwind v4's group-hover variant is @media (hover: hover)-wrapped
+   and would not apply on touch-capable probes where the live's does). */
+@utility footer-link-hover {
+  &:hover {
+    transform: translateY(-12px) scale(1.1);
+    background-color: #571aff;
+    border-color: #571aff;
+    color: #ffffff;
+    box-shadow: 0 16px 34px rgba(87, 26, 255, 0.28);
+  }
+  &:hover > svg {
+    scale: 1.1;
+  }
+}
+
 /* Full-bleed hero image with the legibility gradient used on the
    reference home page (dark bottom for the white serif wordmark). */
 /* (hero-shade removed in session-31 — the live renders its hero image RAW
