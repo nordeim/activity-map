@@ -808,3 +808,19 @@ Stage Summary:
 - The mirror verified running the session-31 code ALL GREEN (no bugs); the live re-measured with two drifts (the mobile nav link-group shrink-wrap + press feedback, the desktop footer pill growth) — both remediated to EXACT visible parity.
 - Gates: 42 unit + 27 smoke + 76 E2E (the shrink-wrap position tests at 390/640 + the press-shrink contract + the updated footer test) — all green on the push tree.
 - 61 screenshots; 9 docs aligned; single conventional commit + SSH-wrapper push to main.
+
+---
+Task ID: 32-push
+Agent: Super Z (main agent)
+Task: Session 32 — push verification record.
+
+Work Log:
+- Push infrastructure reused from the surviving workspace: the paramiko shim at /home/z/my-project/bin/ssh (shebang /home/z/.venv/bin/python3, paramiko 5.0.0 verified), operator key materialized at /home/z/.ssh-tmp/op.key (0600), fingerprint verified SHA256:4rAzu5gC41giPSWmIojTc1isH0FGoGiSgYJkDcMp54g (matches every prior session record).
+- Secret scan of the staged diff + the new untracked files: 0 private-key material, 0 GitHub tokens; the 3 "sepnetflix" matches are the pre-existing seeded-account documentation lines (AGENTS/CLAUDE demo-login, following every prior session's precedent) + the screenshot PNG's rendered avatar initial.
+- Dry-run: authenticated, remote main at 440fa17 (the owner's post-session-31 "update session log" commit — pulled at this session's start), fast-forward confirmed (440fa17..8d588bf).
+- Real push via docs/ssh_git_wrapper_v3.py --remote git@github.com:nordeim/activity-map.git: 440fa17..8d588bf HEAD -> main; wrapper verified refs/heads/main @ 8d588bf == local HEAD and synced refs/remotes/origin/main.
+- Operator key shredded (random-overwrite + remove); the wrapper's own temp key + known_hosts sidecar shredded by the wrapper; working tree clean; git status agrees with the remote.
+
+Stage Summary:
+- Commit 8d588bf (18 files: 3 source + 2 specs + 7 docs + 4 screenshots + 1 script + the plan) pushed to main and verified on the remote.
+- No secrets in the tree; key material destroyed post-push.
