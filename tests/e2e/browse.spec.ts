@@ -555,6 +555,50 @@ test.describe("map view", () => {
     await expect(page.getByText("9 places")).toBeVisible();
     await expect(page.getByText("Places on the map")).toBeVisible();
 
+    // Session-30 re-measure (F4): the live's pins are 12px dots — a 12px
+    // ink circle with a 2px white border (was the clone's 16px + violet
+    // active model) — and every pin carries a NAME-LABEL pill
+    // (.roam-marker-label) that reveals on hover.
+    const firstMarker = page.locator(".roam-marker").first();
+    const markerBox = await firstMarker.boundingBox();
+    expect(markerBox).not.toBeNull();
+    expect(Math.round(markerBox!.width)).toBe(12);
+    expect(Math.round(markerBox!.height)).toBe(12);
+    await expect(firstMarker).toHaveCSS("border-radius", "50%");
+    await expect(firstMarker).toHaveCSS("background-color", "rgb(14, 14, 14)");
+    await expect(firstMarker).toHaveCSS("border-top-width", "2px");
+    await expect(firstMarker).toHaveCSS("border-top-color", "rgb(255, 255, 255)");
+    const labelCount = await page.locator(".roam-marker-label").count();
+    expect(labelCount).toBe(9);
+    await expect(page.locator(".roam-marker-label").first()).toHaveText(
+      "Brass & Marble",
+    );
+    const labelBg = await page
+      .locator(".roam-marker-label")
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(labelBg).toBe("rgb(255, 255, 255)");
+
+    // Session-30 re-measure (F3): the zoom controls are CIRCULAR 34px
+    // buttons in a gapped stack (was Leaflet's joined 30px default pair).
+    const zoomIn = page.locator(".leaflet-control-zoom-in");
+    const zoomOut = page.locator(".leaflet-control-zoom-out");
+    const zoomInBox = await zoomIn.boundingBox();
+    const zoomOutBox = await zoomOut.boundingBox();
+    expect(zoomInBox).not.toBeNull();
+    expect(zoomOutBox).not.toBeNull();
+    expect(Math.round(zoomInBox!.width)).toBe(34);
+    expect(Math.round(zoomInBox!.height)).toBe(34);
+    expect(Math.round(zoomOutBox!.width)).toBe(34);
+    expect(Math.round(zoomOutBox!.height)).toBe(34);
+    await expect(zoomIn).toHaveCSS("border-radius", "999px");
+    await expect(zoomIn).toHaveCSS("border-top-width", "1px");
+    await expect(zoomIn).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    const zoomGap = await page
+      .locator(".leaflet-control-zoom")
+      .evaluate((el) => getComputedStyle(el).rowGap);
+    expect(zoomGap).toBe("8px");
+
     // Session-14 re-measure: the live's list cards are TEXT-ONLY — no
     // photos — 24px-radius white cards with the category eyebrow, 15px/600
     // titles, and the €-price meta (the clone rendered 90px image rows).
@@ -627,6 +671,15 @@ test.describe("map view", () => {
     // (was the 0 6px 16px /0.08 shadow).
     const statsPill = page.getByText("Augsburg center");
     await expect(statsPill).toHaveCSS("box-shadow", "none");
+
+    // Session-30 re-measure (F5): clicking a pin navigates DIRECTLY to the
+    // place page (the live has no popup — the URL changes, no .leaflet-popup
+    // renders).
+    const pinTarget = page.locator(".leaflet-marker-icon").first();
+    await pinTarget.click();
+    await page.waitForURL("**/place/map-brass-marble");
+    await expect(page.getByRole("heading", { name: "Brass & Marble" })).toBeVisible();
+    expect(page.locator(".leaflet-popup")).toHaveCount(0);
   });
 
   test("the map search shell is the live's sticky command center (session-24)", async ({ page }) => {

@@ -130,23 +130,96 @@ body {
   line-height: 1.45;
 }
 
+/* Session-30 re-measure (F4): the live's pin model — a 12px ink dot with a
+   2px white ring (the 16px dot + violet [data-active] state are retired;
+   the live has NO violet state at all) + a hover-reveal NAME-LABEL pill. */
 .roam-marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
+  display: block;
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
   background: #0e0e0e;
-  border: 2.5px solid #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(14, 14, 14, 0.16);
+  cursor: pointer;
+  transition: all 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.roam-marker[data-active="true"] {
-  background: #571aff;
-  width: 22px;
-  height: 22px;
-  border-width: 3px;
+.roam-marker:hover {
+  transform: scale(1.32);
+  box-shadow: 0 8px 18px rgba(14, 14, 14, 0.24);
+}
+
+/* The name-label pill: hidden by default, revealed on pin hover — the
+   live's .activity-map-pin-label contract (white pill, 12px/700 Inter ink
+   text, a 5px triangle pointer below, 160ms fade). */
+.roam-marker-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 9px);
+  transform: translate(-50%, 4px) scale(0.96);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0e0e0e;
+  padding: 7px 11px;
+  font-family: var(--font-sans), Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 10px 26px rgba(14, 14, 14, 0.16);
+  transition:
+    opacity 160ms,
+    transform 160ms;
+}
+
+.roam-marker-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #ffffff transparent transparent;
+}
+
+.roam-marker:hover .roam-marker-label {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* Session-30 re-measure (F3): the live's zoom controls — TWO separated
+   circular 34px white buttons (gap 8) with a 1px rgba(14,14,14,0.1)
+   hairline, 22px/700 ink glyphs (Leaflet's joined 30px default pair). */
+/* The !important flags mirror the live's own override block — Leaflet's
+   bundled stylesheet loads after globals.css in the chunk order, so plain
+   specificity loses the cascade. */
+.leaflet-container .leaflet-control-zoom {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.leaflet-container .leaflet-control-zoom a {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 32px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(14, 14, 14, 0.1) !important;
+  background: #ffffff !important;
+  color: #0e0e0e !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+
+.leaflet-container .leaflet-control-zoom a:hover {
+  background: #f8f7f4 !important;
+  color: #0e0e0e !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

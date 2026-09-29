@@ -2,9 +2,12 @@
 
 // The Leaflet canvas itself (browser-only; loaded via next/dynamic from
 // MapExplorer). Basemap: CARTO Voyager tiles (the reference app's carto.com
-// basemap). Markers: black dot divIcons that turn violet when active.
+// basemap). Markers (session-30 re-measure): 12px ink dots with a 2px white
+// ring + hover-reveal name-label pills; clicking a pin navigates DIRECTLY to
+// the place page (the live has no popup and no violet active state).
 
 import { useEffect, useMemo, useRef } from "react";
+import { useRouter } from "next/navigation";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import type { PlaceDTO } from "@/types";
@@ -14,25 +17,28 @@ const AUSGBURG_CENTER: L.LatLngExpression = [48.3713, 10.8982];
 export function LeafletCanvas({
   places,
   activeSlug,
-  onSelect,
 }: {
   places: PlaceDTO[];
   activeSlug: string | null;
-  onSelect: (slug: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<Map<string, L.Marker>>(new Map());
-  const selectRef = useRef(onSelect);
-
-  useEffect(() => {
-    selectRef.current = onSelect;
-  }, [onSelect]);
+  const router = useRouter();
 
   const points = useMemo(
     () => places.filter((p) => p.lat != null && p.lng != null),
     [places],
   );
+
+  // Keep a stable router reference for the marker click handlers (the
+  // markers outlive re-renders; router identity from useRouter is stable
+  // in practice but the ref guards the closure).
+  const routerRef = useRef(router);
+  useEffect(() => {
+    routerRef.current = router;
+  }, [router]);
+
   // Create the map once.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -76,14 +82,19 @@ export function LeafletCanvas({
       const marker = L.marker([p.lat!, p.lng!], {
         icon: L.divIcon({
           className: "",
-          html: '<span class="roam-marker" role="presentation"></span>',
-          iconSize: [16, 16],
-          iconAnchor: [8, 8],
+          html: `<span class="roam-marker" role="presentation"><span class="roam-marker-label">${escapeHtml(p.name)}</span></span>`,
+          iconSize: [12, 12],
+          iconAnchor: [6, 6],
         }),
         title: p.name,
         alt: p.name,
       });
-      marker.on("click", () => selectRef.current(p.slug));
+      // Session-30 (F5): the live's pin click navigates directly to the
+      // place page — no popup, no active state. The router ref keeps the
+      // marker handler stable across re-renders.
+      marker.on("click", () => {
+        routerRef.current.push(`/place/${encodeURIComponent(p.slug)}`);
+      });
       marker.addTo(map);
       markers.set(p.slug, marker);
     }
@@ -96,27 +107,15 @@ export function LeafletCanvas({
     }
   }, [points]);
 
-  // Reflect the active selection + fly to it.
+  // Reflect the deep-link focus (?place=slug) by flying to the pin — the
+  // violet data-active highlight is retired (session-30: the live has no
+  // violet pin state); the pin click navigates instead of selecting.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    for (const [slug, marker] of markersRef.current) {
-      const el = marker.getElement()?.querySelector(".roam-marker") as HTMLElement | null;
-      if (el) el.dataset.active = String(slug === activeSlug);
-    }
-    if (activeSlug) {
-      const point = points.find((p) => p.slug === activeSlug);
-      const marker = markersRef.current.get(activeSlug);
-      if (point && marker) {
-        map.flyTo([point.lat!, point.lng!], Math.max(map.getZoom(), 15), { duration: 0.6 });
-        marker
-          .bindPopup(
-            `<strong>${escapeHtml(point.name)}</strong><br/>` +
-              `<span style="color:#555;font-size:12px">${escapeHtml(point.subCategory ?? "")}` +
-              `${point.neighborhood ? " · " + escapeHtml(point.neighborhood) : ""}</span>`,
-          )
-          .openPopup();
-      }
+    if (!map || !activeSlug) return;
+    const point = points.find((p) => p.slug === activeSlug);
+    if (point) {
+      map.flyTo([point.lat!, point.lng!], Math.max(map.getZoom(), 15), { duration: 0.6 });
     }
   }, [activeSlug, points]);
 

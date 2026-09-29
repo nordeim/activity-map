@@ -55,7 +55,6 @@ export function MapExplorer({
 }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<PlaceCategory | "all">(initialCategory ?? "all");
-  const [active, setActive] = useState<string | null>(focusSlug);
   const [geoNotice, setGeoNotice] = useState<string | null>(null);
 
   // The live app asks for geolocation and falls back to an "approximate
@@ -95,10 +94,12 @@ export function MapExplorer({
     });
   }, [places, query, filter]);
 
-  // Derived (not state-synced): the active selection only counts when the
-  // current filter keeps the place visible.
+  // Derived: the deep-link focus (?place=slug) only counts when the current
+  // filter keeps the place visible (drives the flyTo — session-30: the pin
+  // click navigates directly, so there is no selection state anymore).
+  const active = focusSlug;
   const activeVisible = active ? visible.some((p) => p.slug === active) : false;
-  const activePlace = active && activeVisible ? places.find((p) => p.slug === active) ?? null : null;
+  const focusVisible = activeVisible ? active : null;
 
   return (
     <main className="w-full">
@@ -208,7 +209,7 @@ export function MapExplorer({
           (measured at 1280); phones keep the responsive shorter canvas. */}
       <section className="relative">
         <div className="h-[62vh] min-h-[420px] overflow-hidden rounded-3xl border border-black/5 shadow-card md:h-[620px]">
-          <LeafletCanvas places={visible} activeSlug={active} onSelect={(slug) => setActive(slug)} />
+          <LeafletCanvas places={visible} activeSlug={focusVisible} />
         </div>
 
         {/* The live's bottom stats overlay: Augsburg center · N places ·
@@ -231,42 +232,9 @@ export function MapExplorer({
         ) : null}
       </section>
 
-      {/* Selected place card */}
-      {activePlace ? (
-        <section className="mx-auto mt-6 max-w-xl">
-          <Link
-            href={`/place/${activePlace.slug}`}
-            className="flex items-center gap-4 rounded-3xl border border-black/5 bg-white p-4 shadow-card transition hover:-translate-y-0.5"
-          >
-            {activePlace.coverImageUrl ? (
-              <img
-                src={activePlace.coverImageUrl}
-                alt={activePlace.name}
-                className="h-16 w-16 shrink-0 rounded-2xl object-cover"
-              />
-            ) : null}
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-black/40">
-                {activePlace.subCategory ?? activePlace.category}
-              </p>
-              <h2 className="truncate text-lg font-semibold text-ink">{activePlace.name}</h2>
-              <p className="mt-0.5 flex items-center gap-2 text-xs text-black/50">
-                <span className="flex items-center gap-1">
-                  <Star className="h-3 w-3 fill-ink text-ink" aria-hidden />
-                  {activePlace.avgRating.toFixed(1)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3" strokeWidth={1.5} aria-hidden />
-                  {activePlace.neighborhood ?? "Augsburg"}
-                </span>
-                <span className="tracking-widest">{priceRangeSymbols(activePlace.priceRange)}</span>
-              </p>
-            </div>
-          </Link>
-        </section>
-      ) : (
-        <p className="mt-6 text-center text-sm text-black/40">Tap a dot to preview a place.</p>
-      )}
+      {/* Session-30: the live renders NO selected-place card and no "Tap a
+          dot" hint below the canvas (the pin click navigates directly) —
+          both clone inventions removed. */}
 
       {/* Places on the map — the live app's bottom section. Session-14
           re-measure: the list cards are TEXT-ONLY (no photos) — 24px-radius
