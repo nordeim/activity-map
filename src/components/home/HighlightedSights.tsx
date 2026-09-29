@@ -1,23 +1,29 @@
+"use client";
+
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { SaveButton } from "@/components/places/SaveButton";
+import { useParallax } from "./useParallax";
 import type { PlaceDTO } from "@/types";
 
 // The Highlighted Sights grid — re-measured from the live app (sessions 6 +
-// 8): six calm stops (Fuggerei → Schaezlerpalais) as SQUARE photo cards
+// 8 + 31): six calm stops (Fuggerei → Schaezlerpalais) as SQUARE photo cards
 // (aspect 1/1, rounded 24, dark bg) with the heart overlay, the white
 // rating pill, and the in-card bottom overlay — Inter 24px/500 (mobile) /
 // 18px/500 (desktop) white title, the neighborhood | category meta row, and
 // the VIOLET Learn More pill that slides in on hover. Closes with the
 // "More Things to Do" hand-off to /do as a DARK pill (session-8: bg
-// #111111, white text, no border).
+// #111111, white text, no border). Session-31: each img sits inside an
+// OVERSIZED -inset-y-[16%] wrapper (132% of the card height, clipped by
+// the square card) whose translateY parallax-interpolates with scroll.
 
 export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
+  const parallaxRef = useParallax<HTMLElement>();
   if (sights.length === 0) return null;
   // Session-23: the section's bottom padding is the live's mobile
   // pill→footer hand-off (22px); desktop hands off flush (0).
   return (
-    <section id="highlighted-sights" className="w-full pb-[22px] md:pb-0">
+    <section id="highlighted-sights" ref={parallaxRef} className="w-full pb-[22px] md:pb-0">
       <div className="mx-auto mb-10 max-w-3xl px-4 text-center sm:px-6">
         <h2 className="font-serif text-[42px] leading-[1.05] tracking-[-0.055em] text-ink sm:text-[clamp(42px,6.5vw,86px)]">
           Highlighted Sights
@@ -39,12 +45,18 @@ export function HighlightedSights({ sights }: { sights: PlaceDTO[] }) {
               <Link href={`/place/${sight.slug}`} className="block h-full">
                 <div className="relative aspect-square cursor-pointer overflow-hidden rounded-[24px] bg-[#181818] shadow-[0_18px_44px_rgba(14,14,14,0.1)] transition-transform duration-300 ease-out group-hover:-translate-y-1">
                 {sight.coverImageUrl ? (
-                  <img
-                    src={sight.coverImageUrl}
-                    alt={sight.name}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.03]"
-                  />
+                  <div
+                    data-parallax=""
+                    className="absolute inset-x-0 -inset-y-[16%]"
+                    style={{ transform: "translateY(8%)", transition: "transform 260ms ease-out" }}
+                  >
+                    <img
+                      src={sight.coverImageUrl}
+                      alt={sight.name}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
                 ) : (
                   <div className="flex h-full w-full items-center justify-center font-serif text-4xl text-white/20">
                     {sight.name.charAt(0)}

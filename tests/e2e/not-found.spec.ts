@@ -134,4 +134,41 @@ test.describe("not-found surfaces (session-30)", () => {
     await page.waitForURL("**/");
     await expect(page.getByRole("heading", { name: "Augsburg City Guide" })).toBeVisible();
   });
+
+  test("the generic 404 hydrates without console errors (session 31)", async ({ page }) => {
+    // Session-31 finding: the not-found page's usePathname() rendered
+    // "_not-found" (the static-prerender route) on the server but the
+    // real path on the client — a React #418 hydration text mismatch on
+    // EVERY unknown-route visit (a console error + a full client
+    // re-render). The fix mount-gates the pathname; this spec pins ZERO
+    // console/page errors on the visit.
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
+    page.on("pageerror", (err) => pageErrors.push(err.message));
+
+    const response = await page.goto("/no-such-route-hydration-check", {
+      waitUntil: "domcontentloaded",
+    });
+    expect(response?.status()).toBe(404);
+
+    // The quoted path still fills in (after mount — auto-retry covers it).
+    await expect(
+      page.getByText(/no-such-route-hydration-check.*could not be found/),
+    ).toBeVisible();
+
+    // Give any lazy hydration error a beat to surface, then assert clean.
+    // (The browser's own "Failed to load resource: … 404" network log is
+    // filtered — the page itself IS the 404 response; only REAL console
+    // errors — React hydration/recoverable errors, image failures on
+    // other codes — fail the assertion.)
+    await page.waitForTimeout(600);
+    expect(pageErrors).toEqual([]);
+    const realConsoleErrors = consoleErrors.filter(
+      (m) => !/^Failed to load resource: the server responded with a status of 404/.test(m),
+    );
+    expect(realConsoleErrors).toEqual([]);
+  });
 });

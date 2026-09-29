@@ -98,7 +98,56 @@ test.describe("home content parity (session 2)", () => {
     expect(desktopGeom.h1Y).toBeGreaterThanOrEqual(265);
     expect(desktopGeom.h1Y).toBeLessThanOrEqual(315);
 
-    // md (768): the same bleed rule — the box is 972px (900 + 72).
+    // Session-31: the live's hero is now a VIEWPORT-HEIGHT-RELATIVE model —
+    // the content margin-top is calc(5rem + 28vh) and the photo box height
+    // calc(100% + 72px) over a content-driven section (≈714 + 0.28vh at lg).
+    // At 800 those formulas land EXACTLY on the session-22 values above
+    // (290/1010); at taller viewports the surfaces shift down 0.28×Δvh —
+    // the live at 1280×900: h1 y=319, the photo 1038 tall at y=−85.
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const vh900Geom = await page.evaluate(() => {
+      const img = [...document.querySelectorAll("img")].find((i) => i.getBoundingClientRect().height > 400);
+      const h1 = document.querySelector("h1");
+      return {
+        imgY: Math.round(img?.getBoundingClientRect().y ?? 0),
+        imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
+        h1Y: Math.round(h1?.getBoundingClientRect().y ?? 0),
+      };
+    });
+    expect(vh900Geom.h1Y).toBeGreaterThanOrEqual(310);
+    expect(vh900Geom.h1Y).toBeLessThanOrEqual(328);
+    expect(vh900Geom.imgH).toBeGreaterThanOrEqual(1030);
+    expect(vh900Geom.imgH).toBeLessThanOrEqual(1046);
+    expect(vh900Geom.imgY).toBeLessThanOrEqual(-80);
+    expect(vh900Geom.imgY).toBeGreaterThanOrEqual(-90);
+
+    // Session-31: the live's photo box now carries big elliptical ROUNDED
+    // BOTTOM corners — border-radius: 32px 32px 60% 60% / 32px 32px 80px
+    // 80px at md+ (and 0 0 42% 42% / 0 0 48px 48px below md). The zoomed
+    // camera crops away the raw box, so the RADIUS is the pinned surface.
+    const desktopRadius = await page.evaluate(() => {
+      const img = [...document.querySelectorAll("img")].find((i) => i.getBoundingClientRect().height > 400);
+      return getComputedStyle(img!.parentElement!).borderRadius;
+    });
+    expect(desktopRadius).toContain("60%");
+    expect(desktopRadius).toContain("80px");
+
+    // Session-31: the planner pill gap shrank — the live's pill carries
+    // mt-4 (16px) at md+ (was 24px). The rect gap = the 16px margin + the
+    // h1's -translate-y-1.5 (−6px lifts its box): the live measures 22
+    // (16 + 6; its rect bottom = 405, the pill top = 427 at 1280×800).
+    const pillGap = await page.evaluate(() => {
+      const h1 = document.querySelector("h1");
+      const pill = [...document.querySelectorAll("div")].find((d) => getComputedStyle(d).backdropFilter !== "none");
+      return Math.round(pill!.getBoundingClientRect().y - (h1!.getBoundingClientRect().y + h1!.getBoundingClientRect().height));
+    });
+    expect(pillGap).toBeGreaterThanOrEqual(20);
+    expect(pillGap).toBeLessThanOrEqual(24);
+
+    // md (768): the same bleed rule — session-31 re-measure: the live's md
+    // section is content-driven (≈577 + 0.3vh — NOT the old fixed 900),
+    // so at 768×900 the photo box is 919px (was 972).
     await page.setViewportSize({ width: 768, height: 900 });
     await page.goto("/", { waitUntil: "domcontentloaded" });
     const mdGeom = await page.evaluate(() => {
@@ -108,10 +157,40 @@ test.describe("home content parity (session 2)", () => {
         imgH: Math.round(img?.getBoundingClientRect().height ?? 0),
       };
     });
-    expect(mdGeom.imgH).toBeGreaterThanOrEqual(965);
-    expect(mdGeom.imgH).toBeLessThanOrEqual(980);
+    expect(mdGeom.imgH).toBeGreaterThanOrEqual(910);
+    expect(mdGeom.imgH).toBeLessThanOrEqual(925);
     expect(mdGeom.imgY).toBeLessThanOrEqual(-75);
     expect(mdGeom.imgY).toBeGreaterThanOrEqual(-95);
+  });
+
+  test("hero mobile: the h1 font caps at 38px with rounded photo corners (session 31)", async ({ page }) => {
+    // Session-31 finding: the live's mobile h1 is clamp(32px, 9.2vw, 38px)
+    // — CAPPED at 38px (the clone's old 9vw clamp was uncapped: 57.6px at
+    // 640 vs the live's 38px). And the photo's bottom corners round at
+    // 0 0 42% 42% / 0 0 48px 48px below md.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const h1 = page.locator("h1").first();
+    await expect(h1).toBeVisible();
+    const font390 = await h1.evaluate((el) => getComputedStyle(el).fontSize);
+    expect(parseFloat(font390)).toBeGreaterThanOrEqual(35);
+    expect(parseFloat(font390)).toBeLessThanOrEqual(37);
+
+    // The mobile photo radius: 42% horizontal / 48px vertical at the
+    // bottom corners (the .today-hero-bg override).
+    const mobileRadius = await page.evaluate(() => {
+      const img = [...document.querySelectorAll("img")].find((i) => i.getBoundingClientRect().height > 400);
+      return getComputedStyle(img!.parentElement!).borderRadius;
+    });
+    expect(mobileRadius).toContain("42%");
+    expect(mobileRadius).toContain("48px");
+
+    // At 640 (still below md) the cap binds: the live renders 38px.
+    await page.setViewportSize({ width: 640, height: 844 });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    const font640 = await h1.evaluate((el) => getComputedStyle(el).fontSize);
+    expect(parseFloat(font640)).toBeGreaterThanOrEqual(37);
+    expect(parseFloat(font640)).toBeLessThanOrEqual(39);
   });
 
   test("the trip-planner date-range popover matches the live re-measure (session 28)", async ({ page }) => {
@@ -795,14 +874,27 @@ test.describe("home content parity (session 2)", () => {
     const count = await letters.count();
     expect(count).toBeGreaterThanOrEqual(50);
 
-    // Session-12 re-measure: the live's heading block is FULL-WIDTH and
-    // LEFT-ALIGNED (h2 x≈38, w≈1203 at 1280 — no max-w-3xl centering), the
-    // subtitle is 14px #888580 (not 16px black/60), and the grid wrapper
-    // carries pt-112/pb-144 padding.
+    // Session-12 re-measure: the live's heading block is FULL-WIDTH (h2
+    // x≈38, w≈1203 at 1280 — no max-w-3xl centering), the subtitle is 14px
+    // #888580 (not 16px black/60), and the grid wrapper carries
+    // pt-112/pb-144 padding. Session-31: the live now CENTER-ALIGNS the
+    // heading text (was left) — the rendered lines sit symmetrically in the
+    // full-width box.
     const h2Box = await h2.boundingBox();
     expect(h2Box).not.toBeNull();
     expect(h2Box!.x).toBeLessThan(60);
     expect(h2Box!.width).toBeGreaterThan(1100);
+    await expect(h2).toHaveCSS("text-align", "center");
+    const extents = await h2.evaluate((el) => {
+      const letters = [...el.querySelectorAll("span[data-letter]")];
+      const xs = letters.map((s) => s.getBoundingClientRect());
+      const left = Math.min(...xs.map((r) => r.x));
+      const right = Math.max(...xs.map((r) => r.x + r.width));
+      return { left: Math.round(left), right: Math.round(right), vw: window.innerWidth };
+    });
+    // Symmetric margins: the live's text spans 129→1158 at 1280 (margins
+    // 129/128 — the centered multi-line block).
+    expect(Math.abs(extents.left - (extents.vw - extents.right))).toBeLessThanOrEqual(12);
     const sub = page.getByText("Pick a stay that matches your mood, from quiet design hotels to rooftop city escapes.");
     await expect(sub).toHaveCSS("font-size", "14px");
     await expect(sub).toHaveCSS("color", "rgb(138, 135, 128)");
@@ -899,6 +991,26 @@ test.describe("home content parity (session 2)", () => {
     expect(Math.round(bookBox!.height)).toBeLessThanOrEqual(36);
     const bookBorder = await bookPill.evaluate((el) => getComputedStyle(el).borderTopWidth);
     expect(bookBorder).toBe("1px");
+
+    // Session-31 re-measure: the live's HOME showcase images carry a
+    // permanent 1.16 zoom (transform: translateY(8%) scale(1.16) at rest,
+    // the ty parallax-interpolating toward 0 as the card centers) — the
+    // /stay BROWSE cards stay transform-free (verified: transform none).
+    // The visible crop is 16% tighter than the plain 118% fill.
+    const stayImgTransform = await showcase.locator("article img").first().evaluate((el) => getComputedStyle(el).transform);
+    expect(stayImgTransform).toContain("1.16");
+
+    // The SIGHTS model: an oversized wrapper (absolute inset-x-0
+    // -inset-y-[16%] — the img renders ~132% of the card height, clipped
+    // by the square card) carrying the same scroll parallax.
+    const sightsSection = page.locator("#highlighted-sights");
+    const sightsWrapper = await sightsSection.locator("article img").first().evaluate((el) => {
+      const wrapper = el.parentElement!;
+      const card = wrapper.closest("div[class*=rounded]")!;
+      return { wrapperH: Math.round(wrapper.getBoundingClientRect().height), cardH: Math.round(card.getBoundingClientRect().height) };
+    });
+    expect(sightsWrapper.wrapperH).toBeGreaterThanOrEqual(Math.round(sightsWrapper.cardH * 1.25));
+    expect(sightsWrapper.wrapperH).toBeLessThanOrEqual(Math.round(sightsWrapper.cardH * 1.4));
   });
 
   test("highlighted sights: six cards linking to home-sight place pages", async ({ page }) => {

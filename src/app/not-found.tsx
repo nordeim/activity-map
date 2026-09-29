@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 
 // The generic unknown-route 404 (session-30 re-measure): the live serves
 // its platform's default design — a chrome-less slate page: the 72px
@@ -10,9 +10,25 @@ import { usePathname } from "next/navigation";
 // "Go Home" action → /. (The old custom cream "Off the map" page was a
 // clone invention — the live never rendered it. The PLACE 404 is its own
 // in-app design in src/app/(app)/place/[slug]/not-found.tsx.)
+//
+// Session-31 hydration fix: this page is STATICALLY PRERENDERED, so any
+// pathname source bakes the prerender route into the server HTML while
+// the client hydrates with the REAL path — a React #418 text mismatch (a
+// console error + a full client re-render) on every visit. The quoted
+// path now reads window.location through useSyncExternalStore — the
+// documented-safe client-only-value pattern: the server render AND the
+// hydration pass both use getServerSnapshot (""), then React swaps in
+// the client snapshot after mount (no mismatch, no effect-setState).
+const emptySubscribe = () => () => {};
+const getAttemptedPath = () => window.location.pathname.replace(/^\//, "");
+const getServerAttemptedPath = () => "";
+
 export default function NotFound() {
-  const pathname = usePathname();
-  const attempted = pathname.replace(/^\//, "");
+  const attempted = useSyncExternalStore(
+    emptySubscribe,
+    getAttemptedPath,
+    getServerAttemptedPath,
+  );
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">

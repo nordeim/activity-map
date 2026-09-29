@@ -64,14 +64,8 @@
 
 /* Full-bleed hero image with the legibility gradient used on the
    reference home page (dark bottom for the white serif wordmark). */
-@utility hero-shade {
-  background: linear-gradient(
-    to bottom,
-    rgba(10, 14, 24, 0.18) 0%,
-    rgba(10, 14, 24, 0.05) 45%,
-    rgba(10, 14, 24, 0.42) 100%
-  );
-}
+/* (hero-shade removed in session-31 — the live renders its hero image RAW
+   with no gradient overlay; pixel-verified against the source app.) */
 
 html {
   scroll-behavior: smooth;
@@ -220,6 +214,28 @@ body {
 .leaflet-container .leaflet-control-zoom a:hover {
   background: #f8f7f4 !important;
   color: #0e0e0e !important;
+}
+
+/* Session-31 hero mobile overrides — the live's own model: the elements
+   carry the desktop (md+) values inline/inline-styled, and a
+   max-width: 767px block overrides them with !important (CSS !important
+   beats inline styles — the same mechanism the live uses):
+   - .today-hero-title: the h1 font CAPS at 38px on phones
+     (clamp(32px, 9.2vw, 38px); the desktop clamp(34px, 9vw, 122px) is
+     uncapped and would render 57.6px at 640 vs the live's 38px).
+   - .today-hero-bg: pinned to the 591px phone section box (top 0 /
+     height 100% — killing the desktop bleed calcs) with the phone
+     corner rounding 0 0 42% 42% / 0 0 48px 48px. */
+@media (max-width: 767px) {
+  .today-hero-title {
+    font-size: clamp(32px, 9.2vw, 38px) !important;
+  }
+
+  .today-hero-bg {
+    top: 0 !important;
+    height: 100% !important;
+    border-radius: 0 0 42% 42% / 0 0 48px 48px !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

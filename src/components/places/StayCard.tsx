@@ -22,12 +22,32 @@ export function StayCard({ place, home = false }: { place: PlaceDTO; home?: bool
       <Link href={`/place/${place.slug}`} className="block h-full">
         <div className="relative aspect-square cursor-pointer overflow-hidden rounded-[24px] bg-[#181818] shadow-[0_18px_44px_rgba(14,14,14,0.1)] transition-transform duration-300 ease-out group-hover:-translate-y-1">
           {place.coverImageUrl ? (
-            <img
-              src={place.coverImageUrl}
-              alt={place.name}
-              loading="lazy"
-              className="h-[118%] w-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.06] group-hover:brightness-75"
-            />
+            home ? (
+              /* Session-31: the HOME showcase model — the live's imgs carry
+               * a permanent 1.16 zoom + the scroll parallax (translateY 8%
+               * below the viewport → 0 centered → negative above; NO hover
+               * zoom/brightness — the live's transform/filter sit still on
+               * hover). The /stay BROWSE variant keeps its plain fill +
+               * the session-6 hover model (verified: transform none there). */
+              <img
+                src={place.coverImageUrl}
+                alt={place.name}
+                loading="lazy"
+                data-parallax="1.16"
+                className="h-[118%] w-full object-cover"
+                style={{
+                  transform: "translateY(8%) scale(1.16)",
+                  transition: "transform 260ms ease-out",
+                }}
+              />
+            ) : (
+              <img
+                src={place.coverImageUrl}
+                alt={place.name}
+                loading="lazy"
+                className="h-[118%] w-full object-cover transition-all duration-300 ease-out group-hover:scale-[1.06] group-hover:brightness-75"
+              />
+            )
           ) : (
             <div className="flex h-full w-full items-center justify-center font-serif text-4xl text-white/20">
               {place.name.charAt(0)}
